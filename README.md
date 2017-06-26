@@ -5,7 +5,9 @@ This repository contains some psfgen scripts, TcL scripts for use in VMD, and so
 
 * support for rudimentary loop model-building to include residues missing in the experimental PDB file but present in the crystallized protein sequence;  
 * support for including glycans;
-* integration between solvation and initial MD simulation config file (easy transfer of box size)
+* integration between solvation and initial MD simulation config file (easy transfer of box size);
+* support for down-puckered prolines;
+* (more to come)...
 
 The tcl directory contains files than can be "sourced" by psfgen scripts.  The charmm directory contains some custom topologies and parameters derived from the latest charmm36 parameter set (July 2016).  Other directory names indicate the PDB entry for which the files contained therein are applicable.
 
