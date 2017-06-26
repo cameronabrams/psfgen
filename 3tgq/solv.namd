@@ -1,0 +1,54 @@
+structure   my_3tgq_i.psf
+coordinates my_3tgq_i.pdb
+set temperature 310
+temperature $temperature
+
+set outputname solv
+firsttimestep 0
+
+paraTypeCharmm      on
+parameters $env(HOME)/charmm/toppar/par_all36_prot.prm
+parameters $env(HOME)/charmm/toppar/toppar_water_ions_namd_nonbfixes.str
+
+exclude             scaled1-4
+1-4scaling          1.0
+cutoff              10.
+switching           on
+switchdist          9.
+pairlistdist        11.5
+timestep            2.0
+rigidbonds      all
+
+PME on
+pmegridspacing 1.0
+
+source cell.inp
+
+wrapall on
+
+nonbondedFreq       1
+fullElectFrequency  2
+stepspercycle       10
+outputName          $outputname
+
+langevin                on
+langevinDamping         5
+langevinTemp            $temperature
+langevinHydrogen        no
+seed                    98768674
+
+langevinpiston          on
+langevinpistontarget    1.013
+langevinpistonperiod    200
+langevinpistondecay     100
+langevinpistontemp      $temperature
+usegrouppressure        yes
+useflexiblecell         no
+
+outputEnergies      10
+dcdfreq             1000
+restartfreq         1000
+
+minimize 500
+run 5000
+
