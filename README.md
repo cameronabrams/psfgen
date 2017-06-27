@@ -5,9 +5,19 @@ This repository contains some psfgen scripts, TcL scripts for use in VMD, and so
 
 * support for rudimentary loop model-building to include residues missing in the experimental PDB file but present in the crystallized protein sequence;  
 * support for including glycans;
-* integration between solvation and initial MD simulation config file (easy transfer of box size)
+* integration between solvation and initial MD simulation config file (easy transfer of box size);
+* support for down-puckered prolines;
+* (more to come)...
 
-The tcl directory contains files than can be "sourced" by psfgen scripts.  The charmm directory contains some custom topologies and parameters derived from the latest charmm36 parameter set (July 2016).  Other directory names indicate the PDB entry for which the files contained therein are applicable.  So far, here is a list of the PDB's for which I have generated PSF/PDB solvated systems:
+The tcl directory contains files than can be "sourced" by psfgen scripts.  The charmm directory contains some custom topologies and parameters derived from the latest charmm36 parameter set (July 2016).  Other directory names indicate the PDB entry for which the files contained therein are applicable.
+
+## Requirements
+
+1. NAMD v 2.12
+2. VMD v. 1.8.3
+3. latest CHARMM36 topologies and parameters in $HOME/charmm/toppar
+
+## Currently supported PDB's:
 
 1. 3TGQ -- unliganded core monomeric HIV-1 gp120 [http://www.rcsb.org/pdb/explore/explore.do?structureId=3tgq]
 
