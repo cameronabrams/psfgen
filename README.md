@@ -21,6 +21,6 @@ The tcl directory contains files than can be "sourced" by psfgen scripts.  The c
 
 1. 3TGQ -- unliganded core monomeric HIV-1 gp120 [http://www.rcsb.org/pdb/explore/explore.do?structureId=3tgq]
 
-2. 4ZMJ -- unliganded soluble trimeric HIV-1 Env gp140 [http://www.rcsb.org/pdb/explore/explore.do?structure=4zmj]
+2. 4ZMJ -- unliganded soluble trimeric HIV-1 Env gp140 [http://www.rcsb.org/pdb/explore/explore.do?structureId=4zmj]
 
 2017, Cameron F Abrams
