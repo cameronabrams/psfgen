@@ -1,0 +1,60 @@
+structure   my_4zmj_trimer_i.psf
+coordinates my_4zmj_trimer_i.pdb
+set temperature 310
+temperature $temperature
+
+set outputname sol
+firsttimestep 0
+
+paraTypeCharmm      on
+parameters $env(HOME)/charmm/toppar/par_all36_prot.prm
+parameters $env(HOME)/charmm/toppar/par_all36_carb.prm
+parameters $env(HOME)/charmm/toppar/stream/carb/toppar_all36_carb_glycopeptide.str
+parameters $env(HOME)/charmm/toppar/toppar_water_ions_namd_nonbfixes.str
+
+exclude             scaled1-4
+1-4scaling          1.0
+cutoff              10.
+switching           on
+switchdist          9.
+pairlistdist        11.5
+timestep            2.0  ;
+rigidbonds      all
+
+PME on
+pmegridspacing 1.0
+
+source cell.inp
+wrapall on
+
+nonbondedFreq       1
+fullElectFrequency  2
+stepspercycle       10
+outputName          $outputname
+
+# Langevin Dynamics for T-control and P-control
+langevin                on;            # do langevin dynamics
+langevinDamping         5;              # damping coefficient (gamma) of 5/ps
+langevinTemp            $temperature;   # bath temperature
+langevinHydrogen        no;             # don't couple langevin bath to hydrogens
+seed                    98768674
+
+langevinpiston          on
+langevinpistontarget    1.013  ;# 1-bar
+langevinpistonperiod    200
+langevinpistondecay     100
+langevinpistontemp      $temperature
+usegrouppressure        yes
+useflexiblecell         no
+
+outputEnergies      10
+dcdfreq             1000
+restartfreq         1000
+
+colvars on
+colvarsconfig my_4zmj_trimer_colvars_op.inp
+
+minimize 1000
+run 20000
+
+
