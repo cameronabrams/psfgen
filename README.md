@@ -19,8 +19,10 @@ The tcl directory contains files than can be "sourced" by psfgen scripts.  The c
 
 ## Currently supported PDB's:
 
-1. 3TGQ -- unliganded core monomeric HIV-1 gp120 [http://www.rcsb.org/pdb/explore/explore.do?structureId=3tgq]
+1. [3TGQ](http://www.rcsb.org/pdb/explore/explore.do?structureId=3tgq) -- unliganded core monomeric HIV-1 gp120;
 
-2. 4ZMJ -- unliganded soluble trimeric HIV-1 Env gp140 [http://www.rcsb.org/pdb/explore/explore.do?structureId=4zmj]
+2. [4ZMJ](http://www.rcsb.org/pdb/explore/explore.do?structureId=4zmj) -- unliganded soluble trimeric HIV-1 Env gp140;
+
+3. [5FUU](http://www.rcsb.org/pdb/explore/explore.do?structureId=5fuu) -- soluble, cleaved JR-FL HIV-1 trimer with glycans and with PGT151 antibodies removed;
 
 2017, Cameron F Abrams
