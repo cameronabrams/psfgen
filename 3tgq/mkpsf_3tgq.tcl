@@ -44,6 +44,11 @@ lappend LOCALFILES wA.pdb
 
 # save glycans
 set g [atomselect top "chain A and not water and not protein"]
+[atomselect top "chain A and resname NAG"] set resname BGNA
+[atomselect top "chain A and resname MAN"] set resname AMAN
+[atomselect top "chain A and resname BMA"] set resname BMAN
+[atomselect top "chain A and resname FUC"] set resname AFUC
+[atomselect top "chain A and resname GAL"] set resname BGAL
 $g writepdb gA.pdb
 lappend LOCALFILES gA.pdb
 
@@ -172,9 +177,10 @@ $a writepdb "my_3tgq_mcOut.pdb"
 set fix [atomselect top "protein and noh and not (resid 301 to 324 405 to 411 459 to 463)"]
 $a set beta 0
 $fix set beta 1
-set watgly [atomselect top "not protein and not noh"]
-$watgly set beta 1
-
+set wat [atomselect top "name OH2"]
+$wat set beta 1
+set glyhv [atomselect top "not water and not protein and noh"]
+$glyhv set beta 1
 $a writepdb "my_3tgq_fix.pdb"
 
 # clean up

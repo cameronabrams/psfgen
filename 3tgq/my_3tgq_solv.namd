@@ -51,7 +51,7 @@ colvars on
 colvarsconfig my_3tgq_colvars_op.inp
 
 outputEnergies      10
-dcdfreq             1000
+dcdfreq             10
 restartfreq         1000
 
 minimize 500
