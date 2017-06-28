@@ -16,7 +16,7 @@ clone the repository, you will have to figure this part out on your own.  It is 
 
 1. Download 4zmj.pdb to a clean directory
 
-> wget http://www.rcsb.org/files/pdb/4zmj.pdb
+> wget http://www.rcsb.org/pdb/files/4zmj.pdb
 
 2. Use VMD in text mode to generate the psf/pdb
 
