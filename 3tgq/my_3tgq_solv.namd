@@ -50,8 +50,8 @@ useflexiblecell         no
 colvars on
 colvarsconfig my_3tgq_colvars_op.inp
 
-outputEnergies      10
-dcdfreq             10
+outputEnergies      100
+dcdfreq             1000
 restartfreq         1000
 
 minimize 500

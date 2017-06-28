@@ -16,6 +16,7 @@ if [ ! -e ${PDB}.pdb ]; then
 fi
 
 # 2. make the psf
+echo "Building vacuum system..."
 vmd -dispdev text -e $PSFGEN_BASEDIR/${PDB}/mkpsf_${PDB}.tcl > psfgen1.log
 
 # 3. run NAMD
@@ -24,6 +25,7 @@ ln -s $PSFGEN_BASEDIR/${PDB}/my_${PDB}_vac.namd .
 $CHARMRUN +p1 $NAMD2 my_${PDB}_vac.namd > vac.log
 
 # 4. solvate
+echo "Building solvated system..."
 vmd -dispdev text -e $PSFGEN_BASEDIR/${PDB}/my_${PDB}_solv.tcl > psfgen2.log
 
 # 5. run NAMD

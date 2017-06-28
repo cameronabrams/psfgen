@@ -148,6 +148,8 @@ patch NGLB A:448 GA:509
 
 guesscoord
 
+regenerate angles dihedrals
+
 writepsf "my_3tgq.psf"
 writepdb "my_3tgq_rawloops.pdb"
 resetpsf

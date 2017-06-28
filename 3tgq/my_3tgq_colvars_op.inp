@@ -81,14 +81,14 @@ colvar {
 harmonic {
   name prot_fixor
   colvars prot_orientation
-  forceconstant 100.0
+  forceconstant 10.0
   centers (1.0 , 0.0 , 0.0 , 0.0)
 }
 
 harmonic {
     name prot_nodrift
     colvars prot_position
-    forceconstant 100.0
+    forceconstant 10.0
     centers 0.0
 }
 
