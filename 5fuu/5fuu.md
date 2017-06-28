@@ -16,7 +16,7 @@ clone the repository, you will have to figure this part out on your own.  It is 
 
 1. Download 5fuu.pdb to a clean directory
 
-> wget http://www.rcsb.org/files/pdb/4zmj.pdb
+> wget http://www.rcsb.org/files/pdb/5fuu.pdb
 
 2. Use VMD in text mode to generate the psf/pdb
 
@@ -34,7 +34,7 @@ clone the repository, you will have to figure this part out on your own.  It is 
 
 5. Run NAMD to minimize and shake out the solvated system
 
-> ln -s $PSFGEN_BASEDIR/4zmj/my_4zmj_trimer_solv.namd .
+> ln -s $PSFGEN_BASEDIR/5fuu/my_5fuu_trimer_solv.namd .
 
 > $CHARMRUN +p16 $NAMD2 my_5fuu_solv.namd > solv.log
 
