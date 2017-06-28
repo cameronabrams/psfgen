@@ -25,4 +25,6 @@ The tcl directory contains files than can be "sourced" by psfgen scripts.  The c
 
 3. [5FUU](http://www.rcsb.org/pdb/explore/explore.do?structureId=5fuu) -- soluble, cleaved JR-FL HIV-1 trimer with glycans and with PGT151 antibodies removed;
 
+4. [1HHP](http://www.rcsb.org/pdb/explore/explore.do?strutureID=1hhp) -- apo, dimeric HIV-1 protease;
+
 2017, Cameron F Abrams

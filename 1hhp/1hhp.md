@@ -20,7 +20,7 @@ clone the repository, you will have to figure this part out on your own.  It is 
 
 2. Use VMD in text mode to generate the psf/pdb
 
-> vmd -dispdev text -e $PSFGEN_BASEDIR/5fuu/mkpsf_1hhp.tcl
+> vmd -dispdev text -e $PSFGEN_BASEDIR/1hhp/mkpsf_1hhp.tcl
 
 3. Run NAMD to relax bonds and guessed-in atoms
 
