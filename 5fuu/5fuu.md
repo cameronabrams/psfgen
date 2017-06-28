@@ -6,7 +6,7 @@ This directory contains five files:
 1. mkpsf_5fuu.tcl -- this is the VMD/psfgen script that creates the first vacuum psf/pdb pair.  It uses a monte-carlo-based loop model-builder to build in the missing residues.  It includes all glycans present in the PDB.
 2. my_5fuu_vac.namd -- this is a NAMD configuration file used to relax the "guessed" coordinates resulting from mkpsf_5fuu.tcl.
 3. my_5fuu_solv.tcl -- this is a VMD script that uses solvate and autoionize to generate a neutralized, solvated MD system using the coordinates from step 2 as input.
-4. my_5fuu_colvars_op.inp -- a colvars input file that defines collective varialbles that allow for center-of-mass restraint and an orientational restraint to keep the C3v axis along z.
+4. my_5fuu_colvars_op.inp -- a colvars input file that defines collective variables that allow for center-of-mass restraint and an orientational restraint to keep the C3v axis along z.
 5. my_5fuu_solv.namd -- this is a NAMD configuration file that performs a minimization and short MD of the raw solvated system; uses colvars module input file from 4.
 
 ## Instructions
