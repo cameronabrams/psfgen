@@ -6,8 +6,13 @@
 #
 set pad 10 ; #  pad in angstroms
 
-mol new my_3tgq.psf
-mol addfile my_3tgq_relax.coor
+set inputname my_3tgq
+set PSF ${inputname}.psf
+set outputname1 ${inputname}_wb
+set outputname2 ${inputname}_i
+
+mol new $PSF
+mol addfile ${inputname}_vac.coor
 
 set a [atomselect top all]
 
@@ -27,13 +32,13 @@ foreach d {0 1 2} {
   lset origin $d [expr 0.5*([lindex $box 1 $d ] + [lindex $box 0 $d])] 
 }
 
-$a writepdb my_3tgq_relax.pdb
+$a writepdb ${inputname}.pdb
 
 package require solvate
 package require autoionize
 
-solvate my_3tgq.psf my_3tgq_relax.pdb -minmax $box -o my_3tgq_wb
-autoionize -psf my_3tgq_wb.psf -pdb my_3tgq_wb.pdb -neutralize -o my_3tgq_i
+solvate $PSF ${inputname}.pdb -minmax $box -o ${outputname1}
+autoionize -psf ${outputname1}.psf -pdb ${outputname1}.pdb -neutralize -o ${outputname2}
 
 # generate an input file for the first solvated MD simulation
 # namd config file
@@ -45,5 +50,14 @@ puts $fp "cellorigin $origin"
 close $fp
 puts "Generated cell.inp."
 
+# generate a special PDB with certain reside alpha-carbons tagged for use
+# by a colvars module input file for orientational and positional restraints
+mol new ${outputname2}.psf
+mol addfile ${outputname2}.pdb
+set a [atomselect top all]
+$a set beta 0.0
+set b [atomselect top "name CA and chain A and resid 253 to 301 322 to 355 357 to 396 412 to 475"] 
+$b set beta 1.0
+$b writepdb ${inputname}_caB1.pdb
 quit
 

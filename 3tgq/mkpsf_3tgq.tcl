@@ -1,5 +1,5 @@
 # VMD/psfgen script for generating psf/pdb pair for PDB 3tgq
-# unliganded monomeric HIV-1 gp120
+# unliganded monomeric HIV-1 gp120 with glycans
 #
 # cameron f abrams (c) 2017
 # drexel university
@@ -40,8 +40,13 @@ set n460pos [cacoIn_nOut 459 A 0]
 # save the waters that are assigned to chain A that are close to the protein or ligand
 set w [atomselect top "chain A and water and same residue as within 4.0 of (protein and chain A)"]
 $w writepdb wA.pdb
-
 lappend LOCALFILES wA.pdb
+
+# save glycans
+set g [atomselect top "chain A and not water and not protein"]
+$g writepdb gA.pdb
+lappend LOCALFILES gA.pdb
+
 mol delete $molid
 
 
@@ -51,6 +56,8 @@ package require psfgen
 
 # Use the requisite charmm36 (july 2016) topology files
 topology $env(HOME)/charmm/toppar/top_all36_prot.rtf
+topology $env(HOME)/charmm/toppar/top_all36_carb_namd_cfa.rtf
+topology $env(HOME)/charmm/toppar/stream/carb/toppar_all36_carb_glycopeptide.str
 topology $env(HOME)/charmm/toppar/toppar_water_ions_namd.str
 
 pdbalias atom ILE CD1 CD
@@ -58,6 +65,11 @@ pdbalias atom ILE CD1 CD
 # This alias assumes ALL histidines in the protein 
 # are deprotonated at the delta position
 pdbalias residue HIS HSD
+
+pdbalias residue NAG BGLC
+pdbalias atom BGLC C7 C
+pdbalias atom BGLC O7 O
+pdbalias atom BGLC C8 CT
 
 # now we build the protein, including some
 # missing residues
@@ -94,6 +106,12 @@ coord A 318 N $n318pos
 coord A 405 N $n405pos
 coord A 460 N $n460pos
 
+# now we build the glycan segments
+segment GA {
+  pdb gA.pdb
+}
+coordpdb gA.pdb GA
+
 # now we build the crystal water segments
 pdbalias residue HOH TIP3
 pdbalias atom TIP3 O OH2
@@ -112,7 +130,17 @@ patch DISU A:296 A:331
 patch DISU A:378 A:445
 patch DISU A:385 A:418
 
-# add hydrogens
+# Add glycan linkages
+patch NGLB A:241 GA:501
+patch NGLB A:262 GA:502
+patch NGLB A:276 GA:503
+patch NGLB A:289 GA:504
+patch NGLB A:295 GA:505
+patch NGLB A:356 GA:506
+patch NGLB A:386 GA:507
+patch NGLB A:394 GA:508
+patch NGLB A:448 GA:509
+
 guesscoord
 
 writepsf "my_3tgq.psf"
@@ -139,13 +167,13 @@ do_loop_mc ${residueList} A ${molid} ${k} ${r0} ${bg} ${rcut} ${nc} ${temperatur
 set residueList [[atomselect ${molid} "chain A and resid 460 to 462 and name CA"] get residue]
 do_loop_mc ${residueList} A ${molid} ${k} ${r0} ${bg} ${rcut} ${nc} ${temperature} [irand_dom 1000 9999]
 
-$a writepdb "my_3tgq_mc.pdb"
+$a writepdb "my_3tgq_mcOut.pdb"
 
-set fix [atomselect top "protein and not hydrogen and not (resid 301 to 324 405 to 411 459 to 463)"]
+set fix [atomselect top "protein and noh and not (resid 301 to 324 405 to 411 459 to 463)"]
 $a set beta 0
 $fix set beta 1
-set wat [atomselect top "name OH2"]
-$wat set beta 1
+set watgly [atomselect top "not protein and not noh"]
+$watgly set beta 1
 
 $a writepdb "my_3tgq_fix.pdb"
 
