@@ -3,7 +3,7 @@
 ## Files
 
 This directory contains six files:
-1. mkpsf_1hhp.tcl -- this is the VMD/psfgen script that creates the first vacuum psf/pdb pair.  It uses a monte-carlo-based loop model-builder to build in the missing residues.  It includes all glycans present in the PDB.
+1. mkpsf_1hhp.tcl -- this is the VMD/psfgen script that creates the first vacuum psf/pdb pair.  It uses a monte-carlo-based loop model-builder to build in the missing residues. It handles the two protonated aspartates and the two down-puckered prolines.
 2. my_1hhp_vac.namd -- this is a NAMD configuration file used to relax the "guessed" coordinates resulting from step 1.
 3. my_1hhp_solv.tcl -- this is a VMD script that uses solvate and autoionize to generate a neutralized, solvated MD system using the coordinates from step 2 as input.
 4. my_1hhp_colvars_op.inp -- a colvars input file that defines collective variables that allow for center-of-mass restraint and an orientational restraint.
