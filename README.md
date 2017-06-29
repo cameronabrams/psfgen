@@ -32,6 +32,8 @@ The tcl directory contains files than can be "sourced" by psfgen scripts.  The c
 
 5. [2MB5](http://www.rcsb.org/pdb/explore/explore.do?structureID=2mb5) -- carbonmonoxymyoglobin;
 
-6. more to come...
+6. [1F7A](http://www.rcsb.org/pdb/explore/explore.do?structureID=1f7a) -- HIV-1 protease with bound substrate peptide;
+
+7. more to come...
 
 2017, Cameron F Abrams
