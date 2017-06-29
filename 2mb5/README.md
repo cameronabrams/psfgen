@@ -2,13 +2,14 @@
 
 ## Files
 
-This directory contains six files:
+This directory contains five files:
 1. mkpsf_2mb5.tcl --  VMD/psfgen script that creates the first vacuum psf/pdb pair.  It uses a monte-carlo-based loop model-builder to build in the missing residues.
 2. my_2mb5_vac.namd --  NAMD configuration file used to relax the "guessed" coordinates resulting from step 1, which iclude all hydrogens and all atoms on model-built loops.
 3. my_2mb5_solv.tcl -- VMD script that uses solvate and autoionize to generate a neutralized, solvated MD system.
 4. my_2mb5_colvars_op.inp -- a colvars input file that defines collective variables that allow for center-of-mass restraint and orientational restraint.
 5. my_2mb5_solv.namd -- a NAMD configuration file that performs a minimization and short MD of the raw solvated system.
-6. do_test.sh -- a Bash script that performs the sequence of commands detailed in the instructions below.
+
+The file do_test.sh in the scripts/ directory is a Bash script that performs the sequence of commands detailed in the instructions below.
 
 ## Instructions
 
