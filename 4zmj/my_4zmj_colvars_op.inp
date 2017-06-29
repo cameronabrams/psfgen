@@ -14,7 +14,7 @@ colvar {
       atomNameResidueRange CA 322-396
       atomNameResidueRange CA 411-475
     }
-    refpositionsfile my_4zmj_trimer_caB1.pdb
+    refpositionsfile my_4zmj_caB1.pdb
     refpositionscol B
   }
 }

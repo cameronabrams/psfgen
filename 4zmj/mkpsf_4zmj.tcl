@@ -245,11 +245,11 @@ resetpsf
 foreach g {G E F} b {B C D} {
   readpsf my_4zmj_protomer_${g}${b}_glycans.psf pdb my_4zmj_protomer_${g}${b}_glycans_rawloops_tmp1.pdb
 }
-writepsf "my_4zmj_trimer.psf"
+writepsf "my_4zmj.psf"
 writepdb "trimer.pdb"
 lappend LOCALFILES trimer.pdb
 
-mol new my_4zmj_trimer.psf
+mol new my_4zmj.psf
 mol addfile trimer.pdb
 set molid [molinfo top get id]
 
@@ -260,7 +260,7 @@ $a set beta 1 ;# pretty much everything is fixed except...
 [atomselect top "chain G E F and resid 397 to 409"] set beta 0
 [atomselect top "chain B C D and resid 512 to 521"] set beta 0
 [atomselect top "chain B C D and resid 547 to 569"] set beta 0
-$a writepdb "my_4zmj_trimer_fix.pdb"
+$a writepdb "my_4zmj_fix.pdb"
 
 $a set beta 0
 
@@ -292,7 +292,7 @@ foreach g {G E F} b {B C D} {
   do_loop_mc ${residueList} ${b} ${molid} ${k} ${r0} ${bg} ${rcut} ${nc} ${temperature} [irand_dom 1000 9999]
 }
 
-$a writepdb "my_4zmj_trimer_mcOut.pdb"
+$a writepdb "my_4zmj_mcOut.pdb"
 
 foreach f $LOCALFILES {
   exec rm $f

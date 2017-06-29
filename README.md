@@ -34,6 +34,8 @@ The tcl directory contains files than can be "sourced" by psfgen scripts.  The c
 
 6. [1F7A](http://www.rcsb.org/pdb/explore/explore.do?structureID=1f7a) -- HIV-1 protease with bound substrate peptide;
 
-7. more to come...
+7. [1HIW](http://www.rcsb.org/pdb/explore/explore.do?structureID=1hiw) -- HIV-1 matrix (MA) trimer;
+
+8. more to come...
 
 2017, Cameron F Abrams

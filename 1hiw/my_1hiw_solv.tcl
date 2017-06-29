@@ -7,7 +7,7 @@
 
 set pad 10; # pad in angstroms
 
-set inputname my_4zmj_trimer
+set inputname my_1hiw
 set PSF ${inputname}.psf
 set outputname1 ${inputname}_wb
 set outputname2 ${inputname}_i
@@ -58,8 +58,8 @@ mol new ${outputname2}.psf
 mol addfile ${outputname2}.pdb
 set a [atomselect top all]
 $a set beta 0.0
-set b [atomselect top "name CA and chain G E F and resid 253 to 301 322 to 396 411 to 475"] 
+set b [atomselect top "name CA and chain A B C and resid 7 to 101"] 
 $b set beta 1.0
-$b writepdb "my_4zmj_trimer_caB1.pdb"
+$b writepdb ${inputname}_caB1.pdb
 
 quit

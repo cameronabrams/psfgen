@@ -3,11 +3,11 @@
 ## Files
 
 This directory contains five files:
-1. mkpsf_4zmj_trimer.tcl -- this is the VMD/psfgen script that creates the first vacuum psf/pdb pair.  It uses a monte-carlo-based loop model-builder to build in the missing residues.  It includes all glycans present in the PDB entry and performs symmetry replication as instructed to generate the full trimer.
-2. my_4zmj_trimer_vac.namd -- this is a NAMD configuration file used to relax the "guessed" coordinates resulting from mkpsf_4zmj_trimer.tcl.
-3. my_4zmj_trimer_solv.tcl -- this is a VMD script that uses solvate and autoionize to generate a neutralized, solvated MD system using the coordinates from step 2 as input.
-4. my_4zmj_trimer_colvars_op.inp -- a colvars input file that defines collective variables that allow for center-of-mass restraint and an orientational restraint to keep the C3v axis along z.
-5. my_4zmj_trimer_solv.namd -- this is a NAMD configuration file that performs a minimization and short MD of the raw solvated system; uses colvars module input file from 4.
+1. mkpsf_4zmj.tcl -- this is the VMD/psfgen script that creates the first vacuum psf/pdb pair.  It uses a monte-carlo-based loop model-builder to build in the missing residues.  It includes all glycans present in the PDB entry and performs symmetry replication as instructed to generate the full trimer.
+2. my_4zmj_vac.namd -- this is a NAMD configuration file used to relax the "guessed" coordinates resulting from mkpsf_4zmj.tcl.
+3. my_4zmj_solv.tcl -- this is a VMD script that uses solvate and autoionize to generate a neutralized, solvated MD system using the coordinates from step 2 as input.
+4. my_4zmj_colvars_op.inp -- a colvars input file that defines collective variables that allow for center-of-mass restraint and an orientational restraint to keep the C3v axis along z.
+5. my_4zmj_solv.namd -- this is a NAMD configuration file that performs a minimization and short MD of the raw solvated system; uses colvars module input file from 4.
 
 ## Instructions
 
@@ -20,22 +20,22 @@ clone the repository, you will have to figure this part out on your own.  It is 
 
 2. Use VMD in text mode to generate the psf/pdb
 
-> vmd -dispdev text -e $PSFGEN_BASEDIR/4zmj/mkpsf_4zmj_trimer.tcl
+> vmd -dispdev text -e $PSFGEN_BASEDIR/4zmj/mkpsf_4zmj.tcl
 
 3. Run NAMD to relax bonds and guessed-in atoms
 
-> ln -s $PSFGEN_BASEDIR/4zmj/my_4zmj_trimer_vac.namd .
+> ln -s $PSFGEN_BASEDIR/4zmj/my_4zmj_vac.namd .
 
-> $CHARMRUN +p1 $NAMD2 my_4zmj_trimer_vac.namd > vac.log
+> $CHARMRUN +p1 $NAMD2 my_4zmj_vac.namd > vac.log
 
 4. Use VMD to solvate and neutralize the output of step 3
 
-> vmd -dispdev text -e $PSFGEN_BASEDIR/4zmj/my_4zmj_trimer_solv.tcl
+> vmd -dispdev text -e $PSFGEN_BASEDIR/4zmj/my_4zmj_solv.tcl
 
 5. Run NAMD to minimize and shake out the solvated system
 
-> ln -s $PSFGEN_BASEDIR/4zmj/my_4zmj_trimer_solv.namd .
+> ln -s $PSFGEN_BASEDIR/4zmj/my_4zmj_solv.namd .
 
-> $CHARMRUN +p16 $NAMD2 my_4zmj_trimer_solv.namd > solv.log
+> $CHARMRUN +p16 $NAMD2 my_4zmj_solv.namd > solv.log
 
 2017, Cameron F Abrams

@@ -1,0 +1,52 @@
+colvarstrajfrequency 100
+colvar { 
+  name prot_orientation
+  orientation {
+    atoms {
+      psfSegID A B C
+      atomNameResidueRange CA 7-101
+      atomNameResidueRange CA 7-101
+      atomNameResidueRange CA 7-101
+    }
+    refpositionsfile my_1hiw_caB1.pdb
+    refpositionscol B
+  }
+}
+
+colvar {
+  name prot_position
+    distance {
+	group1 {
+           psfSegID A B C
+           atomNameResidueRange CA 7-101
+           atomNameResidueRange CA 7-101
+           atomNameResidueRange CA 7-101
+	}
+	group2 {
+	    dummyatom (0.0, 0.0, 0.0)
+	}
+    }
+}
+
+harmonic {
+  name prot_fixor
+  colvars prot_orientation
+  forceconstant 10.0
+  centers (1.0 , 0.0 , 0.0 , 0.0)
+}
+
+harmonic {
+    name prot_nodrift
+    colvars prot_position
+    forceconstant 10.0
+    centers 0.0
+}
+
+#harmonic {
+#    name grow_dist2G
+#    colvars dist2G
+#    forceconstant 1.0
+#    centers 8.27
+#    targetCenters 16.0
+#    targetNumSteps 1000000
+#}

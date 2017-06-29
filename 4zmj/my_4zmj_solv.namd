@@ -1,5 +1,5 @@
-structure   my_4zmj_trimer_i.psf
-coordinates my_4zmj_trimer_i.pdb
+structure   my_4zmj_i.psf
+coordinates my_4zmj_i.pdb
 set temperature 310
 temperature $temperature
 
@@ -52,7 +52,7 @@ dcdfreq             1000
 restartfreq         1000
 
 colvars on
-colvarsconfig my_4zmj_trimer_colvars_op.inp
+colvarsconfig my_4zmj_colvars_op.inp
 
 minimize 1000
 run 20000
