@@ -77,6 +77,36 @@ proc Crot_psi { r rend c molid deg } {
    $co delete
 }
 
+# rotate the side chain of residue r of chain c in mol molid around
+# chi1 by deg degrees
+proc SCrot_chi1 { r c molid deg } {
+   set rot [atomselect $molid "residue $r and not name N HN CA CB HA C O"]; checknum [$rot num] "no rot in SCrot_chi1";
+   set ca [atomselect $molid "residue $r and name CA"]; checknum [$ca num] "no CA in SCrot_chi1";
+   set cb [atomselect $molid "residue $r and name CB"]; checknum [$cb num] "no CB in SCrot_chi1";
+   set p1 [lindex [$ca get {x y z}] 0]
+   set p2 [lindex [$cb get {x y z}] 0]
+   set ax [vecsub $p1 $p2]
+   $rot move [trans center $p1 axis $ax $deg degrees]
+   $rot delete
+   $ca delete
+   $cb delete
+}
+
+# rotate the side chain of residue r of chain c in mol molid around
+# chi2 by deg degrees
+proc SCrot_chi2 { r c molid deg } {
+   set rot [atomselect $molid "residue $r and not name N HN CA CB HA C O HB1 HB2"]; checknum [$rot num] "no rot in SCrot_chi1";
+   set cb [atomselect $molid "residue $r and name CB"]; checknum [$cb num] "no CB in SCrot_chi1";
+   set cg [atomselect $molid "residue $r and name CG"]; checknum [$cg num] "no CG in SCrot_chi1";
+   set p1 [lindex [$cb get {x y z}] 0]
+   set p2 [lindex [$cg get {x y z}] 0]
+   set ax [vecsub $p1 $p2]
+   $rot move [trans center $p1 axis $ax $deg degrees]
+   $rot delete
+   $cb delete
+   $cg delete
+}
+
 proc Crot_psi_special { r rend c molid deg } {
    set rot [atomselect $molid "((residue > $r and residue < $rend) or (residue $rend and not name C and not name O)) and chain $c"]; checknum [$rot num] "no rot in Crot_psi";
    set ca [atomselect $molid "residue $r and name CA"]; checknum [$ca num] "No CA in Crot_psi";
