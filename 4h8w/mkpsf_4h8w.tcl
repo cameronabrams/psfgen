@@ -180,6 +180,9 @@ set fix [atomselect top "not protein and not water and noh"]
 $fix set beta 1
 set wat [atomselect top "name OH2"]
 $wat set beta 1
+if { $S375H == 1 } {
+  [atomselect top "resid 375"] set beta 0
+}
 
 $a writepdb "my_4h8w_fix.pdb"
 
