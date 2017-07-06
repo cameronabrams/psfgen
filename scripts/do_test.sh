@@ -27,6 +27,15 @@ while [ $i -le $ARGC ] ; do
     i=$((i+1))
     export PSFGEN_BASEDIR=${!i}
   fi
+  if [ "${!i}" = "-psfgen_args" ]; then
+    i=$((i+1))
+    j=0
+    while [ $i -le $ARGC ]; do
+      psfgen_args[$j]=${!i}
+      i=$((i+1))
+      j=$((j+1))
+    done
+  fi
   i=$((i+1))
 done
 
@@ -38,7 +47,11 @@ fi
 
 # 2. make the psf
 echo "Generating vacuum system..."
-vmd -dispdev text -e $PSFGEN_BASEDIR/${PDB}/mkpsf_${PDB}.tcl > psfgen1.log
+if [ ${#psfgen_args} -ge 0 ]; then
+  vmd -dispdev text -e $PSFGEN_BASEDIR/${PDB}/mkpsf_${PDB}.tcl -args ${psfgen_args[*]} > psfgen1.log
+else
+  vmd -dispdev text -e $PSFGEN_BASEDIR/${PDB}/mkpsf_${PDB}.tcl > psfgen1.log
+fi
 
 # 3. run NAMD
 echo "Running namd2 on vacuum system..."

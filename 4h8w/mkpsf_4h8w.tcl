@@ -6,6 +6,15 @@
 # cameron f abrams (c) 2017
 # drexel university
 # chemical and biological engineering
+
+# check for any arguments
+set S375H 0
+foreach arg $argv {
+  puts "Considering $arg..."
+  if { $arg == "S375H" } {
+     set S375H 1
+  }
+}
 #
 # check for base directory name variable;
 # if not set, use default
@@ -65,25 +74,29 @@ pdbalias atom BGNA C8 CT
 # missing residues
 segment G {
   pdb p1.pdb
-  residue 318 GLY
-  residue 319 GLY
-  residue 320 SER
-  residue 321 GLY
-  residue 322 SER
-  residue 323 GLY
+  residue 318 GLY G
+  residue 319 GLY G
+  residue 320 SER G
+  residue 321 GLY G
+  residue 322 SER G
+  residue 323 GLY G
   pdb p2.pdb
-  residue 403 GLY
-  residue 404 ASN
-  residue 405 GLU
-  residue 406 THR
-  residue 407 MET
-  residue 408 LYS
-  residue 409 GLY
+  residue 403 GLY G
+  residue 404 ASN G
+  residue 405 GLU G
+  residue 406 THR G
+  residue 407 MET G
+  residue 408 LYS G
+  residue 409 GLY G
   pdb p3.pdb
-  residue 460 ALA
-  residue 461 ASN
-  residue 462 ASN
+  residue 460 ALA G
+  residue 461 ASN G
+  residue 462 ASN G
   pdb p4.pdb
+  if { $S375H == 1 } {
+    puts "MKPSF> mutating 375 from S to H"
+    mutate 375 HSD
+  }
 }
 
 coordpdb p1.pdb G

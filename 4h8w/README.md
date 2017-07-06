@@ -9,9 +9,19 @@ This directory contains five files:
 4. my_4h8w_colvars_op.inp -- a colvars input file that defines collective variables that allow for center-of-mass restraint and orientational restraint.
 5. my_4h8w_solv.namd -- a NAMD configuration file that performs a minimization and short MD of the raw solvated system.
 
-The file do_test.sh in the scripts/directory is a Bash script that performs the sequence of commands detailed in the instructions below.
+## Quick Instructions
 
-## Instructions
+The file do_test.sh in the scripts/directory is a Bash script that will generate a run-ready, relaxed, solvated system if issued in a clean directory.  The steps it performs are detailed in the following section.  In a clean directory, issue:
+
+> $PSFGEN_BASEDIR/scripts/do_test.sh -pdb 4h8w
+
+NOTE:  To revert the serine at 375 back to a histidine that is considered WT for clade A/E HIV-1, issue the command as
+
+> $PSFGEN_BASEDIR/scripts/do_test.sh -pdb 4h8w -psfgen_args S375H
+
+(Other mutations will soon be supported -- this is just a quick one)
+
+## Detailed Instructions
 
 Make sure PSFGEN_BASEDIR resolves to the root directory of your local copy of this repository (mine is ${HOME}/research/psfgen).  It is also assumed below that CHARMRUN resolves to your local charmrun executable and NAMD2 resolves to your local NAMD2 executable.  For me, these are ${HOME}/namd/NAMD_2.12_Source/Linux-x86_64-g++/charmrun and ${HOME}/namd/NAMD_2.12_Source/Linux-x86_64-g++/namd2.
 
