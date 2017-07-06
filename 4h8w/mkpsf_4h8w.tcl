@@ -9,10 +9,25 @@
 
 # check for any arguments
 set S375H 0
+set H61Y 0
+set Q105H 0
+set V108I 0
+set NIK474_476DMR 0
 foreach arg $argv {
-  puts "Considering $arg..."
   if { $arg == "S375H" } {
      set S375H 1
+  }
+  if { $arg == "H61Y" } {
+     set H61Y 1
+  }
+  if { $arg == "Q105H"} {
+     set Q105H 1
+  }
+  if { $arg == "V108I"} {
+     set V108I 1
+  }
+  if { $arg == "NIK474-476DMR"} {
+     set NIK474_476DMR 1
   }
 }
 #
@@ -96,6 +111,24 @@ segment G {
   if { $S375H == 1 } {
     puts "MKPSF> mutating 375 from S to H"
     mutate 375 HSD
+  }
+  if { $H61Y == 1 } {
+    puts "MKPSF> mutating 61 from H to Y"
+    mutate 61 TYR
+  }
+  if { $Q105H == 1 } {
+    puts "MKPSF> mutating 105 from Q to H"
+    mutate 105 HSD
+  }
+  if { $V108I == 1 } { 
+    puts "MKPSF> mutating 108 from V to I"
+    mutate 108 ILE
+  }
+  if { $NIK474_476DMR == 1 } {
+    puts "MKPSF> mutating 474-476 from NIK to DMR"
+    mutate 474 ASP
+    mutate 475 MET
+    mutate 476 ARG
   }
 }
 
@@ -182,6 +215,18 @@ set wat [atomselect top "name OH2"]
 $wat set beta 1
 if { $S375H == 1 } {
   [atomselect top "resid 375"] set beta 0
+}
+if { $H61Y == 1 } {
+  [atomselect top "resid 61"] set beta 0
+}
+if { $Q105H == 1 } {
+  [atomselect top "resid 105"] set beta 0
+}
+if { $V108I == 1 } { 
+  [atomselect top "resid 108"] set beta 0
+}
+if { $NIK474_476DMR == 1 } {
+  [atomselect top "resid 474 475 476"] set beta 0
 }
 
 $a writepdb "my_4h8w_fix.pdb"

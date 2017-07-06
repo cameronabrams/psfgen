@@ -19,7 +19,7 @@ NOTE:  To revert the serine at 375 back to a histidine that is considered WT for
 
 > $PSFGEN_BASEDIR/scripts/do_test.sh -pdb 4h8w -psfgen_args S375H
 
-(Other mutations will soon be supported -- this is just a quick one)
+The strings "H61Y", "Q105H", "V108I", and "NIK474-476DMR" are also recoginized and can be chained together after the "-psfgen_args" switch to generate any one of the several mutations of the A/E clade.
 
 ## Detailed Instructions
 
