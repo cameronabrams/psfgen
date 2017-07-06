@@ -36,6 +36,8 @@ The tcl directory contains files than can be "sourced" by psfgen scripts.  The c
 
 7. [1HIW](http://www.rcsb.org/pdb/explore/explore.do?structureID=1hiw) -- HIV-1 matrix (MA) trimer;
 
-8. more to come...
+8. [4H8W](http://www.rcsb.org/pdb/explore/explore.do?structureID=4h8w) -- HIV-1 gp120 core clade A/E;
+
+9. more to come...
 
 2017, Cameron F Abrams
