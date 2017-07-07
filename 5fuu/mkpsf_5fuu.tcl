@@ -17,7 +17,7 @@ if {![info exists PSFGEN_BASEDIR]} {
   }
 }
 # load some custom TcL procedures to set coordinates correctly
-source ${PSFGEN_BASEDIR}/tcl/loopmc.tcl
+source ${PSFGEN_BASEDIR}/src/loopmc.tcl
 set LOCALFILES {}
 
 set DOMC 1
