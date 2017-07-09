@@ -15,7 +15,7 @@ The tcl directory contains files than can be "sourced" by psfgen scripts.  The c
 1. NAMD v 2.12
   * Set environment variables CHARMRUN and NAMD2 to point to your system's charmrun and namd2; examples:
      * > CHARMRUN=${HOME}/namd/NAMD_2.12_Source/Linux-x86_64-g++/charmrun
-     * > NAMD2=${HOME}/namd/NAMD_2.12_Source/Linux-x86_64-g++/namd
+     * > NAMD2=${HOME}/namd/NAMD_2.12_Source/Linux-x86_64-g++/namd2
 2. VMD v. 1.8.3
 3. latest CHARMM36 topologies and parameters (toppar_c36_jul16.tgz) unpacked in ${HOME}/charmm/toppar
 4. This repository cloned into ${HOME}/psfgen (or if somewhere else, point to it with the environment variable PSFGEN_BASEDIR)
