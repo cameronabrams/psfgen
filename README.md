@@ -40,4 +40,10 @@ The tcl directory contains files than can be "sourced" by psfgen scripts.  The c
 
 9. more to come...
 
+## Acknowledgments
+
+1. VMD and NAMD are products of the [Theoretical and Computational Biophysics Group at the NIH Center for Macromolecular Modeling and Bioinformatics at the University of Illinois at Urbana-Chambaign](http://www.ks.uiuc.edu)
+
+2. All codes and data in this repository is made with partial support from NIH through grants AI084117, AI093248, G115249, GM056550, GM100472
+
 2017, Cameron F Abrams
