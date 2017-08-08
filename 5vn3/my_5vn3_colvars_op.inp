@@ -1,0 +1,118 @@
+colvarstrajfrequency 100
+colvar { 
+  name prot_orientation
+  orientation {
+    atoms {
+      psfSegID G G G G I I I I J J J J
+      atomNameResidueRange CA 253-301
+      atomNameResidueRange CA 322-355
+      atomNameResidueRange CA 361-395
+      atomNameResidueRange CA 412-475
+      atomNameResidueRange CA 253-301
+      atomNameResidueRange CA 322-355
+      atomNameResidueRange CA 361-395
+      atomNameResidueRange CA 412-475
+      atomNameResidueRange CA 253-301
+      atomNameResidueRange CA 322-355
+      atomNameResidueRange CA 361-395
+      atomNameResidueRange CA 412-475
+    }
+    refpositionsfile my_5vn3_caB1.pdb
+    refpositionscol B
+  }
+}
+
+colvar {
+  name prot_position
+    distance {
+	group1 {
+           psfSegID G G G G I I I I J J J J
+           atomNameResidueRange CA 253-301
+           atomNameResidueRange CA 322-355
+           atomNameResidueRange CA 361-395
+           atomNameResidueRange CA 412-475
+           atomNameResidueRange CA 253-301
+           atomNameResidueRange CA 322-355
+           atomNameResidueRange CA 361-395
+           atomNameResidueRange CA 412-475
+           atomNameResidueRange CA 253-301
+           atomNameResidueRange CA 322-355
+           atomNameResidueRange CA 361-395
+           atomNameResidueRange CA 412-475
+	}
+	group2 {
+	    dummyatom (0.0, 0.0, 15.0)
+	}
+    }
+}
+
+colvar {
+  name dist1G
+  distance {
+    group1 {
+      psfSegID G G 
+      atomNameResidueRange CA 255-255
+      atomNameResidueRange CA 475-475
+    }
+    group2 {
+      psfSegID G G G
+      atomNameResidueRange CA 105-105
+      atomNameResidueRange CA 108-109
+      atomNameResidueRange CA 112-112
+    }
+  }
+}
+
+colvar {
+  name dist2G
+  distance {
+    group1 {
+      psfSegID G G 
+      atomNameResidueRange CA 255-255
+      atomNameResidueRange CA 475-475
+    }
+    group2 {
+      psfSegID G
+      atomNameResidueRange CA 427-427
+    }
+  }
+}
+
+colvar {
+  name dist3G
+  distance {
+    group1 {
+      psfSegID G
+      atomNameResidueRange CA 427-427
+    }
+    group2 {
+      psfSegID G G G
+      atomNameResidueRange CA 105-105
+      atomNameResidueRange CA 108-109
+      atomNameResidueRange CA 112-112
+    }
+  }
+}
+    
+harmonic {
+  name prot_fixor
+  colvars prot_orientation
+  forceconstant 100.0
+  centers (1.0 , 0.0 , 0.0 , 0.0)
+}
+
+harmonic {
+    name prot_nodrift
+    colvars prot_position
+    forceconstant 100.0
+    centers 0.0
+}
+
+#harmonic {
+#    name grow_dist2A
+#    colvars dist2A
+#    forceconstant 1.0
+#    centers 8.27
+#    targetCenters 16.0
+#    targetNumSteps 1000000
+#}
