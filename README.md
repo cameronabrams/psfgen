@@ -38,7 +38,9 @@ The tcl directory contains files than can be "sourced" by psfgen scripts.  The c
 
 8. [4H8W](http://www.rcsb.org/pdb/explore/explore.do?structureID=4h8w) -- HIV-1 gp120 core clade A/E, with options to implement any number of the following mutations: (1) S375H (to bring back to clade A/E WT), (2) H61Y, (3) Q105H, (4) V108I, or (5) NIK474-476DMR, all of which represent the clade-C sequence;
 
-9. more to come...
+9. [5VN3](http://www.rcsb.org/pdb/explore/explore.do?structureID=5vn3) -- HIV-1 gp140 SOSIP trimer with bound sCD4 and FAB 17b
+
+10. more to come...
 
 ## Acknowledgments
 
