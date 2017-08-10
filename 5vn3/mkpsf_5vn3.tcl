@@ -318,6 +318,7 @@ patch NGLB G:234 GS:602
 patch 14bb GS:602 GS:603
 patch NGLB G:241 GS:604
 patch 14bb GS:604 GS:605
+patch 14bb GS:605 GS:606
 patch NGLB G:262 GS:607
 patch 14bb GS:607 GS:608
 patch 14bb GS:608 GS:609
@@ -357,6 +358,7 @@ patch NGLB I:234 IS:602
 patch 14bb IS:602 IS:603
 patch NGLB I:241 IS:604
 patch 14bb IS:604 IS:605
+patch 14bb IS:605 IS:606
 patch NGLB I:262 IS:607
 patch 14bb IS:607 IS:608
 patch 14bb IS:608 IS:609
@@ -396,6 +398,7 @@ patch NGLB J:234 JS:602
 patch 14bb JS:602 JS:603
 patch NGLB J:241 JS:604
 patch 14bb JS:604 JS:605
+patch 14bb JS:605 JS:606
 patch NGLB J:262 JS:607
 patch 14bb JS:607 JS:608
 patch 14bb JS:608 JS:609
