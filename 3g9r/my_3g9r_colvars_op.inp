@@ -1,0 +1,44 @@
+colvarstrajfrequency 100
+colvar { 
+  name prot_orientation
+  orientation {
+    atoms {
+      psfSegID A B C
+      atomNameResidueRange CA 1-22
+      atomNameResidueRange CA 3-22
+      atomNameResidueRange CA 3-22
+    }
+    refpositionsfile my_3g9r_caB1.pdb
+    refpositionscol B
+  }
+}
+
+colvar {
+  name prot_position
+    distance {
+	group1 {
+           psfSegID A B C
+           atomNameResidueRange CA 1-22
+           atomNameResidueRange CA 3-22
+           atomNameResidueRange CA 3-22
+	}
+	group2 {
+	    dummyatom (0.0, 0.0, 0.0)
+	}
+    }
+}
+
+harmonic {
+  name prot_fixor
+  colvars prot_orientation
+  forceconstant 100.0
+  centers (1.0 , 0.0 , 0.0 , 0.0)
+}
+
+harmonic {
+    name prot_nodrift
+    colvars prot_position
+    forceconstant 100.0
+    centers 0.0
+}
+
