@@ -40,12 +40,16 @@ The tcl directory contains files than can be "sourced" by psfgen scripts.  The c
 
 9. [5VN3](http://www.rcsb.org/pdb/explore/explore.do?structureID=5vn3) -- HIV-1 gp140 SOSIP trimer with bound sCD4 and FAB 17b
 
-10. more to come...
+10. [3G9R](http:/www.rcsb/org/pdb/explore/explore.do?structureID=3g9r) -- HIV-1 gp41 membrane proximal external region (MPER) in an engineered coiled-coil trimer  
+
+11. more to come...
 
 ## Acknowledgments
 
 1. VMD and NAMD are products of the [Theoretical and Computational Biophysics Group at the NIH Center for Macromolecular Modeling and Bioinformatics at the University of Illinois at Urbana-Chambaign](http://www.ks.uiuc.edu)
 
-2. All codes and data in this repository is made with partial support from NIH through grants AI084117, AI093248, G115249, GM056550, GM100472
+2. All codes and data in this repository have been made possible with partial support from NIH through grants AI084117, AI093248, G115249, GM056550, and GM100472, the National Science Foundation through grants DMR-1207389 and MCB-1330205, and the US Army through grants W911NF-12-2-0022, W911-NF-13-1-0046, and W911NF-12-R-0011.
 
 2017, Cameron F Abrams
+cfa22@drexel.edu
+
