@@ -3,7 +3,7 @@
 ## Files
 
 This directory contains five files:
-1. mkpsf_5vn3.tcl -- VMD/psfgen script that creates the first vacuum psf/pdb pair.  It uses a monte-carlo-based loop model-builder to build in the missingi residues. By choice, we are currently NOT including the sCD4 and 17b chains in the built structure. However, we do build in all the glycans present for the gp120 chains (G, I, J) and gp41 chains (A, B, D).
+1. mkpsf_5vn3.tcl -- VMD/psfgen script that creates the first vacuum psf/pdb pair.  It uses a monte-carlo-based loop model-builder to build in the missing residues. By choice, we are currently NOT including the sCD4 and 17b chains in the built structure. However, we do build in all the glycans present for the gp120 chains (G, I, J) and gp41 chains (A, B, D).
 2. my_5vn3_vac.namd -- NAMD configuration file used to relax the "guessed" coordinates resulting from step 1.
 3. my_5vn3_solv.tcl -- VMD script that uses solvate and autoionize to generate a neutralized, solvated MD system using the coordinates from step 2 as input.
 4. my_5vn3_colvars_op.inp -- colvars input file that defines collective variables that allow for center-of-mass restraint and an orientational restraint to keep the C3v axis along z.
