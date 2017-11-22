@@ -44,7 +44,9 @@ The _src_ directory contains files that can be "sourced" by psfgen scripts.  The
 
 11. [5GGR](http://www.rcsb.org/pdb/explore/explore.do?structureID=5ggr) -- Nivolumab (``Opdivo'') Fab in complex with PD-1
 
-12. More to come...
+12. [1L2Y](http://www.rcsb.org/pdb/explore/explore.do?structureID=1l2y) -- Trp cage miniprotein
+
+More to come... 
 
 ## Acknowledgments
 
