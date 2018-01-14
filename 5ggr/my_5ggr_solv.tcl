@@ -58,7 +58,7 @@ mol new ${outputname2}.psf
 mol addfile ${outputname2}.pdb
 set a [atomselect top all]
 $a set beta 0.0
-set b [atomselect top "name CA and chain H L"]
+set b [atomselect top "name CA and ((chain H and resid 2 to 128 134 to 213) or (chain L and resid 1 to 212))"]
 $b set beta 1.0
 $b writepdb ${inputname}_caB1.pdb
 

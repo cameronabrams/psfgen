@@ -1,8 +1,8 @@
 # VMD/psfgen script for generating psf/pdb pair for PDB 5ggr
 # nivolumab ("opdivo"/bms) in complex with PD-1
-# 
+# optionally, PD-1 can be omitted
 #
-# cameron f abrams (c) 2017
+# cameron f abrams (c) 2017, 2018
 # drexel university
 # chemical and biological engineering
 #
@@ -19,6 +19,13 @@ if {![info exists PSFGEN_BASEDIR]} {
 
 set DOMC 1
 
+set wpd1 1
+if { $argc > 0 } {
+   if {[lindex $argv 0] == "-nopd1"} {
+     set wpd1 0
+   }
+}
+
 # load some custom TcL procedures to set coordinates correctly
 source ${PSFGEN_BASEDIR}/src/loopmc.tcl
 set LOCALFILES {}
@@ -27,17 +34,29 @@ mol new 5ggr.pdb
 
 # extract contiguous protein segments as individual pdb's                                                                                                             
 set segs { 
-  { H 2 128 } { H 134 213 } { L 1 212 } { Z 27 71 } { Z 75 146 }
+  { H 2 128 } { H 134 213 } { L 1 212 }
+
+}
+if { $wpd1 } {
+ lappend segs { Z 27 71 }
+ lappend segs { Z 75 146 }
 }
 
 set gaps { 
-  { H 129 133 } { Z 72 74 }
+  { H 129 133 } 
+}
+if { $wpd1 } {
+  lappend gaps { Z 72 74 }
 }
 
 set ns {}
 set mln { 
-  { H 129 128 } { Z 72 71 }
+  { H 129 128 } 
 }
+if { $wpd1 } {
+  lappend mln { Z 72 71 }
+}
+
 foreach m $mln {
   lappend ns [cacoIn_nOut [lindex $m 2] [lindex $m 0] 0]
 }
@@ -66,12 +85,14 @@ segment L {
   pdb L_1_to_212.pdb
 }
 
-segment Z {
-  pdb Z_27_to_71.pdb
-  residue 72 PRO Z
-  residue 73 SER Z
-  residue 74 ASN Z
-  pdb Z_75_to_146.pdb
+if { $wpd1 } { 
+  segment Z {
+    pdb Z_27_to_71.pdb
+    residue 72 PRO Z
+    residue 73 SER Z
+    residue 74 ASN Z
+    pdb Z_75_to_146.pdb
+  }
 }
 
 foreach s $segs {
@@ -88,7 +109,9 @@ foreach m $mln n $ns {
 patch DISU H:22 H:96
 patch DISU H:140 H:196
 patch DISU L:23 L:88
-patch DISU Z:54 Z:123
+if { $wpd1 } {
+  patch DISU Z:54 Z:123
+}
 
 guesscoord
 regenerate angles dihedrals
@@ -141,6 +164,9 @@ foreach s $segs {
   [atomselect top "chain [lindex $s 0] and resid [lindex $s 1] to [lindex $s 2]"] set beta 1
 }
 [atomselect top "not noh"] set beta 0
+
+set com [measure center $a weight mass]
+$a moveby [vecscale -1 $com]
 
 $a writepdb "my_5ggr_fix.pdb"
 

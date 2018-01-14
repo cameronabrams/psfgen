@@ -5,7 +5,7 @@ colvar {
     atoms {
       psfSegID H H L
       atomNameResidueRange CA 2-128
-      atomNameResidueRange CA 124-213
+      atomNameResidueRange CA 134-213
       atomNameResidueRange CA 1-212
     }
     refpositionsfile my_5ggr_caB1.pdb
@@ -19,11 +19,11 @@ colvar {
 	group1 {
            psfSegID H H L
            atomNameResidueRange CA 2-128
-           atomNameResidueRange CA 124-213
+           atomNameResidueRange CA 134-213
            atomNameResidueRange CA 1-212
 	}
 	group2 {
-	    dummyatom (9.0, 2.0, 5.0)
+	    dummyatom ( 0, 0, 0 )
 	}
     }
 }
