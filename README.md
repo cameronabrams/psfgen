@@ -1,9 +1,9 @@
 # psfgen -- a repository of advanced VMD/TcL and psfgen/TcL scripts for generating configurations and CHARMM36 topologies for use with NAMD
 
-This repository contains psfgen scripts, TcL scripts for use in VMD, and some associated CHARMM36 topology and parameter files and NAMD config files used to generate _initial conditions_ for production MD simulations of various protein systems.  It should be helpful to anyone already familiar with using psfgen to build systems using CHARMM topologies who also needs access to some more advanced system-building capabilities than are available in most tutorials.  Some of the features this repository provides beyond what psfgen can easily do are the following:
+This repository contains psfgen scripts, TcL scripts for use in VMD, and some associated CHARMM36 topology and parameter files and NAMD config files used to generate _initial conditions_ for production MD simulations of various systems.  It should be helpful to anyone already familiar with using psfgen to build systems using CHARMM topologies who also needs access to some more advanced system-building capabilities than are available in most tutorials.  Some of the features this repository provides beyond what psfgen can easily do are the following:
 
-* support for rudimentary loop model-building to include residues missing in the experimental PDB file but present in the crystallized protein sequence;  
-* support for glycans;
+* support for rudimentary loop model-building to include residues missing in the experimental PDB file but present in the crystallized protein sequence;
+* support for glycans and non-covalently linked sugars;
 * integration between solvation and initial MD simulation config file (easy transfer of box size);
 * support for down-puckered prolines;
 * (more to come)...
@@ -46,14 +46,16 @@ The _src_ directory contains files that can be "sourced" by psfgen scripts.  The
 
 12. [1L2Y](http://www.rcsb.org/pdb/explore/explore.do?structureID=1l2y) -- Trp cage miniprotein
 
-More to come... 
+13. [SUCR] -- a single solvated sucrose molecule extracted from 5o8l.pdb
+
+More to come...
 
 ## Acknowledgments
 
-1. VMD and NAMD are products of the [Theoretical and Computational Biophysics Group at the NIH Center for Macromolecular Modeling and Bioinformatics at the University of Illinois at Urbana-Chambaign](http://www.ks.uiuc.edu)
+1. VMD and NAMD are products of the [Theoretical and Computational Biophysics Group at the NIH Center for Macromolecular Modeling and Bioinformatics at the University of Illinois at Urbana-Champaign](http://www.ks.uiuc.edu)
 
-2. All codes and data in this repository have been made possible with partial support from NIH through grants AI084117, AI093248, G115249, GM056550, and GM100472, the National Science Foundation through grants DMR-1207389 and MCB-1330205, and the US Army through grants W911NF-12-2-0022, W911-NF-13-1-0046, and W911NF-12-R-0011.
+2. All codes and data in this repository have been made possible with partial support from NIH through grants AI084117, AI093248, GM115249, GM056550, and GM100472, the National Science Foundation through grants DMR-1207389 and MCB-1330205, and the US Army through grants W911NF-12-2-0022, W911-NF-13-1-0046, and W911NF-12-R-0011.
 
-2017, Cameron F Abrams
+2017-2018, Cameron F Abrams
 cfa22@drexel.edu
 
