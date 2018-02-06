@@ -1,4 +1,4 @@
-# psfgen -- a repository of advanced VMD/TcL and psfgen/TcL scripts for generating configurations and CHARMM36 topologies for use with NAMD
+# psfgen -- advanced VMD/TcL and psfgen/TcL scripts for generating configurations and CHARMM36 topologies for use with NAMD
 
 This repository contains psfgen scripts, TcL scripts for use in VMD, and some associated CHARMM36 topology and parameter files and NAMD config files used to generate _initial conditions_ for production MD simulations of various systems.  It should be helpful to anyone already familiar with using psfgen to build systems using CHARMM topologies who also needs access to some more advanced system-building capabilities than are available in most tutorials.  Some of the features this repository provides beyond what psfgen can easily do are the following:
 
@@ -13,9 +13,9 @@ The _src_ directory contains files that can be "sourced" by psfgen scripts.  The
 ## Requirements
 
 1. NAMD v 2.12
-  * Set environment variables CHARMRUN and NAMD2 to point to your system's charmrun and namd2; examples:
-     * > CHARMRUN=${HOME}/namd/NAMD_2.12_Source/Linux-x86_64-g++/charmrun
-     * > NAMD2=${HOME}/namd/NAMD_2.12_Source/Linux-x86_64-g++/namd2
+  * Set environment variables CHARMRUN and NAMD2 to point to your system's charmrun and namd2; examples (in bash):
+     * `CHARMRUN=${HOME}/namd/NAMD_2.12_Source/Linux-x86_64-g++/charmrun`
+     * `NAMD2=${HOME}/namd/NAMD_2.12_Source/Linux-x86_64-g++/namd2`
 2. VMD v. 1.8.3
 3. latest CHARMM36 topologies and parameters (toppar_c36_jul16.tgz) unpacked in ${HOME}/charmm/toppar
 4. This repository cloned into ${HOME}/psfgen (or if somewhere else, point to it with the environment variable PSFGEN_BASEDIR)
@@ -46,7 +46,9 @@ The _src_ directory contains files that can be "sourced" by psfgen scripts.  The
 
 12. [1L2Y](http://www.rcsb.org/pdb/explore/explore.do?structureID=1l2y) -- Trp cage miniprotein
 
-13. [SUCR] -- a single solvated sucrose molecule extracted from 5o8l.pdb
+13. SUCR -- a single solvated sucrose molecule extracted from 5o8l.pdb
+
+14. [2JIU](http://www.rcsb.org/pdb/explore.do?structureID=2jiu) -- Human eGFR kinase, T790M mutant, ATPMg-bound
 
 More to come...
 
@@ -57,5 +59,6 @@ More to come...
 2. All codes and data in this repository have been made possible with partial support from NIH through grants AI084117, AI093248, GM115249, GM056550, and GM100472, the National Science Foundation through grants DMR-1207389 and MCB-1330205, and the US Army through grants W911NF-12-2-0022, W911-NF-13-1-0046, and W911NF-12-R-0011.
 
 2017-2018, Cameron F Abrams
+
 cfa22@drexel.edu
 

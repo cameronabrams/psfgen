@@ -14,7 +14,7 @@ This directory contains six files:
 
 Make sure PSFGEN_BASEDIR resolves to the root directory of your local copy of this repository (mine is ${HOME}/research/psfgen).  It is also assumed below that CHARMRUN resolves to your local charmrun executable and NAMD2 resolves to your local NAMD2 executable.  For me, these are /home/cfa/namd/NAMD_2.12_Source/Linux-x86_64-g++/charmrun and /home/cfa/namd/NAMD_2.12_Source/Linux-x86_64-g++/namd2.
 
-1. Make a clean directory, cd into it, and issue the script command.  The files my_2jiu_i.psf and sol.coor, sol.vel, sol.xsc are the resulting system input files:
+1. Make a clean directory, cd into it, and issue the script command.  The files my_2jiu_i.psf and sol.coor, sol.vel, sol.xsc are the resulting system input files, along with my_2jiu_caB1.pdb and the provided colvars input file (if you want to use positional/orientational restraints):
 
 ```
 $ mkdir my_2jiu
