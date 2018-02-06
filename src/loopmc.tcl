@@ -161,7 +161,7 @@ proc do_loop_mc { residueList c molid k r0 env rcut maxcycles temperature iseed 
   set co [atomselect $molid "chain $c and residue $rend and name C"]
   set ca [atomselect $molid "chain $c and residue $rend and name CA"]
   set idx [list [$ca get index] [$co get index]]
-  puts "$rend $idx"
+  puts "$rend $idx [$env num]"
   puts "CFALOOPMC) idx $idx distance C-CA($rend) [measure bond $idx]"
 
   expr srand($iseed)
@@ -169,7 +169,7 @@ proc do_loop_mc { residueList c molid k r0 env rcut maxcycles temperature iseed 
   set nacc 0
 
   set SE [expr 0.5*$k*pow([measure bond $idx]-$r0,2)]
-  set EE [roughenergy $mselnoh $env 3.0]
+  set EE [roughenergy $mselnoh $env $rcut]
   set E [expr $SE + $EE]
   set E0 $E
 
