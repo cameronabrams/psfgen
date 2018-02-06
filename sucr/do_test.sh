@@ -70,14 +70,22 @@ echo "Generating solvated system..."
 vmd -dispdev text -e $PSFGEN_BASEDIR/${PDB}/my_${PDB}_solv.tcl > psfgen2.log
 
 # 5. run NAMD; staging to avoid patch-grid errors
-numsteps=( 100 200 400 800 1600 16900 )
+numsteps=( 100 200 19700 )
 ls=`echo "${#numsteps[@]} - 1" | bc`
 firsttimestep=100; # stage-0 minimization
 for s in `seq 0 $ls`; do
   echo "Running namd2 (stage $s) on solvated system..."
-  cat $PSFGEN_BASEDIR/${PDB}/my_${PDB}_solv_stageN.namd | sed s/%STAGE%/${s}/g | sed s/%NUMSTEPS%/${numsteps[$s]}/g | sed s/%FIRSTTIMESTEP%/$firsttimestep/g > my_${PDB}_solv_stage${s}.namd
+  cat $PSFGEN_BASEDIR/${PDB}/my_${PDB}_solv_stageN.namd | \
+      sed s/%STAGE%/${s}/g | \
+      sed s/%NUMSTEPS%/${numsteps[$s]}/g | \
+      sed s/%FIRSTTIMESTEP%/$firsttimestep/g > my_${PDB}_solv_stage${s}.namd
   $CHARMRUN +p8 $NAMD2 my_${PDB}_solv_stage${s}.namd > solv_stage${s}.log
   firsttimestep=`echo "$firsttimestep + ${numsteps[$s]}" | bc`
 done
+
+vmd -dispdev text -e $PSFGEN_BASEDIR/${PDB}/extractpdb.tcl -args sol-stage${s}.coor > extractpdb.log
+
+grep ^ENERGY: solv_stage?.log | awk '{print $2,$19}' > V.dat
+gnuplot $PSFGEN_BASEDIR/${PDB}/V.gp
 
 echo "Done."
