@@ -1,4 +1,4 @@
-# 5GGR -- Fab from Opdivo (nivolumab) in complex with PD-1
+# 5GGR -- Fab from Opdivo (nivolumab) in complex with PD-1; Options for including sucrose exipient
 
 ## Files
 
@@ -30,7 +30,7 @@ Option 2, no PD1:
 ```
 mkdir my_5ggr_Fab
 cd my_5ggr_Fab
-$PSFGEN_BASEDIR/scripts/do_test.sh -pdb -psfgen_args -nopd1
+$PSFGEN_BASEDIR/scripts/do_test.sh -pdb 5ggr -psfgen_args -nopd1
 ```
 
 ## Including exipients
@@ -43,8 +43,11 @@ cd my_5ggr_Fab_sucr
 $PSFGEN_BASEDIR/5ggr/do_sucr.sh -cs 0.2 -psfgen_args -nopd1
 ```
 
-The value after the `-cs` switch is the concentration of sucrose in Molar.  The number of sucrose molecules is computed to achieve this concentration in the non-protein-occupied volume.
+Note that this is a specific system-build script that uses only 5ggr.pdb as input, and will download that if needed.
+The value after the `-cs` switch is the concentration of sucrose in molar.  The number of sucrose molecules is computed to achieve this concentration in the non-protein-occupied volume.
 
-Note that this requires `packmol` to be in your path.  Similar tools for other exipients are forthcoming.
+`do_sucr.sh` requires `packmol` to be in your path.  It uses a template for the sucrose molecule generated in the `$PSFGEN_BASEDIR/sucr` directory, hard-coded into the packmol script.
+
+Similar tools for other exipients are forthcoming.
 
 2018, Cameron F Abrams
