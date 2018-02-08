@@ -63,7 +63,7 @@ $CHARMRUN +p1 $NAMD2 my_${PDB}_vac.namd > vac.log
 echo "Generating sucrose ($CSM Molar) solvated system..."
 vmd -dispdev text -e $PSFGEN_BASEDIR/${PDB}/my_${PDB}_sucr_solv_1.tcl -args -cs $CSM > psfgen_sucr_solv_1.log
 packmol < pm-tmp.in
-vmd -dispdev text -e $PSFGEN_BASEDIR/${PDB}/my_${PDB}_sucr_solv_2.tcl > psfgen-_sucr_solv_2.log
+vmd -dispdev text -e $PSFGEN_BASEDIR/${PDB}/my_${PDB}_sucr_solv_2.tcl > psfgen_sucr_solv_2.log
 
 # 5. run NAMD
 echo "Running namd2 on solvated system..."

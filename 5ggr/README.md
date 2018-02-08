@@ -35,7 +35,7 @@ $PSFGEN_BASEDIR/scripts/do_test.sh -pdb 5ggr -psfgen_args -nopd1
 
 ## Including exipients
 
-The script `do_sucr.sh` in this directory will build a clean system with only the Fab, waters, Cl- counterions (to neutralize the Fab), and enough surose molecules to satisfy a desired concentration in the solvent.  Here's how:
+The script `do_sucr.sh` in this directory will build a clean system with only the Fab, waters, Cl- counterions (to neutralize the Fab), and enough sucrose molecules to satisfy a desired concentration in the solvent.  Here's how:
 
 ```
 mkdir my_5ggr_Fab_sucr
@@ -44,7 +44,7 @@ $PSFGEN_BASEDIR/5ggr/do_sucr.sh -cs 0.2 -psfgen_args -nopd1
 ```
 
 Note that this is a specific system-build script that uses only 5ggr.pdb as input, and will download that if needed.
-The value after the `-cs` switch is the concentration of sucrose in molar.  The number of sucrose molecules is computed to achieve this concentration in the non-protein-occupied volume.
+The value after the `-cs` switch is the concentration of sucrose in molar.  The number of sucrose molecules is computed to achieve this concentration in the non-protein-occupied volume.  Standard CHARMM parameters are used, and each sucrose is a "SUCR"-patched disaccharide of AGLC and BFRU.  All sucrose molecules are in segment "SU".
 
 `do_sucr.sh` requires `packmol` to be in your path.  It uses a template for the sucrose molecule generated in the `$PSFGEN_BASEDIR/sucr` directory, hard-coded into the packmol script.
 
