@@ -50,6 +50,8 @@ The _src_ directory contains files that can be "sourced" by psfgen scripts.  The
 
 14. [2JIU](http://www.rcsb.org/pdb/explore.do?structureID=2jiu) -- Human eGFR kinase, T790M mutant, ATPMg-bound
 
+15. ALAD -- a single solvated alanine dipeptide with neutral ends (RESI ALAD in charmm36)
+
 More to come...
 
 ## Acknowledgments
