@@ -1,0 +1,29 @@
+colvarstrajfrequency 100
+colvar {
+  name prot_position
+    distance {
+	group1 {
+           psfSegID A
+           atomNameResidueRange CA 1-1
+	}
+	group2 {
+	    dummyatom (0.0, 0.0, 0.0)
+	}
+    }
+}
+
+harmonic {
+    name prot_nodrift
+    colvars prot_position
+    forceconstant 10.0
+    centers 0.0
+}
+
+#harmonic {
+#    name grow_dist2G
+#    colvars dist2G
+#    forceconstant 1.0
+#    centers 8.27
+#    targetCenters 16.0
+#    targetNumSteps 1000000
+#}
