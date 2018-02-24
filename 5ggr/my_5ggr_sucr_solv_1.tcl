@@ -28,6 +28,8 @@ set c [measure center $a]
 
 $a moveby [vecscale $c -1.0]
 
+set seed [exec date +%s]
+
 set box { { ? ? ? } { ? ? ? } }
 set basisvec { ? ? ? }
 set origin { ? ? ? }
@@ -90,6 +92,7 @@ set fp [open "pm-tmp.in" "w"]
 puts $fp "
 output my_5ggr_sucr.pdb
 filetype pdb
+seed $seed
 tolerance 2.0
 structure prot.pdb
   number 1
