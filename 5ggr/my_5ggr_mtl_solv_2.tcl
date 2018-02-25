@@ -6,12 +6,10 @@ topology $env(HOME)/charmm/toppar/toppar_water_ions_namd.str
 
 readpsf my_5ggr.psf
 coordpdb prot.pdb
-
 pdbalias residue DMAN DMANOL
-
-mol new my_5ggr_sucr.pdb ; # output of packmol
-set segs { SU WA WB WC WD WE WF WG WI WJ WK WM WN I }
-set chns { S  A  B  C  D  E  F  G  I  J  K  M  N  O }
+mol new my_5ggr_mtl.pdb ; # output of packmol
+set segs { M WA WB WC WD WE WF WG WI WJ WK WN  I }
+set chns { M  A  B  C  D  E  F  G  I  J  K  N  O }
 foreach sn $segs cn $chns {
   set s [atomselect top "segname $sn"] 
   $s set chain $cn
@@ -25,16 +23,9 @@ foreach sn $segs cn $chns {
   coordpdb ${sn}.pdb $sn
 }
 
-# SUCR patches for all sucrose molecules!!!
-set gr [[atomselect top "segname SU and resname AGLC and name C1"] get resid]
-set fr [[atomselect top "segname SU and resname BFRU and name C1"] get resid]
-foreach g $gr f $fr {
-  patch SUCR SU:$g SU:$f
-}
-
 regenerate angles dihedrals
 
-set outputname my_5ggr_sucr_solv
+set outputname my_5ggr_mtl_solv
 writepsf "${outputname}.psf"
 writepdb "${outputname}.pdb"
 

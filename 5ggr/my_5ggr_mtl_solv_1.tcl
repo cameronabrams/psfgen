@@ -4,11 +4,11 @@
 # cfa22@drexel.edu
 # drexel university
 # chemical and biological engineering
-set csm 0.2
+set cmm 0.2
 for {set i 0} {$i < $argc} {incr i} {
-   if { [lindex $argv $1] == "-cs" } {
+   if { [lindex $argv $1] == "-cm" } {
      incr i
-     set csm [lindex $argv $i]
+     set cmm [lindex $argv $i]
    }
 }
 set LOCALFILES {}
@@ -70,13 +70,13 @@ set densgcc 1.0
 set pmassfr [expr $mp / (0.6022*$densgcc*$V)]
 set Vs [expr (1-$pmassfr)*$V]
 
-# compute number of sucrose molecules
-set ns [expr int(6.022e-4 * $csm * $Vs)]
-set MWs 163.15
+# compute number of mannitol molecules
+set nm [expr int(6.022e-4 * $cmm * $Vs)]
+set MWm 182.172
 
 # compute number of water molecules
 set MWw 18.0
-set nw [expr int( 1.0 / $MWw * (0.6022*$densgcc*$Vs- $MWs*$ns))]
+set nw [expr int( 1.0 / $MWw * (0.6022*$densgcc*$Vs- $MWm*$nm))]
 
 set nna 0
 set ncl 0
@@ -86,11 +86,11 @@ if { $z > 0 } {
    set nna [expr round(-($z))]
 }
 
-puts "system will have $ns sucrose, $nw waters, $nna sodiums, and $ncl chlorides."
+puts "system will have $nm mannitol, $nw waters, $nna sodiums, and $ncl chlorides."
 
 set fp [open "pm-tmp.in" "w"]
 puts $fp "
-output my_5ggr_sucr.pdb
+output my_5ggr_mtl.pdb
 filetype pdb
 seed $seed
 tolerance 2.0
@@ -99,9 +99,9 @@ structure prot.pdb
   center
   fixed 0. 0. 0. 0. 0. 0.
 end structure
-structure SU.pdb
-   resnumbers 2
-   number $ns
+structure MTL.pdb
+   resnumbers 0
+   number $nm
    inside box $xmin $ymin $zmin $xmax $ymax $zmax
 end structure
 "
@@ -153,54 +153,35 @@ set cl_file [ open CL.pdb w ]
 puts $cl_file  "HETATM    1 CLA  CLA    2        0.000   0.000   0.000  0.00  0.00      I" 
 close $cl_file 
 
-set su_file [ open SU.pdb w ]
-puts $su_file \
-"ATOM      1  C1  AGLCS   1      -0.409  -2.074  -0.826  0.00  0.00      SU    
-ATOM      2  H1  AGLCS   1       0.193  -2.833  -0.283  0.00  0.00      SU    
-ATOM      3  O1  AGLCS   1       0.364  -1.285  -1.755  0.00  0.00      SU    
-ATOM      4  C5  AGLCS   1      -1.716  -0.165  -0.225  0.00  0.00      SU    
-ATOM      5  H5  AGLCS   1      -0.990   0.355  -0.885  0.00  0.00      SU    
-ATOM      6  O5  AGLCS   1      -0.926  -1.262   0.240  0.00  0.00      SU    
-ATOM      7  C2  AGLCS   1      -1.560  -2.669  -1.550  0.00  0.00      SU    
-ATOM      8  H2  AGLCS   1      -2.215  -3.243  -0.860  0.00  0.00      SU    
-ATOM      9  O2  AGLCS   1      -1.101  -3.586  -2.551  0.00  0.00      SU    
-ATOM     10  HO2 AGLCS   1      -0.538  -3.096  -3.156  0.00  0.00      SU    
-ATOM     11  C3  AGLCS   1      -2.325  -1.526  -2.160  0.00  0.00      SU    
-ATOM     12  H3  AGLCS   1      -1.621  -0.960  -2.806  0.00  0.00      SU    
-ATOM     13  O3  AGLCS   1      -3.408  -1.966  -3.009  0.00  0.00      SU    
-ATOM     14  HO3 AGLCS   1      -3.920  -2.651  -2.573  0.00  0.00      SU    
-ATOM     15  C4  AGLCS   1      -2.870  -0.650  -0.997  0.00  0.00      SU    
-ATOM     16  H4  AGLCS   1      -3.565  -1.295  -0.418  0.00  0.00      SU    
-ATOM     17  O4  AGLCS   1      -3.508   0.417  -1.549  0.00  0.00      SU    
-ATOM     18  HO4 AGLCS   1      -4.088   0.112  -2.251  0.00  0.00      SU    
-ATOM     19  C6  AGLCS   1      -2.106   0.743   0.996  0.00  0.00      SU    
-ATOM     20  H61 AGLCS   1      -1.298   1.470   1.223  0.00  0.00      SU    
-ATOM     21  H62 AGLCS   1      -2.987   1.353   0.699  0.00  0.00      SU    
-ATOM     22  O6  AGLCS   1      -2.512  -0.031   2.077  0.00  0.00      SU    
-ATOM     23  HO6 AGLCS   1      -1.759  -0.249   2.632  0.00  0.00      SU    
-ATOM     24  O5  BFRUS   2       1.440  -0.967  -2.899  0.00  0.00      SU    
-ATOM     25  C2  BFRUS   2       1.765  -1.722  -1.714  0.00  0.00      SU    
-ATOM     26  C5  BFRUS   2       1.898  -1.616  -4.067  0.00  0.00      SU    
-ATOM     27  H5  BFRUS   2       2.907  -1.212  -4.299  0.00  0.00      SU    
-ATOM     28  C6  BFRUS   2       1.011  -1.368  -5.304  0.00  0.00      SU    
-ATOM     29  H61 BFRUS   2       1.109  -0.279  -5.499  0.00  0.00      SU    
-ATOM     30  H62 BFRUS   2       1.377  -1.936  -6.187  0.00  0.00      SU    
-ATOM     31  O6  BFRUS   2      -0.339  -1.633  -4.984  0.00  0.00      SU    
-ATOM     32  HO6 BFRUS   2      -0.940  -1.104  -5.514  0.00  0.00      SU    
-ATOM     33  C1  BFRUS   2       2.455  -0.693  -0.725  0.00  0.00      SU    
-ATOM     34  H11 BFRUS   2       1.704   0.019  -0.321  0.00  0.00      SU    
-ATOM     35  H12 BFRUS   2       3.214  -0.062  -1.235  0.00  0.00      SU    
-ATOM     36  O1  BFRUS   2       3.126  -1.348   0.377  0.00  0.00      SU    
-ATOM     37  HO1 BFRUS   2       2.516  -1.888   0.885  0.00  0.00      SU    
-ATOM     38  C3  BFRUS   2       2.772  -2.797  -2.202  0.00  0.00      SU    
-ATOM     39  H3  BFRUS   2       3.802  -2.411  -2.354  0.00  0.00      SU    
-ATOM     40  O3  BFRUS   2       2.879  -4.040  -1.495  0.00  0.00      SU    
-ATOM     41  HO3 BFRUS   2       3.083  -3.772  -0.597  0.00  0.00      SU    
-ATOM     42  C4  BFRUS   2       2.149  -3.016  -3.644  0.00  0.00      SU    
-ATOM     43  H4  BFRUS   2       1.213  -3.613  -3.689  0.00  0.00      SU    
-ATOM     44  O4  BFRUS   2       3.066  -3.716  -4.404  0.00  0.00      SU    
-ATOM     45  HO4 BFRUS   2       3.454  -4.420  -3.879  0.00  0.00      SU"    
-close $su_file
+set mtl_file [ open MTL.pdb w ]
+puts $mtl_file \
+"ATOM      1  C1  DMANM   1      -0.023  -2.035   2.486  0.00  0.00      M
+ATOM      2  H11 DMANM   1      -0.007  -3.055   2.060  0.00  0.00      M
+ATOM      3  H12 DMANM   1       1.091  -1.855   2.795  0.00  0.00      M
+ATOM      4  O1  DMANM   1      -0.891  -2.150   3.642  0.00  0.00      M
+ATOM      5  HO1 DMANM   1      -1.500  -2.828   3.490  0.00  0.00      M
+ATOM      6  C2  DMANM   1      -0.556  -0.952   1.599  0.00  0.00      M
+ATOM      7  H2  DMANM   1      -1.571  -1.206   1.397  0.00  0.00      M
+ATOM      8  O2  DMANM   1      -0.662   0.328   2.300  0.00  0.00      M
+ATOM      9  HO2 DMANM   1      -1.642   0.375   2.439  0.00  0.00      M
+ATOM     10  C3  DMANM   1       0.263  -0.675   0.327  0.00  0.00      M
+ATOM     11  H3  DMANM   1       1.345  -0.626   0.600  0.00  0.00      M
+ATOM     12  O3  DMANM   1       0.085  -1.808  -0.568  0.00  0.00      M
+ATOM     13  HO3 DMANM   1      -0.352  -2.496  -0.035  0.00  0.00      M
+ATOM     14  C4  DMANM   1      -0.092   0.642  -0.409  0.00  0.00      M
+ATOM     15  H4  DMANM   1       0.126   1.468   0.316  0.00  0.00      M
+ATOM     16  O4  DMANM   1      -1.495   0.698  -0.743  0.00  0.00      M
+ATOM     17  HO4 DMANM   1      -1.889   1.155   0.021  0.00  0.00      M
+ATOM     18  C5  DMANM   1       0.709   0.873  -1.727  0.00  0.00      M
+ATOM     19  H5  DMANM   1       0.424   0.081  -2.506  0.00  0.00      M
+ATOM     20  O5  DMANM   1       2.111   0.841  -1.398  0.00  0.00      M
+ATOM     21  HO5 DMANM   1       2.500   0.114  -1.882  0.00  0.00      M
+ATOM     22  C6  DMANM   1       0.493   2.272  -2.320  0.00  0.00      M
+ATOM     23  H61 DMANM   1      -0.594   2.513  -2.275  0.00  0.00      M
+ATOM     24  H62 DMANM   1       1.172   3.015  -1.826  0.00  0.00      M
+ATOM     25  O6  DMANM   1       0.753   2.277  -3.730  0.00  0.00      M
+ATOM     26  HO6 DMANM   1       0.203   3.034  -4.053  0.00  0.00      M"    
+close $mtl_file
 
 # generate an input file for the first solvated MD simulation
 # namd config file
