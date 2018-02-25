@@ -18,9 +18,10 @@ The _src_ directory contains files that can be "sourced" by psfgen scripts.  The
      * `NAMD2=${HOME}/namd/NAMD_2.12_Source/Linux-x86_64-g++/namd2`
 2. VMD v. 1.8.3
 3. latest CHARMM36 topologies and parameters (toppar_c36_jul16.tgz) unpacked in ${HOME}/charmm/toppar
-4. This repository cloned into ${HOME}/psfgen (or if somewhere else, point to it with the environment variable PSFGEN_BASEDIR)
+4. packmol (for 5ggr)
+5. This repository cloned into ${HOME}/psfgen (or, if somewhere else, point to it with the environment variable PSFGEN_BASEDIR)
 
-## Currently supported PDB's:
+## Currently supported systems:
 
 1. [3TGQ](http://www.rcsb.org/pdb/explore/explore.do?structureId=3tgq) -- unliganded core monomeric HIV-1 gp120, with NAG's;
 
@@ -42,7 +43,7 @@ The _src_ directory contains files that can be "sourced" by psfgen scripts.  The
 
 10. [3G9R](http://www.rcsb/org/pdb/explore/explore.do?structureID=3g9r) -- HIV-1 gp41 membrane proximal external region (MPER) in an engineered coiled-coil trimer  
 
-11. [5GGR](http://www.rcsb.org/pdb/explore/explore.do?structureID=5ggr) -- Nivolumab (``Opdivo'') Fab in complex with PD-1
+11. [5GGR](http://www.rcsb.org/pdb/explore/explore.do?structureID=5ggr) -- Nivolumab (``Opdivo'') Fab in complex with PD-1, with options for not including PD-1, and including either sucrose or D-mannitol exipients
 
 12. [1L2Y](http://www.rcsb.org/pdb/explore/explore.do?structureID=1l2y) -- Trp cage miniprotein
 
@@ -52,13 +53,17 @@ The _src_ directory contains files that can be "sourced" by psfgen scripts.  The
 
 15. ALAD -- a single solvated alanine dipeptide with neutral ends (RESI ALAD in charmm36)
 
+16. MTL -- a single solvated D-mannitol molecule extracted from 1m2w.pdb
+
 More to come...
 
 ## Acknowledgments
 
 1. VMD and NAMD are products of the [Theoretical and Computational Biophysics Group at the NIH Center for Macromolecular Modeling and Bioinformatics at the University of Illinois at Urbana-Champaign](http://www.ks.uiuc.edu)
 
-2. All codes and data in this repository have been made possible with partial support from NIH through grants AI084117, AI093248, GM115249, GM056550, and GM100472, the National Science Foundation through grants DMR-1207389 and MCB-1330205, and the US Army through grants W911NF-12-2-0022, W911-NF-13-1-0046, and W911NF-12-R-0011.
+2. [Packmol](https://www.ime.unicamp.br/~martinez/packmol/userguide.shtml) is a product of Leandro Martinez in the Institute of Chemistry at the University of Campinas.  Please cite ``L. Martínez, R. Andrade, E. G. Birgin, J. M. Martínez. Packmol: A package for building initial configurations for molecular dynamics simulations. Journal of Computational Chemistry, 30(13):2157-2164, 2009.'' 
+
+3. All codes and data in this repository have been made possible with partial support from NIH through grants AI084117, AI093248, GM115249, GM056550, and GM100472, the National Science Foundation through grants DMR-1207389 and MCB-1330205, and the US Army through grants W911NF-12-2-0022, W911-NF-13-1-0046, and W911NF-12-R-0011.
 
 2017-2018, Cameron F Abrams
 
