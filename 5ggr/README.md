@@ -48,6 +48,13 @@ The value after the `-cs` switch is the concentration of sucrose in molar.  The 
 
 `do_sucr.sh` requires `packmol` to be in your path.  It uses a template for the sucrose molecule generated in the `$PSFGEN_BASEDIR/sucr` directory, hard-coded into the packmol script.
 
+Similarly, D-mannitol can be selected as an exipient.  In this case, the following commands build a Fab/(0.2M-mannitol) system:
+```
+mkdir my_5ggr_Fab_mtl
+cd my_5ggr_Fab_mtl
+$PSFGEN_BASEDIR/5ggr/do_mtl.sh -cm 0.2 -psfgen_args -nopd1
+```
+
 Similar tools for other exipients are forthcoming.
 
 2018, Cameron F Abrams
