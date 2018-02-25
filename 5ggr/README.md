@@ -1,4 +1,4 @@
-# 5GGR -- Fab from Opdivo (nivolumab) in complex with PD-1; Options for including sucrose exipient
+# 5GGR -- Fab from Opdivo (nivolumab) in complex with PD-1; Options for including sucrose or D-mannitol exipients
 
 ## Files
 
