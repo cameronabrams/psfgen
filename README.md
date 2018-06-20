@@ -55,6 +55,8 @@ The _src_ directory contains files that can be "sourced" by psfgen scripts.  The
 
 16. MTL -- a single solvated D-mannitol molecule extracted from 1m2w.pdb
 
+17. B529 -- a single solvated BMS-529 molecule extracted from 5u7o.pdb, using CGenFF
+
 More to come...
 
 ## Acknowledgments
@@ -63,7 +65,11 @@ More to come...
 
 2. [Packmol](https://www.ime.unicamp.br/~martinez/packmol/userguide.shtml) is a product of Leandro Martinez in the Institute of Chemistry at the University of Campinas.  Please cite ``L. Martínez, R. Andrade, E. G. Birgin, J. M. Martínez. Packmol: A package for building initial configurations for molecular dynamics simulations. Journal of Computational Chemistry, 30(13):2157-2164, 2009.'' 
 
-3. All codes and data in this repository have been made possible with partial support from NIH through grants AI084117, AI093248, GM115249, GM056550, and GM100472, the National Science Foundation through grants DMR-1207389 and MCB-1330205, and the US Army through grants W911NF-12-2-0022, W911-NF-13-1-0046, and W911NF-12-R-0011.
+3. The [CHARMM force field](http://mackerell.umaryland.edu/charmm_ff.shtml) is described in ``MacKerell, Jr., A.D., Feig, M., and Brooks, III, C.L. "Extending the treatment of backbone energetics in protein force fields: limitations of gas-phase quantum mechanics in reproducing protein conformational distributions in molecular dynamics simulations," Journal of Computational Chemistry, 25: 1400-1415, 2004.''.
+
+4. [CGenFF](https://cgenff.paramchem.org/) is a service of the CHARMM development team. Please cite ``. Vanommeslaeghe, E. Hatcher, C. Acharya, S. Kundu, S. Zhong, J. Shim, E. Darian, O. Guvench, P. Lopes, I. Vorobyov, A. D. MacKerell Jr., CHARMM General Force Field: A Force field for Drug-Like Molecules Compatible with the CHARMM All-Atom Additive Biological Force Field, J. Comput. Chem. 2010, 31, 671-690.'' 
+
+5. All codes and data in this repository have been made possible with partial support from NIH through grants AI084117, AI093248, GM115249, GM056550, and GM100472, the National Science Foundation through grants DMR-1207389 and MCB-1330205, and the US Army through grants W911NF-12-2-0022, W911-NF-13-1-0046, and W911NF-12-R-0011.
 
 2017-2018, Cameron F Abrams
 

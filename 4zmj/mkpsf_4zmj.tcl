@@ -15,6 +15,15 @@ if {![info exists PSFGEN_BASEDIR]} {
       set PSFGEN_BASEDIR $env(HOME)/research/psfgen
   }
 }
+
+# check for any arguments
+set protomer_only 0
+foreach arg $argv {
+  if { $arg == "+protomer" } {
+     set protomer_only 1
+  }
+}
+
 # load some custom TcL procedures to set coordinates correctly
 source ${PSFGEN_BASEDIR}/src/loopmc.tcl
 set LOCALFILES {}
@@ -34,26 +43,27 @@ set n186pos(G) [cacoIn_nOut 185 G 0]
 set n398pos(G) [cacoIn_nOut 397 G 0]
 set n548pos(B) [cacoIn_nOut 547 B 0]
 
+if { $protomer_only == "0"} {
+  set tmat3 {{-0.500000 -0.866025  0.000000      107.18000} {0.866025 -0.500000  0.000000      185.64121} {0.000000  0.000000  1.000000        0.00000} {0 0 0 1}}
 
-set tmat3 {{-0.500000 -0.866025  0.000000      107.18000} {0.866025 -0.500000  0.000000      185.64121} {0.000000  0.000000  1.000000        0.00000} {0 0 0 1}}
+  $a move $tmat3
+  $g set chain E
+  $b set chain C
+  set n186pos(E) [cacoIn_nOut 185 E 0]
+  set n398pos(E) [cacoIn_nOut 397 E 0]
+  set n548pos(C) [cacoIn_nOut 547 C 0]
+  $ap writepdb "ECp.pdb"; lappend LOCALFILES ECp.pdb
+  $ag writepdb "ECg.pdb"; lappend LOCALFILES ECg.pdb
 
-$a move $tmat3
-$g set chain E
-$b set chain C
-set n186pos(E) [cacoIn_nOut 185 E 0]
-set n398pos(E) [cacoIn_nOut 397 E 0]
-set n548pos(C) [cacoIn_nOut 547 C 0]
-$ap writepdb "ECp.pdb"; lappend LOCALFILES ECp.pdb
-$ag writepdb "ECg.pdb"; lappend LOCALFILES ECg.pdb
-
-$a move $tmat3
-$g set chain F
-$b set chain D
-set n186pos(F) [cacoIn_nOut 185 F 0]
-set n398pos(F) [cacoIn_nOut 397 F 0]
-set n548pos(D) [cacoIn_nOut 547 D 0]
-$ap writepdb "FDp.pdb"; lappend LOCALFILES FDp.pdb
-$ag writepdb "FDg.pdb"; lappend LOCALFILES FDg.pdb
+  $a move $tmat3
+  $g set chain F
+  $b set chain D
+  set n186pos(F) [cacoIn_nOut 185 F 0]
+  set n398pos(F) [cacoIn_nOut 397 F 0]
+  set n548pos(D) [cacoIn_nOut 547 D 0]
+  $ap writepdb "FDp.pdb"; lappend LOCALFILES FDp.pdb
+  $ag writepdb "FDg.pdb"; lappend LOCALFILES FDg.pdb
+}
 
 mol delete top
 package require psfgen
@@ -67,7 +77,14 @@ pdbalias atom BGNA C7 C
 pdbalias atom BGNA O7 O
 pdbalias atom BGNA C8 CT
 
-foreach g {G E F} b {B C D} {
+set glist [list G E F]
+set blist [list B C D]
+if { $protomer_only == "1" } {
+  set glist [list G]
+  set blist [list B]
+}
+
+foreach g $glist b $blist {
  
   mol new "${g}${b}p.pdb"
   set s1 [atomselect top "resid 34 to 185"]
@@ -227,44 +244,37 @@ foreach g {G E F} b {B C D} {
 
 resetpsf
 
-# make a fixed-atoms pdb for relaxation
-# mol new my_4zmj_protomer_GB_glycans.psf
-# mol addfile my_4zmj_protomer_GB_glycans_rawloops_tmp1.pdb
-
-# set a [atomselect top all]
-#$a set beta 1 ;# pretty much everything is fixed except...
-
-#[atomselect top "chain G and resid 185 to 187"] set beta 0
-#[atomselect top "chain G and resid 397 to 409"] set beta 0
-#[atomselect top "chain B and resid 512 to 521"] set beta 0
-#[atomselect top "chain B and resid 547 to 569"] set beta 0
-#$a writepdb "my_fix_GB.pdb"
-
-#mol delete top
-
-foreach g {G E F} b {B C D} {
+foreach g $glist b $blist {
   readpsf my_4zmj_protomer_${g}${b}_glycans.psf pdb my_4zmj_protomer_${g}${b}_glycans_rawloops_tmp1.pdb
 }
 writepsf "my_4zmj.psf"
-writepdb "trimer.pdb"
-lappend LOCALFILES trimer.pdb
+writepdb "my_4zmj.pdb"
+lappend LOCALFILES my_4zmj.pdb
 
 mol new my_4zmj.psf
-mol addfile trimer.pdb
+mol addfile my_4zmj.pdb
 set molid [molinfo top get id]
 
 set a [atomselect top all]
 $a set beta 1 ;# pretty much everything is fixed except...
 
-[atomselect top "chain G E F and resid 185 to 187"] set beta 0
-[atomselect top "chain G E F and resid 397 to 409"] set beta 0
-[atomselect top "chain B C D and resid 512 to 521"] set beta 0
-[atomselect top "chain B C D and resid 547 to 569"] set beta 0
+if { $protomer_only == "0" } {
+  [atomselect top "chain G E F and resid 185 to 187"] set beta 0
+  [atomselect top "chain G E F and resid 397 to 409"] set beta 0
+  [atomselect top "chain B C D and resid 512 to 521"] set beta 0
+  [atomselect top "chain B C D and resid 547 to 569"] set beta 0
+} else {
+  [atomselect top "chain G and resid 185 to 187"] set beta 0
+  [atomselect top "chain G and resid 397 to 409"] set beta 0
+  [atomselect top "chain B and resid 512 to 521"] set beta 0
+  [atomselect top "chain B and resid 547 to 569"] set beta 0
+}
+
 $a writepdb "my_4zmj_fix.pdb"
 
 $a set beta 0
 
-foreach b { B C D } {
+foreach b $blist {
   set residueList [[atomselect top "chain ${b} and resid 547 to 568 and name CA"] get residue]
   set r1 [lindex $residueList 0]
   set r2 [lindex $residueList end]
@@ -274,8 +284,8 @@ foreach b { B C D } {
   Crot_phi $r1 $r2 ${b} $molid 10
 }
 
-$a writepdb "trimer_mcIn.pdb"
-lappend LOCALFILES trimer_mcIn.pdb
+$a writepdb "my_4zmj_mcIn.pdb"
+lappend LOCALFILES my_4zmj_mcIn.pdb
 
 set nc 1000
 set rcut 3.0
@@ -283,7 +293,8 @@ set temperature 2.5
 set k 10.0
 set r0 1.5
 set bg [atomselect ${molid} "noh"]
-foreach g {G E F} b {B C D} {
+
+foreach g $glist b $blist {
   set residueList [[atomselect ${molid} "chain ${g} and resid 186 and name CA"] get residue]
   do_loop_mc ${residueList} ${g} ${molid} ${k} ${r0} ${bg} ${rcut} ${nc} ${temperature} [irand_dom 1000 9999]
   set residueList [[atomselect ${molid} "chain ${g} and resid 398 to 408 and name CA"] get residue]
