@@ -314,3 +314,67 @@ proc cacoIn_nOut { resid chain molid } {
 
   return $rn
 }
+
+
+# generic molecular fragment rotation
+# "sel" is an existing atomselection for the molecule
+# i and j are the indices of the two bonded atoms
+# that define the rotation.  It is assumed that
+# i and j share a rotatable bond; that is,
+# if the i-j bond were broken, the molecule would be
+# broken into two noncontiguous fragments.  The
+# rotation is about the i-j bond and includes all
+# atoms on the "j"-side of the i-j bond.
+# cfa 2018
+proc genbondrot { molid sel i j deg } {
+   set ilist [$sel get index]
+   set blist [$sel getbonds]
+   set ii [lsearch $ilist $i]
+   set jj [lsearch $ilist $j]
+   set xlist [$sel get x]
+   set ylist [$sel get y]
+   set zlist [$sel get z]
+   set ix [lindex $xlist $ii]
+   set iy [lindex $ylist $ii]
+   set iz [lindex $zlist $ii]
+   set jx [lindex $xlist $jj]
+   set jy [lindex $ylist $jj]
+   set jz [lindex $zlist $jj]
+   set bi [lindex $blist $ii]
+   set isj [lsearch $bi $j]
+   if { $isj == -1 } { 
+       puts "ERROR: $j not found in $i's bondlist $bi"
+   } else {
+     set rlist [list $j]
+     set bj [lindex $blist $jj]
+     foreach n $bj {
+        if { $n != $i } {
+           lappend rlist $n
+        }
+     }
+     set grow 1
+     while { $grow } {
+       set grow 0
+       set rfrag {}
+       foreach k $rlist {
+          set kk [lsearch $ilist $k]
+          set bk [lindex $blist $kk]
+          foreach kn $bk {
+             if { $kn != $i } {
+               set pr [expr [lsearch $rlist $kn] + [lsearch $rfrag $kn]]
+               if { $pr == -2 } {
+                 lappend rfrag $kn
+               }
+             } 
+          }
+       }
+       if { [llength $rfrag] > 0 } {
+            set rlist [concat $rlist $rfrag]
+            set grow 1
+       }
+     }
+     set rsel [atomselect $molid "index $rlist"]
+     $rsel move [trans bond [list $ix $iy $iz] [list $jx $jy $jz] $deg degrees]
+     $rsel delete   
+   }
+}
