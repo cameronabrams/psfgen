@@ -1,6 +1,6 @@
 # psfgen -- advanced VMD/TcL and psfgen/TcL scripts for generating configurations and CHARMM36 topologies for use with NAMD
 
-This repository contains psfgen scripts, TcL scripts for use in VMD, and some associated CHARMM36 topology and parameter files and NAMD config files used to generate _initial conditions_ for production MD simulations of various systems.  It should be helpful to anyone already familiar with using psfgen to build systems using CHARMM topologies who also needs access to some more advanced system-building capabilities than are available in most tutorials.  Some of the features this repository provides beyond what psfgen can easily do are the following:
+This repository contains psfgen scripts, TcL scripts for use in VMD, and some associated CHARMM36 topology and parameter files and NAMD config files used to generate _initial conditions_ for production MD simulations of various systems.  It should be helpful to anyone already familiar with using `psfgen` to build systems using CHARMM topologies who also needs access to some more advanced system-building capabilities than are available in most tutorials.  Some of the features this repository provides beyond what psfgen can easily do are the following:
 
 * support for rudimentary loop model-building to include residues missing in the experimental PDB file but present in the crystallized protein sequence;
 * support for glycans and non-covalently linked sugars;
@@ -8,7 +8,7 @@ This repository contains psfgen scripts, TcL scripts for use in VMD, and some as
 * support for down-puckered prolines;
 * (more to come)...
 
-The _src_ directory contains files that can be "sourced" by psfgen scripts.  The _charmm_ directory contains some custom topologies and parameters derived from the latest charmm36 parameter set (July 2016).  Other directory names indicate the PDB entry for which the files contained therein are applicable.
+The _src_ directory contains files that can be "sourced" by psfgen scripts.  The _charmm_ directory contains some custom topologies and parameters derived from the July, 2016 charmm36 parameter set.  Other directory names indicate the PDB entry for which the files contained therein are applicable.
 
 ## Requirements
 
@@ -17,11 +17,11 @@ The _src_ directory contains files that can be "sourced" by psfgen scripts.  The
      * `CHARMRUN=${HOME}/namd/NAMD_2.12_Source/Linux-x86_64-g++/charmrun`
      * `NAMD2=${HOME}/namd/NAMD_2.12_Source/Linux-x86_64-g++/namd2`
 2. VMD v. 1.8.3
-3. latest CHARMM36 topologies and parameters (toppar_c36_jul16.tgz) unpacked in ${HOME}/charmm/toppar
-4. packmol (for 5ggr)
+3. CHARMM36 topologies and parameters (toppar_c36_jul16.tgz is the version used here) unpacked in ${HOME}/charmm/toppar
+4. packmol
 5. This repository cloned into ${HOME}/psfgen (or, if somewhere else, point to it with the environment variable PSFGEN_BASEDIR)
 
-## Currently supported systems:
+## Supported systems
 
 1. [3TGQ](http://www.rcsb.org/pdb/explore/explore.do?structureId=3tgq) -- unliganded core monomeric HIV-1 gp120, with NAG's;
 
@@ -57,6 +57,8 @@ The _src_ directory contains files that can be "sourced" by psfgen scripts.  The
 
 17. B529 -- a single solvated BMS-529 molecule extracted from 5u7o.pdb, using CGenFF
 
+18. [5U7O](http://www.rcsb.org/pdb/explore/explore.do?structureID=5u7o) -- HIV-1 gp140 SOSIP trimer with bound BMS-529 entry inhibitor, including glycans but not including Fabs.
+
 More to come...
 
 ## Acknowledgments
@@ -65,9 +67,9 @@ More to come...
 
 2. [Packmol](https://www.ime.unicamp.br/~martinez/packmol/userguide.shtml) is a product of Leandro Martinez in the Institute of Chemistry at the University of Campinas.  Please cite ``L. Martínez, R. Andrade, E. G. Birgin, J. M. Martínez. Packmol: A package for building initial configurations for molecular dynamics simulations. Journal of Computational Chemistry, 30(13):2157-2164, 2009.'' 
 
-3. The [CHARMM force field](http://mackerell.umaryland.edu/charmm_ff.shtml) is described in ``MacKerell, Jr., A.D., Feig, M., and Brooks, III, C.L. "Extending the treatment of backbone energetics in protein force fields: limitations of gas-phase quantum mechanics in reproducing protein conformational distributions in molecular dynamics simulations," Journal of Computational Chemistry, 25: 1400-1415, 2004.''.
+3. The [CHARMM force field](http://mackerell.umaryland.edu/charmm_ff.shtml) is described in MacKerell, Jr., A.D., Feig, M., and Brooks, III, C.L. "Extending the treatment of backbone energetics in protein force fields: limitations of gas-phase quantum mechanics in reproducing protein conformational distributions in molecular dynamics simulations," Journal of Computational Chemistry, 25: 1400-1415, 2004.
 
-4. [CGenFF](https://cgenff.paramchem.org/) is a service of the CHARMM development team. Please cite ``. Vanommeslaeghe, E. Hatcher, C. Acharya, S. Kundu, S. Zhong, J. Shim, E. Darian, O. Guvench, P. Lopes, I. Vorobyov, A. D. MacKerell Jr., CHARMM General Force Field: A Force field for Drug-Like Molecules Compatible with the CHARMM All-Atom Additive Biological Force Field, J. Comput. Chem. 2010, 31, 671-690.'' 
+4. [CGenFF](https://cgenff.paramchem.org/) is a web-based service for generating CHARMM General Forcefield parameters.  Please cite K. Vanommeslaeghe, E. Hatcher, C. Acharya, S. Kundu, S. Zhong, J. Shim, E. Darian, O. Guvench, P. Lopes, I. Vorobyov, A. D. MacKerell Jr., CHARMM General Force Field: A Force field for Drug-Like Molecules Compatible with the CHARMM All-Atom Additive Biological Force Field, J. Comput. Chem. 2010, 31, 671-690. 
 
 5. All codes and data in this repository have been made possible with partial support from NIH through grants AI084117, AI093248, GM115249, GM056550, and GM100472, the National Science Foundation through grants DMR-1207389 and MCB-1330205, and the US Army through grants W911NF-12-2-0022, W911-NF-13-1-0046, and W911NF-12-R-0011.
 
