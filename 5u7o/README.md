@@ -17,7 +17,9 @@ clone the repository, you will have to figure this part out on your own.  It is 
 To create the system, just invoke the do_test script in a clean directory:
 
 > mkdir 5u7o
+
 > cd 5u7o
+
 > $PSFGEN_BASEDIR/5u7o/do_test.sh
 
 2018, Cameron F Abrams
