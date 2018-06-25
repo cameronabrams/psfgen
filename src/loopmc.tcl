@@ -4,9 +4,8 @@
 # segment stanzas.  The main procedure is "do_loop_mc" which
 # uses a monte-carlo calculation to close loops.
 #
-# cameron f abrams, drexel u., 2017
+# cameron f abrams, drexel u., 2017-2018
 # cfa22@drexel.edu
-#
 #
 # generates a sequence of integers; use as [.. $i $j]
 proc .. {from to} {
@@ -142,7 +141,7 @@ proc irand_dom { min max } {
 }
 
 # uses a Metropolis MC algorithm w/ "temperature" to shrink the 
-# CA-C bond in the last residue indicatedin the "residueList"
+# CA-C bond in the last residue indicated in the "residueList"
 # by changing phi,psi angles in residues in residueList 
 # on chain "c" in molecule molid.
 # "k" is a spring constant for a fictitious spring 
