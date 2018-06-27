@@ -9,6 +9,9 @@ typedef struct BONDSTRUCT {
   int na;  // number of atoms
   int mb;  // max neighbors (assumed to be four)
   int * ia; // array of atom indices
+  int * rl; // array of atom indices on the "rotation list"
+  int nr; // number of atoms on the rotation list
+  int sr; // position saver 
   int ** ba; // array of bond partners
 } bondstruct;
 
@@ -18,7 +21,7 @@ void print_bondlist ( bondstruct * bs );
 void bondstruct_addbondlist ( bondstruct * bs, int a, int * ba, int nb );
 int * bondstruct_getia ( bondstruct * bs );
 int bondstruct_getna ( bondstruct * bs );
-void bondstruct_getrl ( bondstruct * bs, int i, int j );
+int *  bondstruct_getrl ( bondstruct * bs, int a, int b );
 void free_intarray ( int * a );
 
 #endif

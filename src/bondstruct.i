@@ -17,6 +17,6 @@ extern bondstruct * new_bondstruct ( int * ia, int na );
 extern void print_bondlist ( bondstruct * bs );
 extern void bondstruct_addbondlist ( bondstruct * bs, int a, int * ba, int nb );
 extern void free_bondstruct ( bondstruct * bs );
-extern void bondstruct_getrl ( bondstruct * bs, int i, int j );
-extern int * bondstruct ( bondstruct * bs );
+extern int * bondstruct_getrl ( bondstruct * bs, int a, int b );
+extern int bondstruct_getna ( bondstruct * bs );
 extern void free_intarray ( int * a );

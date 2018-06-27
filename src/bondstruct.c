@@ -3,11 +3,14 @@
 bondstruct * new_bondstruct ( int * ia, int na ) {
    int i,j;
    bondstruct * bs = (bondstruct*)malloc(sizeof(bondstruct));
-
+   bs->nr=0;
+   bs->sr=0;
    bs->na=na;
    bs->mb=5; // by assumption
    bs->ia=(int*)malloc(na*sizeof(int));
    for (i=0;i<na;i++) bs->ia[i]=ia[i];
+   bs->rl=(int*)malloc(na*sizeof(int));
+   for (i=0;i<na;i++) bs->rl[i]=0;
    bs->ba=(int**)malloc(na*sizeof(int*));
    for (i=0;i<na;i++) {
      bs->ba[i]=(int*)malloc(4*sizeof(int));
@@ -56,27 +59,65 @@ int bondstruct_getna ( bondstruct * bs ) {
    return bs->na;
 }
 
-int * bondstruct_getrl ( bondstruct * bs, int i, int j ) {
-   int * rm = (int*)malloc(bs->na*sizeof(int));
-   int i,li,lj, nr=0;
-   for (i=0;i<bs->na;i++) rm[i]=-1;
 
-   for (li=0;li<bs->na && bs->ia[li]!=i;li++);
-   if (li==bs->na) {
-     printf("ERROR: atom %i is not in the bondstruct\n",i);
+int bondstruct_getlocalindex ( bondstruct * bs, int a ) {
+   int la;
+   printf("%i\n",a);fflush(stdout);
+   for (la=0;la<bs->na && bs->ia[la]!=a;la++);
+   if (la==bs->na) {
+     printf("ERROR: atom %i is not in the bondstruct\n",a);
+     return -1;
    }
-   for (lj=0;lj<bs->na && bs->ia[lj]!=j;lj++);
-   if (lj==bs->na) {
-     printf("ERROR: atom %i is not in the bondstruct\n",j);
+   return la;
+}
+
+void bondstruct_resetrotationlist ( bondstruct * bs ) {
+   int i;   
+   bs->nr=bs->sr=0;
+   for (i=0;i<bs->na;i++) bs->rl[i]=-1;
+}
+
+// set the rotation list based on the bond arrays and the identities
+// of the two bonded atoms; "a" is the upstream atom and "b" the
+// downstream.  Atom "b" and the rest of the molecule accessible
+// "b" via bond traversal excluding the bond to atom "a" is rotatable 
+int * bondstruct_getrl ( bondstruct * bs, int a, int b ) {
+   int i,j,k,l,m,la,lb,nr=0,grow,lnr,ca,lk;
+   bondstruct_resetrotationlist(bs);
+   printf("%i %i\n",a,b); fflush(stdout);
+   lb=bondstruct_getlocalindex(bs,b);
+   // put the downstream atom at the head of the rotation list
+   bs->rl[bs->nr++]=b;
+   bs->sr++;
+   // put all atoms it is bonded to on the rotation list EXCEPT the upstream!
+   for (i=0;i<bs->mb && bs->ba[lb][i]!=-1;i++) {
+     if (bs->ba[lb][i] != a) {
+       bs->rl[bs->nr++]=bs->ba[lb][i];
+     }
    }
-   rm[nr++]=j;
-   for (i=0;i<bs->ba[lj][i]!=-1;i++) rm[nr++]=bs->ba[lj][i];
+   // grow
    grow=1;
    while (grow) {
      grow=0;
-     // in progress
+     // between sr and nr-1, there are atoms whose neighbors should be added to rotlist
+     lnr=bs->nr;
+     for (k=bs->sr;k<lnr;k++) {
+        lk=bondstruct_getlocalindex(bs,bs->rl[k]);
+        for (l=0;l<bs->mb && bs->ba[lk][l]!=-1;l++) {
+          if (bs->ba[lk][l] != a) {
+            // only add this to the rotlist if it is not already on the rotlist
+            ca=bs->ba[lk][l];
+            for (m=0;m<bs->nr&&bs->rl[m]!=ca;m++);
+            if (ca!=bs->rl[m]) {
+              bs->rl[bs->nr++]=bs->ba[lk][l];
+              grow=1;
+            }
+          }
+        }
+     }
+     if (grow) bs->sr=lnr;
    }
-   return rm;
+   return bs->rl;
 }
  
 void free_bondstruct ( bondstruct * bs ) {
