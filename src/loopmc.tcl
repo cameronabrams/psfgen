@@ -25,7 +25,9 @@ proc roughenergy {sel1 sel2 cut}  {
   if { [$sel1 num] > 0 && [$sel2 num] > 0 } {
    set dat [measure contacts $cut $sel1 $sel2]
    set nc [llength [lindex $dat 0]]
-   set E [expr $nc * $efac]
+   set dat [measure contacts [expr $cut/10] $sel1 $sel2]
+   set nc2 [llength [lindex $dat 0]]
+   set E [expr $nc * $efac + $nc2*10*$efac]
   }
   return $E
 }
@@ -314,7 +316,6 @@ proc cacoIn_nOut { resid chain molid } {
   return $rn
 }
 
-
 # generic molecular fragment rotation
 # "sel" is an existing atomselection for the molecule
 # i and j are the indices of the two bonded atoms
@@ -368,12 +369,134 @@ proc genbondrot { molid sel i j deg } {
           }
        }
        if { [llength $rfrag] > 0 } {
-            set rlist [concat $rlist $rfrag]
-            set grow 1
+         set rlist [concat $rlist $rfrag]
+         set grow 1
        }
      }
      set rsel [atomselect $molid "index $rlist"]
      $rsel move [trans bond [list $ix $iy $iz] [list $jx $jy $jz] $deg degrees]
-     $rsel delete   
+     $rsel delete
    }
+}
+
+proc fold_alpha_helix { molid sel } {
+   set ni {}
+   set ci {}
+   set cai {}
+#   puts "molid $molid"
+   foreach an [$sel get name] i [$sel get index] {
+      if { $an == "C" } {
+         lappend ci $i
+      } elseif { $an == "N" } {
+         lappend ni $i
+      } elseif { $an == "CA" } {
+         lappend cai $i
+      }
+   }
+   set nn [llength $ni]
+   set nc [llength $ci]
+   set nca [llength $cai]
+#   puts "N $nn $ni"
+#   puts "CA $nca $cai"
+#   puts "C $nc $ci"
+   set in 0
+   set ica 0
+   set ic 0
+   while { $in < [expr $nn - 1] } {
+     set psi {}
+     set phi {}
+     lappend psi [lindex $ni $in]
+     lappend psi [lindex $cai $ica]
+     lappend psi [lindex $ci $ic]
+     lappend phi [lindex $ci $ic]
+     set in [expr $in + 1]
+     lappend psi [lindex $ni $in]
+     lappend phi [lindex $ni $in]
+     set ica [expr $ica + 1]
+     lappend phi [lindex $cai $ica]
+     set ic [expr $ic + 1]
+     lappend phi [lindex $ci $ic]
+     set PSIM [measure dihed $psi]
+     set PHIM [measure dihed $phi]
+     puts "psi $psi ($PSIM) phi $phi ($PHIM)"
+     set SPHI [expr -60 - ($PHIM)]
+     set SPSI [expr -45 - ($PSIM)]
+     genbondrot $molid $sel [lindex $psi 1] [lindex $psi 2] $SPSI
+     genbondrot $molid $sel [lindex $phi 1] [lindex $phi 2] $SPHI
+#     puts "$SPHI $SPSI"
+   }
+}
+
+proc do_flex_mc { molid msel ri rj k i j envsel rcut maxcycles temperature iseed } {
+
+   set bl [$msel getbonds]
+   set il [$msel get index]
+
+#   puts "ri $ri"
+#   puts "rj $rj"
+#   puts "il [llength $il] : $il"
+#   puts "bl [llength $bl] : $bl"
+   
+   puts "CFAFLEXMC) Initial attractor distance [measure bond [list $i $j]]"
+   expr srand($iseed)
+
+   set nacc 0
+
+   set SE [expr 0.5*$k*pow([measure bond [list $i $j]],2)]
+   set EE [roughenergy $msel $envsel $rcut]
+   set E [expr $SE + $EE]
+   set E0 $E
+
+   for {set cyc 0} { $cyc < $maxcycles } { incr cyc } {
+    # save coordinates
+    set SAVEPOS [$msel get {x y z}]
+    set nrot 0
+    for {set r 0} {$r < [llength $ri] } {incr r} {
+      set ii [lindex $ri $r]
+      set mi [lsearch $il $ii]
+#      puts "ii $ii mi $mi"
+      set bli [lindex $bl $mi]
+#      puts "bli $bli"
+      set jj -1
+      foreach blii $bli {
+         set tjj [lsearch $rj $blii]
+         if { $tjj != -1 } {
+            set jj [lindex $rj $tjj]
+         }
+      }
+#      puts "jj $jj"
+      if { $jj != -1 } {
+        set av [expr 60 * [irand_dom 1 5]]
+        genbondrot $molid $msel $ii $jj $av
+        set nrot [expr $nrot + 1]
+      }
+    }
+    if { $nrot == 0 } {
+       puts "ERROR: no rotations performed"
+       exit
+    }
+    set SE [expr 0.5*$k*pow([measure bond [list $i $j]],2)]
+    set EE [roughenergy $msel $envsel $rcut]
+    set E [expr $SE + $EE]
+    set X [expr rand()]
+    set arg [expr {($E0-$E)/$temperature}]
+    if {[expr $arg < -20]} {
+      set B 0.0
+    } elseif {[expr $arg > 2.8]} {
+      set B 1.1
+    } else {
+      # compute a Boltzmann factor
+      set B [expr {exp($arg)}] 
+    }
+    if {[expr {$X > $B}]} {
+      # reject the move
+      $msel set {x y z} $SAVEPOS
+    } else {
+      # accept the move
+      set E0 $E
+      incr nacc
+      puts "CFAFLEXMC) cycle $cyc nacc $nacc (ratio [format "%.5f" [expr (1.0*$nacc)/($cyc+1)]]) attractor distance: [format "%.2f" [measure bond [list $i $j]]] [format "attractor-penalty %.2f steric-penalty %.2f" $SE $EE]"
+    }
+  }
+  puts "CFAFLEXMC) cycle $cyc nacc $nacc (ratio [format "%.5f" [expr (1.0*$nacc)/($cyc+1)]]) attractor distance: [format "%.2f" [measure bond [list $i $j]]]"
 }
