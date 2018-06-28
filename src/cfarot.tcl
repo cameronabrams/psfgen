@@ -99,10 +99,10 @@ proc make_bondstruct { molid sel } {
    foreach a $il ibl $bl {
      if { [llength $ibl] > 0 } {
         set ta [intListToArray $ibl]
-        bondstruct_addbondlist $bs $a $ta [llength $ibl]
+        bondstruct_addbonds $bs $a $ta [llength $ibl]
      }
    }
-   
+   bondstruct_makebondlist $bs 
    return $bs
 }
 
@@ -119,24 +119,27 @@ proc bondstruct_getrsel_indices { bs i j } {
    return $ret
 }
 
+proc bondstruct_getbond { bs i } {
+   return [intArrayToList [bondstruct_getbondpointer $bs $i] 2]
+}
+
 proc my_bondrot { molid rsel i j deg } {
    set is [atomselect $molid "index $i"]
    set js [atomselect $molid "index $j"]
    set ir [lindex [$is get {x y z}] 0]
    set jr [lindex [$js get {x y z}] 0]
+   set rl [bondstruct_getrsel_indices $bs $i $j]
+   set rsel [atomselect $molid "index $rl"]
    $rsel move [trans bond $ir $jr $deg degrees]
+   $is delete
+   $js detele
+   $rsel delete
 }
 
-proc gentwist { molid sel i j deg } {
+proc cfabondrot_drive { molid sel i j deg } {
 
    set bs [make_bondstruct $molid $sel]
 
-#   puts "calling getrsel for $i $j"
-
-   set rl [bondstruct_getrsel_indices $bs $i $j]
-#   puts "rl $rl"
-
-   set rsel [atomselect $molid "index $rl"]
    my_bondrot $molid $rsel $i $j $deg 
    
 #   set names [$rsel get name]

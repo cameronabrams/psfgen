@@ -7,6 +7,9 @@
 # cameron f abrams, drexel u., 2017-2018
 # cfa22@drexel.edu
 #
+# some C functions that help with quick bond rotations
+source ${PSFGEN_BASEDIR}/src/cfarot.tcl
+
 # generates a sequence of integers; use as [.. $i $j]
 proc .. {from to} {
     set o {}
@@ -426,11 +429,24 @@ proc fold_alpha_helix { molid sel } {
 #     puts "$SPHI $SPSI"
    }
 }
-
+# loop MC on atoms in msel.  ri is a list of atom indices in msel that can "initiate"
+# rotatable bonds, and rj is a list of atom indices in msel that can "receive"
+# rotatable bonds.  This must be identified manually.  
+# The set of atoms that rotates about the bond
+# is the set to which the atom in rj belongs if the bond is cleaved.
+# "i" and "j" are reference atoms in msel that act as an attractor; it is assumed
+# that i is on the loop and j is not; k is the spring constant for the attractor.
+# envsel is a second atomselection of atoms that form the "environment" for which
+# overlaps are not allowed (typically all) and rcut is the minimum distance between
+# any pair of atoms between the msel and envsel that would constitute a contact.
+# maxcycles is the max number of mc cycles, where one cycle is a move of all rotatable
+# bonds by random amounts. temperature is the Metropolis temperature and iseed is
+# the rng seed.
 proc do_flex_mc { molid msel ri rj k i j envsel rcut maxcycles temperature iseed } {
 
    set bl [$msel getbonds]
    set il [$msel get index]
+   set bs [make_bondstruct $molid $msel]
 
 #   puts "ri $ri"
 #   puts "rj $rj"
@@ -448,27 +464,14 @@ proc do_flex_mc { molid msel ri rj k i j envsel rcut maxcycles temperature iseed
    set E0 $E
 
    for {set cyc 0} { $cyc < $maxcycles } { incr cyc } {
-    # save coordinates
-    set SAVEPOS [$msel get {x y z}]
-    set nrot 0
-    for {set r 0} {$r < [llength $ri] } {incr r} {
-      set ii [lindex $ri $r]
-      set mi [lsearch $il $ii]
-#      puts "ii $ii mi $mi"
-      set bli [lindex $bl $mi]
-#      puts "bli $bli"
-      set jj -1
-      foreach blii $bli {
-         set tjj [lsearch $rj $blii]
-         if { $tjj != -1 } {
-            set jj [lindex $rj $tjj]
-         }
-      }
-#      puts "jj $jj"
-      if { $jj != -1 } {
-        set av [expr 60 * [irand_dom 1 5]]
-        genbondrot $molid $msel $ii $jj $av
-        set nrot [expr $nrot + 1]
+      # save coordinates
+      set SAVEPOS [$msel get {x y z}]
+      set nrot 0
+      for {set r 0} {$r < [bondstruct_getnb $bs] } {incr r} {
+         set tb [bondstruct_getbond $bs $r]
+         set av [expr 60 * [irand_dom 1 5]]
+         my_bondrot $molid $msel [lindex $tb 0] [lindex $tb 1] $av
+         set nrot [expr $nrot + 1]
       }
     }
     if { $nrot == 0 } {
@@ -499,4 +502,5 @@ proc do_flex_mc { molid msel ri rj k i j envsel rcut maxcycles temperature iseed
     }
   }
   puts "CFAFLEXMC) cycle $cyc nacc $nacc (ratio [format "%.5f" [expr (1.0*$nacc)/($cyc+1)]]) attractor distance: [format "%.2f" [measure bond [list $i $j]]]"
+  free_bondstruct $bs
 }
