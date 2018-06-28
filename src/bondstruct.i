@@ -16,11 +16,14 @@ double get_double(double *a, int index) {
 extern bondstruct * new_bondstruct ( int * ia, int na );
 extern void print_bondlist ( bondstruct * bs );
 extern void bondstruct_addbonds ( bondstruct * bs, int a, int * ba, int nb );
-extern void bondstruct_makebondlist ( bondstruct * bs );
+extern void bondstruct_makerotatablebondlist ( bondstruct * bs, int * rot_i, int ni, int * rot_j, int nj );
 extern void free_bondstruct ( bondstruct * bs );
-extern int * bondstruct_getrl ( bondstruct * bs, int a, int b );
 extern int bondstruct_getna ( bondstruct * bs );
 extern int bondstruct_getnb ( bondstruct * bs );
 extern int bondstruct_arebonded ( bondstruct * bs, int a, int b );
 extern int * bondstruct_getbondpointer ( bondstruct * bs, int i );
+extern int * bondstruct_getrightside_pointer ( bondstruct * bs, int b );
+extern int bondstruct_getrightside_count ( bondstruct * bs, int b );
+extern int bondstruct_getbondindex ( bondstruct * bs, int i, int j );
+
 extern void free_intarray ( int * a );

@@ -89,7 +89,11 @@ proc intArrayToList {a n} {
     return $l
 }
 
-proc make_bondstruct { molid sel } {
+# molid is the molecule id
+# sel is an atomselection
+# rol_il is a list of atom indices that define rotatable bond "left" partners
+# rot_jl is a list of atom indices that define rotatable bond "right" partners
+proc make_bondstruct { molid sel rot_il rot_jl } {
    set il [$sel get index]
    set bl [$sel getbonds]
 
@@ -102,53 +106,24 @@ proc make_bondstruct { molid sel } {
         bondstruct_addbonds $bs $a $ta [llength $ibl]
      }
    }
-   bondstruct_makebondlist $bs 
+   bondstruct_makerotatablebondlist $bs [intListToArray $rot_il] [llength $rot_il] [intListToArray $rot_jl] [llength $rot_jl]
    return $bs
-}
-
-proc bondstruct_getrsel_indices { bs i j } {
-   puts "$i $j"
-   set resarray [bondstruct_getrl $bs $i $j]
-   set tmp [intArrayToList $resarray [bondstruct_getna $bs]]
-   set ret {}
-   foreach i $tmp {
-     if { $i != -1 } {
-       lappend ret $i
-     }
-   }
-   return $ret
 }
 
 proc bondstruct_getbond { bs i } {
    return [intArrayToList [bondstruct_getbondpointer $bs $i] 2]
 }
 
-proc my_bondrot { molid rsel i j deg } {
+proc my_bondrot { bs molid i j deg } {
    set is [atomselect $molid "index $i"]
    set js [atomselect $molid "index $j"]
    set ir [lindex [$is get {x y z}] 0]
    set jr [lindex [$js get {x y z}] 0]
-   set rl [bondstruct_getrsel_indices $bs $i $j]
+   set b  [bondstruct_getbondindex $bs $i $j]
+   set rl [intArrayToList [bondstruct_getrightside_pointer $bs $b] [bondstruct_getrightside_count $bs $b]]
    set rsel [atomselect $molid "index $rl"]
    $rsel move [trans bond $ir $jr $deg degrees]
    $is delete
    $js detele
    $rsel delete
-}
-
-proc cfabondrot_drive { molid sel i j deg } {
-
-   set bs [make_bondstruct $molid $sel]
-
-   my_bondrot $molid $rsel $i $j $deg 
-   
-#   set names [$rsel get name]
-#   puts "names $names"
-   
-#   print_bondlist $bs   
-
-   
-
-   free_bondstruct $bs
-
 }

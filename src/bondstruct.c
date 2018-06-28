@@ -18,15 +18,29 @@ bondstruct * new_bondstruct ( int * ia, int na ) {
    }
    bs->b=NULL;
    bs->nb=0;
+   bs->bra=NULL;
+   bs->bran=NULL;
    return bs;
+}
+
+int bondstruct_getlocalindex ( bondstruct * bs, int a ) {
+   int la;
+   for (la=0;la<bs->na && bs->ia[la]!=a;la++);
+   if (la==bs->na) {
+     printf("ERROR: atom %i is not in the bondstruct\n",a);
+     return -1;
+   }
+   return la;
 }
 
 void print_bondlist ( bondstruct * bs ) {
    int i,j;
-   printf("CFABOND/C) Bondlist:\n");
+   printf("CFABOND/C) Array of rotatable bonds:\n");
    if (bs->b && bs->nb) {
       for (i=0;i<bs->nb;i++) {
-        printf("%i %i\n",bs->b[i][0],bs->b[i][1]);
+        printf("%i %i : %i : ",bs->b[i][0],bs->b[i][1],bs->bran[i]);
+        for (j=0;j<bs->bran[i];j++) printf("%i ",bs->bra[i][j]);
+        printf("\n");
       }
    }
    printf("CFABOND/C) Atom bondlists:\n");
@@ -37,17 +51,29 @@ void print_bondlist ( bondstruct * bs ) {
    }
 }
 
+int bondstruct_getbondindex ( bondstruct * bs, int i, int j ) {
+   int k=0;
+   int m=-1;
+   for (k=0;k<bs->nb;k++) {
+     if (bs->b[k][0]==i&&bs->b[k][1]==j) m=k;
+   }
+   return m;
+}
+
+int * bondstruct_getrightside_pointer ( bondstruct * bs, int b ) {
+   return bs->bra[b];
+}
+
+int bondstruct_getrightside_count ( bondstruct * bs, int b ) {
+   return bs->bran[b];
+}
+
+// a is an atom index and bl[] is an array of atom indices of its bonding partners
+// as determined by [$sel getbonds].  nb is the number of such partners.
 void bondstruct_addbonds ( bondstruct * bs, int a, int * bl, int nb ) {
   if (bs) {
     int i,ia;
-//    printf("addbondlist atomindex %i numbonds %i\n",a,nb);fflush(stdout);
-//    printf("searching atomlist\n");fflush(stdout);
-    for (ia=0;bs->ia[ia]!=a && ia<bs->na;ia++);
-//    printf("result: %i\n",ia);fflush(stdout);
-    if (ia==bs->na) {
-       printf("ERROR: atom %i is not found in this bondstruct's atomlist\n", a);
-       return;
-    }
+    ia=bondstruct_getlocalindex(bs,a);
     if (nb>bs->mb) {
        printf("ERROR: atom %i has too many bonds\n",a);
        return;
@@ -66,24 +92,16 @@ int bondstruct_getnb ( bondstruct * bs ) {
 int * bondstruct_getbondpointer ( bondstruct * bs, int i ) {
    return bs->b[i];
 }
- 
-void bondstruct_makebondlist ( bondstruct * bs ) {
-   int i,j,k;
-   bs->nb=0;
-   for (i=0;i<bs->na;i++) {
-     for (j=0;j<bs->mb&&bs->ba[i][j]!=-1;j++) bs->nb++;
-   }
-   bs->b=(int**)malloc(bs->nb*sizeof(int*));
-   k=0;
-   for (i=0;i<bs->na;i++) {
-     for (j=0;j<bs->mb&&bs->ba[i][j]!=-1;j++) {
-        bs->b[k]=(int*)malloc(2*sizeof(int));
-        bs->b[k][0]=bs->ia[i];
-        bs->b[k][1]=bs->ba[i][j];
-        k++;
-     }
-   }  
-}
+
+int bond_rotatable ( int a, int b, int * ri, int ni, int * rj, int nj ) {
+    int i,j;
+    // is a on ri?
+    for (i=0;i<ni&&ri[i]!=a;i++);
+    // is b on rj?
+    for (j=0;j<nj&&rj[j]!=b;j++);
+    if (i<ni&&j<nj) return 1;
+    return 0;
+} 
 
 int * bondstruct_getia ( bondstruct * bs ) {
    return bs->ia;
@@ -94,64 +112,87 @@ int bondstruct_getna ( bondstruct * bs ) {
 }
 
 
-int bondstruct_getlocalindex ( bondstruct * bs, int a ) {
-   int la;
-//   printf("%i\n",a);fflush(stdout);
-   for (la=0;la<bs->na && bs->ia[la]!=a;la++);
-   if (la==bs->na) {
-     printf("ERROR: atom %i is not in the bondstruct\n",a);
-     return -1;
+// After making the rotatable bond list, this function 
+// is called to make, for _each_ rotatable bond, the
+// array of atom indices that are on the "right" side 
+// of the bond. These are atoms that move when the 
+// bond is later rotated, and they are a static 
+// property of the bondstruct that need be determined 
+// only once
+void bondstruct_makerightsides ( bondstruct * bs ) {
+   int i,j,k,l,m,a,b,la,lb,li,nr=0,grow,lnr,ca,lk;
+   
+   // allocate the array of arrays
+   bs->bra=(int**)malloc(bs->nb*sizeof(int*));
+   for (i=0;i<bs->nb;i++) {
+     bs->bra[i]=(int*)malloc(bs->na*sizeof(int));
+     for (j=0;j<bs->na;j++) bs->bra[i][j]=-1;
    }
-   return la;
-}
-
-void bondstruct_resetrotationlist ( bondstruct * bs ) {
-   int i;   
-   bs->nr=bs->sr=0;
-   for (i=0;i<bs->na;i++) bs->rl[i]=-1;
-}
-
-// set the rotation list based on the bond arrays and the identities
-// of the two bonded atoms; "a" is the upstream atom and "b" the
-// downstream.  Atom "b" and the rest of the molecule accessible
-// "b" via bond traversal excluding the bond to atom "a" is rotatable 
-int * bondstruct_getrl ( bondstruct * bs, int a, int b ) {
-   int i,j,k,l,m,la,lb,nr=0,grow,lnr,ca,lk;
-   bondstruct_resetrotationlist(bs);
-   //printf("%i %i\n",a,b); fflush(stdout);
-   lb=bondstruct_getlocalindex(bs,b);
-   // put the downstream atom at the head of the rotation list
-   bs->rl[bs->nr++]=b;
-   bs->sr++;
-   // put all atoms it is bonded to on the rotation list EXCEPT the upstream!
-   for (i=0;i<bs->mb && bs->ba[lb][i]!=-1;i++) {
-     if (bs->ba[lb][i] != a) {
-       bs->rl[bs->nr++]=bs->ba[lb][i];
+   // allocate array of right-side counts
+   bs->bran=(int*)malloc(bs->nb*sizeof(int));
+   // for each bond, identify and save all right-side atoms
+   for (k=0;k<bs->nb;k++) {
+     a=bs->b[k][0];
+     b=bs->b[k][1];
+     la=bondstruct_getlocalindex(bs,a);
+     lb=bondstruct_getlocalindex(bs,b);
+     // put all atoms b is bonded to on the right-side list _except_ atom a
+     bs->bran[k]=0;
+     for (i=0;i<bs->mb && bs->ba[lb][i]!=-1;i++) {
+       if (bs->ba[lb][i] != a) {
+         bs->bra[k][bs->bran[k]++]=bs->ba[lb][i];
+       }
      }
-   }
-   // grow
-   grow=1;
-   while (grow) {
-     grow=0;
-     // between sr and nr-1, there are atoms whose neighbors should be added to rotlist
-     lnr=bs->nr;
-     for (k=bs->sr;k<lnr;k++) {
-        lk=bondstruct_getlocalindex(bs,bs->rl[k]);
-        for (l=0;l<bs->mb && bs->ba[lk][l]!=-1;l++) {
-          if (bs->ba[lk][l] != a) {
-            // only add this to the rotlist if it is not already on the rotlist
-            ca=bs->ba[lk][l];
-            for (m=0;m<bs->nr&&bs->rl[m]!=ca;m++);
-            if (ca!=bs->rl[m]) {
-              bs->rl[bs->nr++]=bs->ba[lk][l];
-              grow=1;
+     // enter the grow-loop; for each element on bs->bra[k][], add _its_ bond partners to this
+     // right-side array, provided they are not already in it
+     grow=1;
+     while (grow) {
+       grow=0;
+       // save the current right-side array size
+       // lnr=bs->bran[k];
+       // for each atom on this right-side array
+       for (i=0;i<bs->bran[k];i++) {
+          // get the local index
+          li=bondstruct_getlocalindex(bs,bs->bra[k][i]);
+          // for each neighbor atom bonded to this atom
+          for (j=0;j<bs->mb && bs->ba[li][j]!=-1;j++) {
+            // as long as this neighbor is not atom a (which it should never be)
+            if (bs->ba[li][j] != a) {
+              // only add this to the right-side array if it is not already in it
+              ca=bs->ba[li][j];
+              for (m=0;m<bs->bran[k]&&bs->bra[k][m]!=ca;m++);
+              if (ca!=bs->bra[k][m]) {
+                bs->bra[k][bs->bran[k]++]=ca;
+                grow=1;
+              }
             }
           }
         }
-     }
-     if (grow) bs->sr=lnr;
+      }
    }
-   return bs->rl;
+}
+
+void bondstruct_makerotatablebondlist ( bondstruct * bs, int * rot_i, int ni, int * rot_j, int nj ) {
+   int i,j,k;
+   bs->nb=0;
+   for (i=0;i<bs->na;i++) {
+     for (j=0;j<bs->mb&&bs->ba[i][j]!=-1;j++) 
+       if (bond_rotatable(bs->ia[i],bs->ba[i][j],rot_i,ni,rot_j,nj)) bs->nb++;
+   }
+   bs->b=(int**)malloc(bs->nb*sizeof(int*));
+   k=0;
+   for (i=0;i<bs->na;i++) {
+     for (j=0;j<bs->mb&&bs->ba[i][j]!=-1;j++) {
+       if (bond_rotatable(bs->ia[i],bs->ba[i][j],rot_i,ni,rot_j,nj)) {
+          bs->b[k]=(int*)malloc(2*sizeof(int));
+          bs->b[k][0]=bs->ia[i];
+          bs->b[k][1]=bs->ba[i][j];
+          // generate array of atoms on the "right" of this bond
+          k++;
+       }
+     }
+   }  
+   bondstruct_makerightsides(bs);
 }
 
 int bondstruct_arebonded ( bondstruct * bs, int a, int b ) {

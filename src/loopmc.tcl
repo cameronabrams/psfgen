@@ -429,24 +429,30 @@ proc fold_alpha_helix { molid sel } {
 #     puts "$SPHI $SPSI"
    }
 }
-# loop MC on atoms in msel.  ri is a list of atom indices in msel that can "initiate"
-# rotatable bonds, and rj is a list of atom indices in msel that can "receive"
-# rotatable bonds.  This must be identified manually.  
-# The set of atoms that rotates about the bond
-# is the set to which the atom in rj belongs if the bond is cleaved.
-# "i" and "j" are reference atoms in msel that act as an attractor; it is assumed
-# that i is on the loop and j is not; k is the spring constant for the attractor.
+
+# do_flex_mc: loop MC on atoms in msel.  
+# molid is the molcule id.
+# msel is the selection of atoms that contain all rotatable bonds.
+# ri is a list of atom indices in msel that are rotatable bond "left" partners.
+# rj is a list of atom indices in msel that are rotatable bond "right" partners.
+# ri and rj must be set by the calling routine!
+# All bonds in which a left partner is on ri and a right partner is on rj will
+#   be rotated, with atoms on the right of the bond moving and the atoms on the left
+#   of the bond fixed (this is the meaning of "left" and "right")
+# "i" and "j" are reference atom indices in msel that act as an attractor; it is assumed
+#   that i is on the loop and j is not; k is the spring constant for a harmonic attractor.
 # envsel is a second atomselection of atoms that form the "environment" for which
-# overlaps are not allowed (typically all) and rcut is the minimum distance between
-# any pair of atoms between the msel and envsel that would constitute a contact.
+#   overlaps are not allowed (typically all) and rcut is the minimum distance between
+#   any pair of atoms between the msel and envsel that would constitute a contact.
 # maxcycles is the max number of mc cycles, where one cycle is a move of all rotatable
-# bonds by random amounts. temperature is the Metropolis temperature and iseed is
-# the rng seed.
+#   bonds by random amounts. 
+# temperature is the Metropolis temperature.
+# iseed is the rng seed.
 proc do_flex_mc { molid msel ri rj k i j envsel rcut maxcycles temperature iseed } {
 
    set bl [$msel getbonds]
    set il [$msel get index]
-   set bs [make_bondstruct $molid $msel]
+   set bs [make_bondstruct $molid $msel $ri $rj]
 
 #   puts "ri $ri"
 #   puts "rj $rj"
