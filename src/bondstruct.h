@@ -17,6 +17,7 @@ typedef struct BONDSTRUCT {
   int ** b; // array of pairs of atom indices of rotatable bonds
   int ** bra; // array of right-side atom indicies for each rotatable bond
   int * bran; // array of counts of right-side atoms for each rotatable bond
+  int * isactive; // array of is-active flags; 0 means bond is not active for rotation
 } bondstruct;
 
 bondstruct * new_bondstruct ( int * ia, int na );
@@ -33,4 +34,7 @@ int * bondstruct_getbondpointer ( bondstruct * bs, int i );
 int * bondstruct_getrightside_pointer ( bondstruct * bs, int b );
 int bondstruct_getrightside_count ( bondstruct * bs, int b );
 int bondstruct_getbondindex ( bondstruct * bs, int i, int j );
+double my_roughenergy ( double * x1, double * y1, double * z1, int n1, double * x2, double * y2, double * z2, int n2, double cut );
+void bondstruct_deactivate_by_fixed ( bondstruct * bs, int fa );
+int bondstruct_isactive ( bondstruct * bs, int b ); 
 #endif

@@ -26,11 +26,7 @@ proc roughenergy {sel1 sel2 cut}  {
   set E 0.0
   set efac 1.0
   if { [$sel1 num] > 0 && [$sel2 num] > 0 } {
-   set dat [measure contacts $cut $sel1 $sel2]
-   set nc [llength [lindex $dat 0]]
-   set dat [measure contacts [expr $cut/10] $sel1 $sel2]
-   set nc2 [llength [lindex $dat 0]]
-   set E [expr $nc * $efac + $nc2*10*$efac]
+   set E [my_roughenergy [ListToArray [$sel1 get x]] [ListToArray [$sel1 get y]] [ListToArray [$sel1 get z]] [$sel1 num] [ListToArray [$sel2 get x]] [ListToArray [$sel2 get y]] [ListToArray [$sel2 get z]] [$sel2 num] $cut]
   }
   return $E
 }
@@ -436,6 +432,8 @@ proc fold_alpha_helix { molid sel } {
 # ri is a list of atom indices in msel that are rotatable bond "left" partners.
 # rj is a list of atom indices in msel that are rotatable bond "right" partners.
 # ri and rj must be set by the calling routine!
+# fa is the index of an atom that defines an end of the molecule that is not
+#   permitted to move due to any bond rotation (if -1, all bonds rotate)
 # All bonds in which a left partner is on ri and a right partner is on rj will
 #   be rotated, with atoms on the right of the bond moving and the atoms on the left
 #   of the bond fixed (this is the meaning of "left" and "right")
@@ -448,11 +446,13 @@ proc fold_alpha_helix { molid sel } {
 #   bonds by random amounts. 
 # temperature is the Metropolis temperature.
 # iseed is the rng seed.
-proc do_flex_mc { molid msel ri rj k i j envsel rcut maxcycles temperature iseed } {
+proc do_flex_mc { molid msel ri rj fa k i j envsel rcut maxcycles temperature iseed } {
 
    set bl [$msel getbonds]
    set il [$msel get index]
    set bs [make_bondstruct $molid $msel $ri $rj]
+   bondstruct_deactivate_by_fixed $bs $fa
+   print_bondlist $bs
 
 #   puts "ri $ri"
 #   puts "rj $rj"
@@ -468,45 +468,48 @@ proc do_flex_mc { molid msel ri rj k i j envsel rcut maxcycles temperature iseed
    set EE [roughenergy $msel $envsel $rcut]
    set E [expr $SE + $EE]
    set E0 $E
-
+   puts "init flexmc E0 $E0"
    for {set cyc 0} { $cyc < $maxcycles } { incr cyc } {
       # save coordinates
       set SAVEPOS [$msel get {x y z}]
       set nrot 0
       for {set r 0} {$r < [bondstruct_getnb $bs] } {incr r} {
-         set tb [bondstruct_getbond $bs $r]
          set av [expr 60 * [irand_dom 1 5]]
-         my_bondrot $molid $msel [lindex $tb 0] [lindex $tb 1] $av
-         set nrot [expr $nrot + 1]
+        # puts "cyc $cyc bond $r deg $av"
+         if { [bondstruct_isactive $bs $r] } {
+           bondrot_by_index $bs $molid $r $av
+           set nrot [expr $nrot + 1]
+         }
       }
-    }
-    if { $nrot == 0 } {
-       puts "ERROR: no rotations performed"
-       exit
-    }
-    set SE [expr 0.5*$k*pow([measure bond [list $i $j]],2)]
-    set EE [roughenergy $msel $envsel $rcut]
-    set E [expr $SE + $EE]
-    set X [expr rand()]
-    set arg [expr {($E0-$E)/$temperature}]
-    if {[expr $arg < -20]} {
-      set B 0.0
-    } elseif {[expr $arg > 2.8]} {
-      set B 1.1
-    } else {
-      # compute a Boltzmann factor
-      set B [expr {exp($arg)}] 
-    }
-    if {[expr {$X > $B}]} {
-      # reject the move
-      $msel set {x y z} $SAVEPOS
-    } else {
-      # accept the move
-      set E0 $E
-      incr nacc
-      puts "CFAFLEXMC) cycle $cyc nacc $nacc (ratio [format "%.5f" [expr (1.0*$nacc)/($cyc+1)]]) attractor distance: [format "%.2f" [measure bond [list $i $j]]] [format "attractor-penalty %.2f steric-penalty %.2f" $SE $EE]"
-    }
-  }
-  puts "CFAFLEXMC) cycle $cyc nacc $nacc (ratio [format "%.5f" [expr (1.0*$nacc)/($cyc+1)]]) attractor distance: [format "%.2f" [measure bond [list $i $j]]]"
-  free_bondstruct $bs
+    
+      if { $nrot == 0 } {
+         puts "ERROR: no rotations performed"
+         exit
+      }
+      set SE [expr 0.5*$k*pow([measure bond [list $i $j]],2)]
+      set EE [roughenergy $msel $envsel $rcut]
+      set E [expr $SE + $EE]
+     # puts " ... E $E"
+      set X [expr rand()]
+      set arg [expr {($E0-$E)/$temperature}]
+      if {[expr $arg < -20]} {
+        set B 0.0
+      } elseif {[expr $arg > 2.8]} {
+        set B 1.1
+      } else {
+        # compute a Boltzmann factor
+        set B [expr {exp($arg)}] 
+      }
+      if {[expr {$X > $B}]} {
+        # reject the move
+        $msel set {x y z} $SAVEPOS
+      } else {
+        # accept the move
+        set E0 $E
+        incr nacc
+        puts "CFAFLEXMC) cycle $cyc nacc $nacc (ratio [format "%.5f" [expr (1.0*$nacc)/($cyc+1)]]) attractor distance: [format "%.2f" [measure bond [list $i $j]]] [format "attractor-penalty %.2f steric-penalty %.2f" $SE $EE]"
+      }
+   }
+   puts "CFAFLEXMC) cycle $cyc nacc $nacc (ratio [format "%.5f" [expr (1.0*$nacc)/($cyc+1)]]) attractor distance: [format "%.2f" [measure bond [list $i $j]]]"
+   free_bondstruct $bs
 }

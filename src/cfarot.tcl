@@ -114,16 +114,25 @@ proc bondstruct_getbond { bs i } {
    return [intArrayToList [bondstruct_getbondpointer $bs $i] 2]
 }
 
-proc my_bondrot { bs molid i j deg } {
-   set is [atomselect $molid "index $i"]
-   set js [atomselect $molid "index $j"]
-   set ir [lindex [$is get {x y z}] 0]
-   set jr [lindex [$js get {x y z}] 0]
-   set b  [bondstruct_getbondindex $bs $i $j]
-   set rl [intArrayToList [bondstruct_getrightside_pointer $bs $b] [bondstruct_getrightside_count $bs $b]]
-   set rsel [atomselect $molid "index $rl"]
-   $rsel move [trans bond $ir $jr $deg degrees]
-   $is delete
-   $js detele
-   $rsel delete
+proc bondrot_by_index { bs molid b deg } {
+   set pair [bondstruct_getbond $bs $b]
+   set l [lindex $pair 0]
+   set r [lindex $pair 1]
+   set ls [atomselect $molid "index $l"]
+   set rs [atomselect $molid "index $r"]
+   set lr [lindex [$ls get {x y z}] 0]
+   set rr [lindex [$rs get {x y z}] 0]
+   set alist [intArrayToList [bondstruct_getrightside_pointer $bs $b] [bondstruct_getrightside_count $bs $b]]
+   set asel [atomselect $molid "index $alist"]
+   #puts "rotating [$asel num] atoms around $l - $r by $deg degrees"
+   set tmat [trans bond $lr $rr $deg degrees]
+   $asel move $tmat
+   $ls delete
+   $rs delete
+   $asel delete 
+}
+
+proc bondrot_by_atomindicies { bs molid l r deg } {
+   set b  [bondstruct_getbondindex $bs $l $r]
+   bondrot_by_index $bs $molid $b $deg
 }

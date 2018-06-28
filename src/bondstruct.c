@@ -38,7 +38,7 @@ void print_bondlist ( bondstruct * bs ) {
    printf("CFABOND/C) Array of rotatable bonds:\n");
    if (bs->b && bs->nb) {
       for (i=0;i<bs->nb;i++) {
-        printf("%i %i : %i : ",bs->b[i][0],bs->b[i][1],bs->bran[i]);
+        printf("%c%i %i : %i : ",(bs->isactive[i]?'+':'-'),bs->b[i][0],bs->b[i][1],bs->bran[i]);
         for (j=0;j<bs->bran[i];j++) printf("%i ",bs->bra[i][j]);
         printf("\n");
       }
@@ -180,6 +180,7 @@ void bondstruct_makerotatablebondlist ( bondstruct * bs, int * rot_i, int ni, in
        if (bond_rotatable(bs->ia[i],bs->ba[i][j],rot_i,ni,rot_j,nj)) bs->nb++;
    }
    bs->b=(int**)malloc(bs->nb*sizeof(int*));
+   bs->isactive=(int*)malloc(bs->nb*sizeof(int));
    k=0;
    for (i=0;i<bs->na;i++) {
      for (j=0;j<bs->mb&&bs->ba[i][j]!=-1;j++) {
@@ -187,12 +188,25 @@ void bondstruct_makerotatablebondlist ( bondstruct * bs, int * rot_i, int ni, in
           bs->b[k]=(int*)malloc(2*sizeof(int));
           bs->b[k][0]=bs->ia[i];
           bs->b[k][1]=bs->ba[i][j];
+          bs->isactive[k]=1;
           // generate array of atoms on the "right" of this bond
           k++;
        }
      }
    }  
    bondstruct_makerightsides(bs);
+}
+
+int bondstruct_isactive ( bondstruct * bs, int b ) {
+   return bs->isactive[b];
+}
+
+void bondstruct_deactivate_by_fixed ( bondstruct * bs, int fa ) {
+   int i,j;
+   for (i=0;i<bs->nb;i++) {
+      for (j=0;j<bs->bran[i]&&bs->bra[i][j]!=fa;j++);
+      if (j<bs->bran[i]) bs->isactive[i]=0;
+   }
 }
 
 int bondstruct_arebonded ( bondstruct * bs, int a, int b ) {
@@ -218,4 +232,19 @@ void free_bondstruct ( bondstruct * bs ) {
 
 void free_intarray ( int * a ) {
    free(a);
+}
+
+double my_roughenergy ( double * x1, double * y1, double * z1, int n1, double * x2, double * y2, double * z2, int n2, double cut ) {
+   int i,j;
+   double cut2=cut*cut;
+   double d2,E=0.0;
+   for (i=0;i<n1;i++) {
+      for (j=0;j<n2;j++) {
+         d2 =(x1[i]-x2[j])*(x1[i]-x2[j]);
+         d2+=(y1[i]-y2[j])*(y1[i]-y2[j]);
+         d2+=(z1[i]-z2[j])*(z1[i]-z2[j]);
+         if (d2<cut2) E+=1.0;
+      }
+   }
+   return E;
 }
