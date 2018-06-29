@@ -474,7 +474,8 @@ proc do_flex_mc { molid msel ri rj fa k i j envsel rcut maxcycles temperature is
       set SAVEPOS [$msel get {x y z}]
       set nrot 0
       for {set r 0} {$r < [bondstruct_getnb $bs] } {incr r} {
-         set av [expr 60 * [irand_dom 1 5]]
+         #set av [expr 60 * [irand_dom 1 5]]
+         set av [expr 6 * [irand_dom -5 5]]
         # puts "cyc $cyc bond $r deg $av"
          if { [bondstruct_isactive $bs $r] } {
            bondrot_by_index $bs $molid $r $av

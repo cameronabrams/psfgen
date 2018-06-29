@@ -20,6 +20,14 @@ The _src_ directory contains files that can be "sourced" by psfgen scripts.  The
 3. CHARMM36 topologies and parameters (toppar_c36_jul16.tgz is the version used here) unpacked in ${HOME}/charmm/toppar
 4. packmol
 5. This repository cloned into ${HOME}/psfgen (or, if somewhere else, point to it with the environment variable PSFGEN_BASEDIR)
+6. A locally compiled `bondstruct.so` module for the loop Monte Carlo procedures.  To build this:
+
+```
+$ cd $PSFGEN_BASEDIR
+$ mkdir lib
+$ cd src
+$ make bondstruct.so
+```
 
 ## Supported systems
 
@@ -57,7 +65,7 @@ The _src_ directory contains files that can be "sourced" by psfgen scripts.  The
 
 17. B529 -- a single solvated BMS-529 molecule extracted from 5u7o.pdb, using CGenFF
 
-18. [5U7O](http://www.rcsb.org/pdb/explore/explore.do?structureID=5u7o) -- HIV-1 gp140 SOSIP trimer with bound BMS-529 entry inhibitor, including glycans but not including Fabs.
+18. [5U7O](http://www.rcsb.org/pdb/explore/explore.do?structureID=5u7o) -- HIV-1 gp140 SOSIP trimer with bound BMS-529 entry inhibitor, including glycans but not including Fabs.  The is also a version of this molecule with a representative BMS-derived DAVEI inhibitor (5u7o-davei-l7).
 
 More to come...
 
