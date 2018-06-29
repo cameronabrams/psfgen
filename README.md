@@ -65,7 +65,7 @@ $ make bondstruct.so
 
 17. B529 -- a single solvated BMS-529 molecule extracted from 5u7o.pdb, using CGenFF
 
-18. [5U7O](http://www.rcsb.org/pdb/explore/explore.do?structureID=5u7o) -- HIV-1 gp140 SOSIP trimer with bound BMS-529 entry inhibitor, including glycans but not including Fabs.  The is also a version of this molecule with a representative BMS-derived DAVEI inhibitor (5u7o-davei-l7).
+18. [5U7O](http://www.rcsb.org/pdb/explore/explore.do?structureID=5u7o) -- HIV-1 gp140 SOSIP trimer with bound BMS-529 entry inhibitor, including glycans but not including Fabs.  There is also a version of this molecule with a representative BMS-derived DAVEI inhibitor model-built into the structure (5u7o-davei-l7).
 
 More to come...
 

@@ -1,8 +1,14 @@
 set inputname my_5u7o-davei-l7
 structure   ${inputname}_i.psf
 coordinates ${inputname}_i.pdb
+
+set res sol
+bincoordinates ${res}.restart.coor
+binvelocities  ${res}.restart.vel
+extendedsystem ${res}.restart.xsc
+
 set temperature 310
-temperature $temperature
+#temperature $temperature
 
 set outputname sol
 firsttimestep 0
@@ -31,7 +37,7 @@ rigidbonds      none
 PME on
 pmegridspacing 1.0
 
-source cell.inp
+#source cell.inp
 wrapall on
 
 nonbondedFreq       1
@@ -61,7 +67,7 @@ restartfreq         1000
 colvars on
 colvarsconfig ${inputname}_colvars_op.inp
 
-minimize 1000
+#minimize 1000
 run 20000
 
 
