@@ -78,9 +78,18 @@ $CHARMRUN +p8 $NAMD2 my_${SYSNAME}_vac.namd > vac.log
 echo "Generating solvated system..."
 vmd -dispdev text -e $PSFGEN_BASEDIR/${SYSNAME}/my_${SYSNAME}_solv.tcl > psfgen2.log
 
-# 5. run NAMD
-echo "Running namd2 on solvated system..."
-ln -s $PSFGEN_BASEDIR/${SYSNAME}/my_${SYSNAME}_solv.namd .
-$CHARMRUN +p16 $NAMD2 my_${SYSNAME}_solv.namd > solv.log
+# 5. run NAMD; staging to avoid patch-grid errors
+numsteps=( 100 200 19700 )
+ls=`echo "${#numsteps[@]} - 1" | bc`
+firsttimestep=100; # stage-0 minimization
+for s in `seq 0 $ls`; do
+  echo "Running namd2 (stage $s) on solvated system..."
+  cat $PSFGEN_BASEDIR/${SYSNAME}/my_${SYSNAME}_solv_stageN.namd | \
+      sed s/%STAGE%/${s}/g | \
+      sed s/%NUMSTEPS%/${numsteps[$s]}/g | \
+      sed s/%FIRSTTIMESTEP%/$firsttimestep/g > my_${SYSNAME}_solv_stage${s}.namd
+  $CHARMRUN +p8 $NAMD2 my_${SYSNAME}_solv_stage${s}.namd > solv_stage${s}.log
+  firsttimestep=`echo "$firsttimestep + ${numsteps[$s]}" | bc`
+done
 
 echo "Done."
