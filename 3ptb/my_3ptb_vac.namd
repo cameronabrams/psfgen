@@ -1,0 +1,52 @@
+set PARAM /home/cfa/charmm/toppar
+
+structure   my_3ptb.psf 
+coordinates my_3ptb_raw.pdb
+
+set temperature 298
+temperature $temperature
+
+set outputname my_3ptb_vac
+set firsttimestep 0
+
+paraTypeCharmm      on
+parameters $PARAM/par_all36_prot.prm
+parameters $PARAM/par_all36_na.prm
+parameters $PARAM/par_all36_carb.prm
+parameters $PARAM/toppar_water_ions_namd_nonbfixes.str
+parameters $PARAM/par_all36_cgenff.prm
+
+exclude             scaled1-4
+1-4scaling          1.0
+cutoff              10.0
+switching           on
+switchdist          9.0
+pairlistdist        11.5
+timestep            1  ;
+#rigidbonds          all
+
+nonbondedFreq       1
+fullElectFrequency  2
+stepspercycle       4
+outputName          $outputname
+dielectric 80
+
+langevin                on
+langevinDamping         5
+langevinTemp            $temperature
+langevinHydrogen        yes
+seed                    98768674
+
+
+
+fixedatoms yes
+fixedatomsfile my_3ptb_fix.pdb
+fixedatomscol B
+
+outputEnergies      10
+dcdfreq             100
+restartfreq         100
+
+minimize 1000
+run 2000
+
