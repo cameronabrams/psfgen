@@ -426,6 +426,57 @@ proc fold_alpha_helix { molid sel } {
    }
 }
 
+proc random_loop { molid sel } {
+   set ni {}
+   set ci {}
+   set cai {}
+#   puts "molid $molid"
+   foreach an [$sel get name] i [$sel get index] {
+      if { $an == "C" } {
+         lappend ci $i
+      } elseif { $an == "N" } {
+         lappend ni $i
+      } elseif { $an == "CA" } {
+         lappend cai $i
+      }
+   }
+   set nn [llength $ni]
+   set nc [llength $ci]
+   set nca [llength $cai]
+#   puts "N $nn $ni"
+#   puts "CA $nca $cai"
+#   puts "C $nc $ci"
+   set in 0
+   set ica 0
+   set ic 0
+   while { $in < [expr $nn - 1] } {
+     set psi {}
+     set phi {}
+     lappend psi [lindex $ni $in]
+     lappend psi [lindex $cai $ica]
+     lappend psi [lindex $ci $ic]
+     lappend phi [lindex $ci $ic]
+     set in [expr $in + 1]
+     lappend psi [lindex $ni $in]
+     lappend phi [lindex $ni $in]
+     set ica [expr $ica + 1]
+     lappend phi [lindex $cai $ica]
+     set ic [expr $ic + 1]
+     lappend phi [lindex $ci $ic]
+     set PSIM [measure dihed $psi]
+     set PHIM [measure dihed $phi]
+     puts "psi $psi ($PSIM) phi $phi ($PHIM)"
+     # pick a random (phi,psi) from ramachandran plot
+     set PHIR [irand_dom -340 -60]
+     set PSIR [irand_dom -60 300]
+     set SPHI [expr ($PHIR) - ($PHIM)]
+     set SPSI [expr ($PSIR) - ($PSIM)]
+     genbondrot $molid $sel [lindex $psi 1] [lindex $psi 2] $SPSI
+     genbondrot $molid $sel [lindex $phi 1] [lindex $phi 2] $SPHI
+#     puts "$SPHI $SPSI"
+   }
+}
+
 # do_flex_mc: loop MC on atoms in msel.  
 # molid is the molcule id.
 # msel is the selection of atoms that contain all rotatable bonds.
@@ -452,19 +503,27 @@ proc do_flex_mc { molid msel ri rj fa k i j envsel rcut maxcycles temperature is
    set il [$msel get index]
    set bs [make_bondstruct $molid $msel $ri $rj]
    bondstruct_deactivate_by_fixed $bs $fa
-#   print_bondlist $bs
+   print_bondlist $bs
 
-#   puts "ri $ri"
-#   puts "rj $rj"
-#   puts "il [llength $il] : $il"
-#   puts "bl [llength $bl] : $bl"
+   puts "ri $ri"
+   puts "rj $rj"
+   puts "il [llength $il] : $il"
+   puts "bl [llength $bl] : $bl"
    
-   puts "CFAFLEXMC) Initial attractor distance [measure bond [list $i $j]]"
+   if { $i != $j } { 
+     puts "CFAFLEXMC) Initial attractor distance [measure bond [list $i $j]]"
+   }
+
+   flush stdout
+
    expr srand($iseed)
 
    set nacc 0
 
-   set SE [expr 0.5*$k*pow([measure bond [list $i $j]],2)]
+   set SE 0.0
+   if { $i != $j } {
+     set SE [expr 0.5*$k*pow([measure bond [list $i $j]],2)]
+   }
    set EE [roughenergy $msel $envsel $rcut]
    set E [expr $SE + $EE]
    set E0 $E
@@ -487,7 +546,11 @@ proc do_flex_mc { molid msel ri rj fa k i j envsel rcut maxcycles temperature is
          puts "ERROR: no rotations performed"
          exit
       }
-      set SE [expr 0.5*$k*pow([measure bond [list $i $j]],2)]
+      if { $i != $j } {
+        set SE [expr 0.5*$k*pow([measure bond [list $i $j]],2)]
+      } else {
+        set SE 0.0
+      }
       set EE [roughenergy $msel $envsel $rcut]
       set E [expr $SE + $EE]
      # puts " ... E $E"
@@ -508,9 +571,16 @@ proc do_flex_mc { molid msel ri rj fa k i j envsel rcut maxcycles temperature is
         # accept the move
         set E0 $E
         incr nacc
-        puts "CFAFLEXMC) cycle $cyc nacc $nacc (ratio [format "%.5f" [expr (1.0*$nacc)/($cyc+1)]]) attractor distance: [format "%.2f" [measure bond [list $i $j]]] [format "attractor-penalty %.2f steric-penalty %.2f" $SE $EE]"
+        puts -nonewline "CFAFLEXMC) cycle $cyc nacc $nacc (ratio [format "%.5f" [expr (1.0*$nacc)/($cyc+1)]]) "
+        if { $i != $j } {
+          puts -nonewline "attractor distance: [format "%.2f" [measure bond [list $i $j]]] [format "attractor-penalty %.2f " $SE]"
+        }
+        puts "[format "steric-penalty %.2f" $EE]"
       }
    }
-   puts "CFAFLEXMC) cycle $cyc nacc $nacc (ratio [format "%.5f" [expr (1.0*$nacc)/($cyc+1)]]) attractor distance: [format "%.2f" [measure bond [list $i $j]]]"
+   if { $i != $j } {
+     puts -nonewline "attractor distance: [format "%.2f" [measure bond [list $i $j]]] [format "attractor-penalty %.2f " $SE]"
+   }
+   puts "[format "steric-penalty %.2f" $EE]"
    free_bondstruct $bs
 }

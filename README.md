@@ -69,6 +69,8 @@ $ make bondstruct.so
 
 19. [3PTB](http://www.rcsb.org/pdb/explore/explore.do?structureID=3ptb) -- Trypsin/benzamidine (latter parameterized using CGenFF)
 
+20. [2EZN](http://www.rcsb.org/pdb/explore/explore.do?structureID=2ezn) -- Cyanovirin-N, with an option to create a CVN-(G4S)n-H6-MPER DAVEI
+
 More to come...
 
 ## Acknowledgments
