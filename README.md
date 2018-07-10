@@ -67,6 +67,8 @@ $ make bondstruct.so
 
 18. [5U7O](http://www.rcsb.org/pdb/explore/explore.do?structureID=5u7o) -- HIV-1 gp140 SOSIP trimer with bound BMS-529 entry inhibitor, including glycans but not including Fabs.  There is also a version of this molecule with a representative BMS-derived DAVEI inhibitor model-built into the structure (5u7o-davei-l7).
 
+19. [3PTB](http://www.rcsb.org/pdb/explore/explore.do?structureID=3ptb) -- Trypsin/bezamidium
+
 More to come...
 
 ## Acknowledgments
