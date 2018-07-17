@@ -24,7 +24,7 @@ $ $PSFGEN_BASEDIR/2yhh/do_test.sh
 
 ## DAVEI & Mutation (Q81K/M83R) Options
 
-To generate a DAVEI molecule [a fusion of MVN, N repeats of (Gly4Ser), a His-tag, and either the 20-residue HIV-1 MPER segment (DKWASLWNWFEITEWLWYIK) or the9-residue "Trp3" segment (DKWASLWNW)], do this:
+To generate a DAVEI molecule [a fusion of MVN, N repeats of (Gly4Ser), a His-tag, and either the 20-residue HIV-1 MPER segment (DKWASLWNWFEITEWLWYIK) or the 9-residue "Trp3" segment (DKWASLWNW)], do this:
 
 ```
 # mkdir my_davei
