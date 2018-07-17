@@ -68,8 +68,8 @@ $a writepdb "2yhh_man.pdb"
 package require psfgen
 resetpsf
 topology $env(HOME)/charmm/toppar/top_all36_prot.rtf
-topology /home/cfa/charmm/toppar/top_all36_carb_namd_cfa.rtf
-topology /home/cfa/charmm/toppar/stream/carb/toppar_all36_carb_glycopeptide.str
+topology $env(HOME)/charmm/toppar/top_all36_carb_namd_cfa.rtf
+topology $env(HOME)/charmm/toppar/stream/carb/toppar_all36_carb_glycopeptide.str
 
 alias residue HIS HSE
 alias atom ILE CD1 CD
