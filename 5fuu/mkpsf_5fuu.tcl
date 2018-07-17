@@ -16,6 +16,24 @@ if {![info exists PSFGEN_BASEDIR]} {
       set PSFGEN_BASEDIR $env(HOME)/research/psfgen
   }
 }
+
+set MPER_665_to_682 [list LYS TRP ALA SER LEU TRP ASN TRP PHE ASP ILE SER ASN TRP LEU TRP TYR ILE]
+set MPER_659_to_682 [list GLN GLU LEU LEU GLU LEU ASP LYS TRP ALA SER LEU TRP ASN TRP PHE ASP ILE SER ASN TRP LEU TRP TYR ILE]
+set MPER_EXTEND 0
+set seed 12345
+for { set a 0 } { $a < [llength $argv] } { incr a } {
+  set arg [lindex $argv $a]
+  if { $arg == "-mper-extend" } {
+    set MPER_EXTEND 1
+  }
+  if { $arg == "-seed" } {
+    incr a
+    set seed [lindex $argv $a]
+  }
+}
+
+expr srand($seed)
+
 # load some custom TcL procedures to set coordinates correctly
 source ${PSFGEN_BASEDIR}/src/loopmc.tcl
 set LOCALFILES {}
@@ -106,6 +124,13 @@ segment AS {
 
 segment B {
   pdb B_521_to_664.pdb
+  if { $MPER_EXTEND == "1" } {
+    set lr 0
+    for { set r 665 } { $r < 683 } { incr r } {
+      residue $r [lindex $MPER_665_to_682 $lr] B
+      incr lr
+    }
+  }
 }
 
 segment BS {
@@ -149,6 +174,13 @@ segment CS {
 
 segment D {
   pdb D_512_to_658.pdb
+  if { $MPER_EXTEND == "1" } {
+    set lr 0
+    for { set r 659 } { $r < 683 } { incr r } {
+      residue $r [lindex $MPER_659_to_682 $lr] D
+      incr lr
+    }
+  }
 }
 
 segment DS {
@@ -189,6 +221,13 @@ segment ES {
 
 segment F {
   pdb F_512_to_664.pdb
+  if { $MPER_EXTEND == "1" } {
+    set lr 0
+    for { set r 665 } { $r < 683 } { incr r } {
+      residue $r [lindex $MPER_665_to_682 $lr] F
+      incr lr
+    }
+  }
 }
 
 segment FS {
@@ -500,6 +539,14 @@ $a move [transaxis z [expr -1 * $p] rad]
 $a move [transaxis y [expr -1 * $t] rad]
 $a writepdb "unrelaxed2.pdb"
 lappend LOCALFILES "unrelaxed2.pdb"
+
+if { $MPER_EXTEND == "1" } {
+   foreach b { B D F } {
+      set sel [atomselect $molid "protein and chain $b and resid 658 to 682"]
+      fold_alpha_helix $molid $sel
+      $sel delete
+   }
+}
 
 if { $DOMC == "1" } {
 set nc 1000

@@ -20,6 +20,7 @@ if {![info exists PSFGEN_BASEDIR]} {
 set protomer_only 0
 set seed 12345
 set MPER_EXTEND 0
+set numll 7
 for { set a 0 } { $a < [llength $argv] } { incr a } {
   set arg [lindex $argv $a]
   if { $arg == "+protomer" } {
@@ -31,6 +32,10 @@ for { set a 0 } { $a < [llength $argv] } { incr a } {
   }
   if { $arg == "-mper-extend" } {
      set MPER_EXTEND 1
+  }
+  if { $arg == "-numll" } {
+     incr a
+     set numll [lindex $argv $a]
   }
 }
 
@@ -330,13 +335,10 @@ foreach u $ulist g $glist b $blist d $dlist e $elist h $hlist l $llist x $xlist 
   }
 
   segment ${x}2 {
-    residue 1 DLS2 ${x}
-    residue 2 DLS2 ${x}
-    residue 3 DLS2 ${x}
-    residue 4 DLS2 ${x}
-    residue 5 DLS2 ${x}
-    residue 6 DLS2 ${x}
-    residue 7 DLS2 ${x}
+    for { set ll 0 } { $ll < $numll } { incr ll } {
+       set lll [expr $ll + 1 ]
+       residue $lll DLS2 ${x}
+    }
   }
 
   segment ${x}T {

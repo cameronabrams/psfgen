@@ -13,28 +13,12 @@ This directory contains five files:
 
 Make sure PSFGEN_BASEDIR resolves to the root directory of your local copy of this repository (mine is ${HOME}/research/psfgen).  It is also assumed below that CHARMRUN resolves to your local charmrun executable and NAMD2 resolves to your local NAMD2 executable.  For me, these are /home/cfa/namd/NAMD_2.12_Source/Linux-x86_64-g++/charmrun and /home/cfa/namd/NAMD_2.12_Source/Linux-x86_64-g++/namd2.
 
-1. Download 5fuu.pdb to a clean directory
+```
+$ mkdir 5fuu
+$ cd 5fuu
+$ $PSFGEN_BASEDIR/scripts/do_test.sh -pdb 5fuu [-psfgen_args [-seed #] [-mper-extend]]
+```
 
-> wget http://www.rcsb.org/pdb/files/5fuu.pdb
+The optional `-psfgen_args` flag passes subsequent arguments to the mkpsf script.  The optional `-seed` flag allows the user the specify the seed for the random-number generator.  The optional `-mper-extend` flag, if present, instructs the script to model-in the MPER residues up to and including 682 as an alpha-helix.
 
-2. Use VMD in text mode to generate the psf/pdb
-
-> vmd -dispdev text -e $PSFGEN_BASEDIR/5fuu/mkpsf_5fuu.tcl
-
-3. Run NAMD to relax bonds and guessed-in atoms
-
-> ln -s $PSFGEN_BASEDIR/5fuu/my_5fuu_vac.namd .
-
-> $CHARMRUN +p1 $NAMD2 my_5fuu_vac.namd > vac.log
-
-4. Use VMD to solvate and neutralize the output of step 3
-
-> vmd -dispdev text -e $PSFGEN_BASEDIR/5fuu/my_5fuu_solv.tcl
-
-5. Run NAMD to minimize and shake out the solvated system
-
-> ln -s $PSFGEN_BASEDIR/5fuu/my_5fuu_trimer_solv.namd .
-
-> $CHARMRUN +p16 $NAMD2 my_5fuu_solv.namd > solv.log
-
-2017, Cameron F Abrams
+2017-2018, Cameron F Abrams
