@@ -71,6 +71,8 @@ $ make bondstruct.so
 
 20. [2EZN](http://www.rcsb.org/pdb/explore/explore.do?structureID=2ezn) -- Cyanovirin-N, with an option to create a CVN-(G4S)n-H6-MPER DAVEI
 
+21. [2YHH](http://www.rcsb.org/pdb/explore/explore.do?structureID=2yhh) -- Microvirin, with options to create the MVN(Q81K/M83R)-(G4S)n-H6-[MPER|Trp3] DAVEI
+
 More to come...
 
 ## Acknowledgments
