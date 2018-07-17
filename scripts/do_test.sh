@@ -16,6 +16,7 @@ while [ $i -le $ARGC ] ; do
   if [ "${!i}" = "-pdb" ]; then
     i=$((i+1))
     PDB=${!i}
+    COLVARS_INP=my_${PDB}_colvars_op.inp
   fi
   if [ "${!i}" = "-namd2" ]; then
     i=$((i+1))
