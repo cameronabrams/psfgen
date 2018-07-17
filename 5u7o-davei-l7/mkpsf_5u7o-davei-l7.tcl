@@ -19,6 +19,7 @@ if {![info exists PSFGEN_BASEDIR]} {
 # check for any arguments
 set protomer_only 0
 set seed 12345
+set MPER_EXTEND 0
 for { set a 0 } { $a < [llength $argv] } { incr a } {
   set arg [lindex $argv $a]
   if { $arg == "+protomer" } {
@@ -27,6 +28,9 @@ for { set a 0 } { $a < [llength $argv] } { incr a } {
   if { $arg == "-seed" } {
      incr a
      set seed [lindex $argv $a]
+  }
+  if { $arg == "-mper-extend" } {
+     set MPER_EXTEND 1
   }
 }
 
@@ -296,6 +300,17 @@ foreach u $ulist g $glist b $blist d $dlist e $elist h $hlist l $llist x $xlist 
     residue 566 LEU ${b}
     residue 567 LYS ${b}
     pdb ${b}-s7.pdb 
+    if { $MPER_EXTEND == "1" } {
+      residue 664 ASP ${b}
+      residue 665 LYS ${b}
+      residue 666 TRP ${b}
+      residue 667 ALA ${b}
+      residue 668 SER ${b}
+      residue 669 LEU ${b}
+      residue 670 TRP ${b}
+      residue 671 ASN ${b}
+      residue 672 TRP ${b}
+    }
   }
 
   segment ${g}S {
@@ -505,6 +520,14 @@ foreach x $xlist {
    $sel delete
 }
 
+if { $MPER_EXTEND == "1" } {
+   foreach b $blist {
+      set sel [atomselect $molid "protein and chain $b and resid 662 to 672"]
+      fold_alpha_helix $molid $sel
+      $sel delete
+   }
+}
+
 $a writepdb "my_${SYSNAME}_mcIn.pdb"
 lappend LOCALFILES my_${SYSNAME}_mcIn.pdb
 
@@ -530,12 +553,16 @@ set k [expr $k / 10]
 set temperature 2.5
 set nc 2000
 #set bg2 [atomselect top "name CA or (noh and resname AEG DLS1 DLS2)"] 
-foreach x $xlist b $blist {
+
+foreach x $xlist b $blist bir [list 1 2 0] {
    set msel [atomselect ${molid} "(chain $x and resname AEG DLS1 DLS2) or (segname ${x}T)"]
    set ri [[atomselect ${molid} "(chain $x and ((resname AEG and name C24 C26) or (resname DLS1 and name C1 C2 O2 C3 C4 O3 C5 C6 O4 C7 C8 O5 C9 C10 C12 C13 C14) or (resname DLS2 and name N C1 C2 O1 C3 C4 O2 C5))) or (segname ${x}T and resname ASP and resid 1 and name N)"] get index]
    set rj [[atomselect ${molid} "(chain $x and ((resname AEG and name C26) or (resname DLS1 and name N1 C2 O2 C3 C4 O3 C5 C6 O4 C7 C8 O5 C9 C10 N2 C13 C14 C15) or (resname DLS2 and name C1 C2 O1 C3 C4 O2 C5 C6))) or (segname ${x}T and resname ASP and resid 1 and name CA)"] get index]
    set i [[atomselect ${molid} "segname ${x}T and resid 9 and name CA"] get index]
    set j [[atomselect ${molid} "chain $b and resid 641 and name CA"] get index]
+   if { $MPER_EXTEND == "1" } {
+     set j [[atomselect ${molid} "chain [lindex $blist $bir] and resid 670 and name CA"] get index]
+   }
    set fa [[atomselect ${molid} "chain ${x} and resname AEG and name C1"] get index]
    do_flex_mc $molid $msel $ri $rj $fa $k $i $j $bg $rcut $nc $temperature [irand_dom 100 9999]
 }
