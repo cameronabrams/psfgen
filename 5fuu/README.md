@@ -16,7 +16,7 @@ Make sure PSFGEN_BASEDIR resolves to the root directory of your local copy of th
 ```
 $ mkdir 5fuu
 $ cd 5fuu
-$ $PSFGEN_BASEDIR/scripts/do_test.sh -pdb 5fuu [-psfgen_args [-seed #] [-mper-extend] -man9 # [-man9 #...]]
+$ $PSFGEN_BASEDIR/scripts/do_test.sh -pdb 5fuu [-psfgen_args [-seed #] [-mper-extend] [-man9 # [-man9 #...]]]
 ```
 
 The optional `-psfgen_args` flag passes subsequent arguments to the mkpsf script.  The optional `-seed` flag allows the user the specify the seed for the random-number generator.  The optional `-mper-extend` flag, if present, instructs the script to model-in the MPER residues up to and including 682 as an alpha-helix.  Each `-man9` flag, if present, allows the user to indicate which asparagine residues to model-build a man9 glycan onto; currently only residue 386 and 392 on gp120 is supported with this functionality.
