@@ -1,4 +1,4 @@
-# 2yhh -- Microvirin ("CVN") with options to make MVN(Q81K/M83R)-(G4S)n-H6-[MPER|Trp3] DAVEI
+# 2yhh -- Microvirin ("MVN") with options to make MVN(Q81K/M83R)-(G4S)n-H6-[MPER|Trp3] DAVEI
 
 ## Files
 
