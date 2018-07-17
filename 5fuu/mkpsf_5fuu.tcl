@@ -21,6 +21,7 @@ set MPER_665_to_682 [list LYS TRP ALA SER LEU TRP ASN TRP PHE ASP ILE SER ASN TR
 set MPER_659_to_682 [list GLN GLU LEU LEU GLU LEU ASP LYS TRP ALA SER LEU TRP ASN TRP PHE ASP ILE SER ASN TRP LEU TRP TYR ILE]
 set MPER_EXTEND 0
 set seed 12345
+set MAN9 {}
 for { set a 0 } { $a < [llength $argv] } { incr a } {
   set arg [lindex $argv $a]
   if { $arg == "-mper-extend" } {
@@ -29,6 +30,10 @@ for { set a 0 } { $a < [llength $argv] } { incr a } {
   if { $arg == "-seed" } {
     incr a
     set seed [lindex $argv $a]
+  }
+  if { $arg == "-man9" } { 
+    incr a
+    lappend MAN9 [lindex $argv $a]
   }
 }
 
@@ -72,8 +77,8 @@ foreach chain { A B C D E F } {
   [atomselect top "chain $chain and resname BMA"] set resname BMAN
   [atomselect top "chain $chain and resname FUC"] set resname AFUC
   [atomselect top "chain $chain and resname GAL"] set resname BGAL
-  $g writepdb "${chain}S.pdb"
-  lappend LOCALFILES ${chain}S.pdb
+  $g writepdb "${chain}-glycan.pdb"
+  lappend LOCALFILES ${chain}-glycan.pdb
 }
 
 package require psfgen
@@ -119,7 +124,29 @@ segment A {
 }
 
 segment AS {
-  pdb AS.pdb
+  pdb A-glycan.pdb
+  # model-building the Man9 at N386
+  if { [lsearch $MAN9 386] != -1 } {
+    residue 2389 AMAN A
+    residue 2390 AMAN A
+    residue 2391 AMAN A
+    residue 2392 AMAN A
+    residue 2393 AMAN A
+    residue 2394 AMAN A
+    residue 2395 AMAN A
+    residue 2396 AMAN A
+  }
+  # model-building the Man9 at N392
+  if { [lsearch $MAN9 392] != -1 } {
+    residue 2397 AMAN A
+    residue 2398 AMAN A
+    residue 2399 AMAN A
+    residue 2400 AMAN A
+    residue 2401 AMAN A
+    residue 2402 AMAN A
+    residue 2403 AMAN A
+    residue 2404 AMAN A
+  }
 }
 
 segment B {
@@ -134,7 +161,7 @@ segment B {
 }
 
 segment BS {
-  pdb BS.pdb
+  pdb B-glycan.pdb
 }
 
 segment C {
@@ -169,7 +196,30 @@ segment C {
 }
 
 segment CS {
-  pdb CS.pdb
+  pdb C-glycan.pdb
+  # model-building the Man9 at N386
+  if { [lsearch $MAN9 386] != -1 } {
+    residue 2389 AMAN C
+    residue 2390 AMAN C
+    residue 2391 AMAN C
+    residue 2392 AMAN C
+    residue 2393 AMAN C
+    residue 2394 AMAN C
+    residue 2395 AMAN C
+    residue 2396 AMAN C
+  }
+  # model-building the Man9 at N392
+  if { [lsearch $MAN9 392] != -1 } {
+    residue 1394 BMAN C
+    residue 2397 AMAN C
+    residue 2398 AMAN C
+    residue 2399 AMAN C
+    residue 2400 AMAN C
+    residue 2401 AMAN C
+    residue 2402 AMAN C
+    residue 2403 AMAN C
+    residue 2404 AMAN C
+  }
 }
 
 segment D {
@@ -184,7 +234,7 @@ segment D {
 }
 
 segment DS {
-  pdb DS.pdb
+  pdb D-glycan.pdb
 }
 
 segment E {
@@ -216,7 +266,28 @@ segment E {
 }
 
 segment ES {
-  pdb ES.pdb
+  pdb E-glycan.pdb
+  # model-building the Man9 at N386
+  if { [lsearch $MAN9 386] != -1 } {
+    residue 2391 AMAN E
+    residue 2392 AMAN E
+    residue 2393 AMAN E
+    residue 2394 AMAN E
+    residue 2395 AMAN E
+    residue 2396 AMAN E
+    residue 2397 AMAN E
+  }
+  # model-building the Man9 at N392
+  if { [lsearch $MAN9 392] != -1 } {
+    residue 2398 AMAN E
+    residue 2399 AMAN E
+    residue 2400 AMAN E
+    residue 2401 AMAN E
+    residue 2402 AMAN E
+    residue 2403 AMAN E
+    residue 2404 AMAN E
+    residue 2405 AMAN E
+  }
 }
 
 segment F {
@@ -231,19 +302,19 @@ segment F {
 }
 
 segment FS {
-  pdb FS.pdb
+  pdb F-glycan.pdb
 }
 
 foreach s $segs {
   coordpdb [lindex $s 0]_[lindex $s 1]_to_[lindex $s 2].pdb [lindex $s 0]
 }
 
-coordpdb AS.pdb AS
-coordpdb BS.pdb BS
-coordpdb CS.pdb CS
-coordpdb DS.pdb DS
-coordpdb ES.pdb ES
-coordpdb FS.pdb FS
+coordpdb A-glycan.pdb AS
+coordpdb B-glycan.pdb BS
+coordpdb C-glycan.pdb CS
+coordpdb D-glycan.pdb DS
+coordpdb E-glycan.pdb ES
+coordpdb F-glycan.pdb FS
 
 foreach m $mln n $ns {
   puts "coord [lindex $m 0] [lindex $m 1] N $n"
@@ -281,230 +352,351 @@ patch DISU E:378 E:445
 patch DISU E:385 E:418
 patch DISU F:598 F:604
 
+# glycan at N88
 patch NGLB A:88 AS:1088
-patch NGLB A:135 AS:1135
-patch NGLB A:156 AS:1156
-patch NGLB A:160 AS:1160
-patch NGLB A:241 AS:1241
-patch NGLB A:262 AS:1262
-patch NGLB A:276 AS:1276
-patch NGLB A:295 AS:1295
-patch NGLB A:301 AS:1301
-patch NGLB A:332 AS:1332
-patch NGLB A:339 AS:1339
-patch NGLB A:355 AS:1355
-patch NGLB A:362 AS:1362
-patch NGLB A:386 AS:1386
-patch NGLB A:392 AS:1392
-patch NGLB A:397 AS:1397
-patch NGLB A:448 AS:1448
-
 patch 14bb AS:1088 AS:1089
+# glycan at N135
+patch NGLB A:135 AS:1135
+# glycan at N156
+patch NGLB A:156 AS:1156
 patch 14bb AS:1156 AS:1157
 patch 14bb AS:1157 AS:1158
+# glycan at N160
+patch NGLB A:160 AS:1160
 patch 14bb AS:1160 AS:1161
 patch 14bb AS:1161 AS:1162
+# glycan at N241
+patch NGLB A:241 AS:1241
 patch 14bb AS:1241 AS:1242
 patch 14bb AS:1242 AS:1243
+# glycan at N262
+patch NGLB A:262 AS:1262
 patch 14bb AS:1262 AS:1263
 patch 14bb AS:1263 AS:1264
 patch 16ab AS:1264 AS:1265
 patch 13ab AS:1264 AS:1267
 patch 13ab AS:1265 AS:1266
-patch 12ab AS:1267 AS:1268
+patch 12aa AS:1267 AS:1268
+# glycan at N276
+patch NGLB A:276 AS:1276
 patch 14bb AS:1276 AS:1277
 patch 14bb AS:1277 AS:1278
+# glycan at N295
+patch NGLB A:295 AS:1295
 patch 14bb AS:1295 AS:1296
+# glycan at N301
+patch NGLB A:301 AS:1301
 patch 14bb AS:1301 AS:1302
+# glycan at N332
+patch NGLB A:332 AS:1332
 patch 14bb AS:1332 AS:1333
 patch 14bb AS:1333 AS:1334
+# glycan at N339
+patch NGLB A:339 AS:1339
 patch 14bb AS:1339 AS:1340
+# glycan at N355
+patch NGLB A:355 AS:1355
+# glycan at N362
+patch NGLB A:362 AS:1362
 patch 14bb AS:1362 AS:1363
 patch 14bb AS:1363 AS:1364
+# glycan at N386
+patch NGLB A:386 AS:1386
 patch 14bb AS:1386 AS:1387
 patch 14bb AS:1387 AS:1388
+# model-built alpha-mannoses to complete the Man9
+if { [lsearch $MAN9 386] != -1 } {
+  patch 13ab AS:1388 AS:2389
+  patch 12aa AS:2389 AS:2390
+  patch 12aa AS:2390 AS:2391
+  patch 16ab AS:1388 AS:2392
+  patch 13ab AS:2392 AS:2393
+  patch 12aa AS:2393 AS:2394
+  patch 16ab AS:2392 AS:2395
+  patch 12aa AS:2395 AS:2396
+}
+# glycan at N392
+patch NGLB A:392 AS:1392
 patch 14bb AS:1392 AS:1393
 patch 14bb AS:1393 AS:1394
+# model-built alpha-mannoses to complete the Man9
+if { [lsearch $MAN9 392] != -1 } {
+  patch 13ab AS:1394 AS:2397
+  patch 12aa AS:2397 AS:2398
+  patch 12aa AS:2398 AS:2399
+  patch 16ab AS:1394 AS:2400
+  patch 13ab AS:2400 AS:2401
+  patch 12aa AS:2401 AS:2402
+  patch 16ab AS:2400 AS:2403
+  patch 12aa AS:2403 AS:2404
+}
+# glycan at N397
+patch NGLB A:397 AS:1397
+# glycan at N448
+patch NGLB A:448 AS:1448
 patch 14bb AS:1448 AS:1449
-
+# glycan at 611
 patch NGLB B:611 BS:1611
-patch NGLB B:616 BS:1600
-patch NGLB B:625 BS:1625
-patch NGLB B:637 BS:1637
-
 patch 14bb BS:1611 BS:1612
 patch 16ab BS:1611 BS:1624
 patch 14bb BS:1612 BS:1613
 patch 16ab BS:1613 BS:1619
 patch 13ab BS:1613 BS:1614
-patch 12ab BS:1614 BS:1617
-patch 12ab BS:1619 BS:1620
+patch 12aa BS:1614 BS:1617
+patch 12aa BS:1619 BS:1620
 patch 16ab BS:1619 BS:1622
 patch 14bb BS:1620 BS:1621
 patch 14bb BS:1622 BS:1623
+# glycan at N616
+patch NGLB B:616 BS:1600
+# glycan at N625
+patch NGLB B:625 BS:1625
+# glycan at N537
+patch NGLB B:637 BS:1637
 patch 14bb BS:1637 BS:1638
 patch 16ab BS:1637 BS:1650
 patch 14bb BS:1638 BS:1639
 patch 13ab BS:1639 BS:1640
 patch 16ab BS:1639 BS:1645
-patch 12ab BS:1640 BS:1643
+patch 12aa BS:1640 BS:1643
 patch 14bb BS:1640 BS:1641
 patch 14bb BS:1641 BS:1642
 patch 14bb BS:1643 BS:1644
-patch 12ab BS:1645 BS:1646
+patch 12aa BS:1645 BS:1646
 patch 16ab BS:1645 BS:1648
 patch 14bb BS:1646 BS:1647
 
+# glycan at N88
 patch NGLB C:88 CS:1088
-patch NGLB C:135 CS:1135
-patch NGLB C:156 CS:1156
-patch NGLB C:160 CS:1160
-patch NGLB C:241 CS:1241
-patch NGLB C:262 CS:1262
-patch NGLB C:276 CS:1276
-patch NGLB C:295 CS:1295
-patch NGLB C:301 CS:1301
-patch NGLB C:332 CS:1332
-patch NGLB C:339 CS:1339
-patch NGLB C:355 CS:1355
-patch NGLB C:362 CS:1362
-patch NGLB C:386 CS:1386
-patch NGLB C:392 CS:1392
-patch NGLB C:397 CS:1397
-patch NGLB C:448 CS:1448
-
 patch 14bb CS:1088 CS:1089
 patch 14bb CS:1089 CS:1090
+# glycan at N135
+patch NGLB C:135 CS:1135
 patch 14bb CS:1135 CS:1136
+# glycan and N156
+patch NGLB C:156 CS:1156
 patch 14bb CS:1156 CS:1157
+# glycan at N160
+patch NGLB C:160 CS:1160
 patch 14bb CS:1160 CS:1161
 patch 14bb CS:1161 CS:1162
+# glycan at N241
+patch NGLB C:241 CS:1241
 patch 14bb CS:1241 CS:1242
 patch 14bb CS:1242 CS:1243
 patch 16ab CS:1243 CS:1246
 patch 13ab CS:1243 CS:1244
+# glycan at N262
+patch NGLB C:262 CS:1262
 patch 14bb CS:1262 CS:1263
 patch 14bb CS:1263 CS:1264
 patch 13ab CS:1264 CS:1267
 patch 16ab CS:1264 CS:1265
 patch 13ab CS:1265 CS:1266
-patch 12ab CS:1267 CS:1268
+patch 12aa CS:1267 CS:1268
+# glycan at N276
+patch NGLB C:276 CS:1276
 patch 14bb CS:1276 CS:1277
 patch 14bb CS:1277 CS:1278
+# glycan at N295
+patch NGLB C:295 CS:1295
 patch 14bb CS:1295 CS:1296
+# glycan at N301
+patch NGLB C:301 CS:1301
 patch 14bb CS:1301 CS:1302
 patch 14bb CS:1302 CS:1303
+# glycan at N332
+patch NGLB C:332 CS:1332
 patch 14bb CS:1332 CS:1333
 patch 14bb CS:1333 CS:1334
+# glycan at N339
+patch NGLB C:339 CS:1339
 patch 14bb CS:1339 CS:1340
+# glycan at N355
+patch NGLB C:355 CS:1355
 patch 14bb CS:1355 CS:1356
+# glycan at N362
+patch NGLB C:362 CS:1362
 patch 14bb CS:1362 CS:1363
 patch 14bb CS:1363 CS:1364
+# glycan at N386
+patch NGLB C:386 CS:1386
 patch 14bb CS:1386 CS:1387
 patch 14bb CS:1387 CS:1388
+# model-built alpha-mannoses to complete the Man9
+if { [lsearch $MAN9 386] != -1 } {
+  patch 13ab CS:1388 CS:2389
+  patch 12aa CS:2389 CS:2390
+  patch 12aa CS:2390 CS:2391
+  patch 16ab CS:1388 CS:2392
+  patch 13ab CS:2392 CS:2393
+  patch 12aa CS:2393 CS:2394
+  patch 16ab CS:2392 CS:2395
+  patch 12aa CS:2395 CS:2396
+}
+# glycan at N392
+patch NGLB C:392 CS:1392
 patch 14bb CS:1392 CS:1393
+# model-built alpha-mannoses to complete the Man9
+if { [lsearch $MAN9 392] != -1 } {
+  patch 14bb CS:1393 CS:1394
+  patch 13ab CS:1394 CS:2397
+  patch 12aa CS:2397 CS:2398
+  patch 12aa CS:2398 CS:2399
+  patch 16ab CS:1394 CS:2400
+  patch 13ab CS:2400 CS:2401
+  patch 12aa CS:2401 CS:2402
+  patch 16ab CS:2400 CS:2403
+  patch 12aa CS:2403 CS:2404
+}
+# glycan at N397
+patch NGLB C:397 CS:1397
+# glycan at N448
+patch NGLB C:448 CS:1448
 patch 14bb CS:1448 CS:1449
 patch 14bb CS:1449 CS:1450
 patch 13ab CS:1450 CS:1451
 patch 16ab CS:1450 CS:1453
-patch 12ab CS:1451 CS:1452
+patch 12aa CS:1451 CS:1452
 patch 13ab CS:1453 CS:1454
 patch 16ab CS:1453 CS:1455
-
+# glycan at N611
 patch NGLB D:611 DS:1611
-patch NGLB D:616 DS:1600
-patch NGLB D:625 DS:1625
-patch NGLB D:637 DS:1637
-
 patch 14bb DS:1611 DS:1612
 patch 16ab DS:1611 DS:1613
+# glycan at N616
+patch NGLB D:616 DS:1600
+# glycan at N625
+patch NGLB D:625 DS:1625
 patch 14bb DS:1625 DS:1626
+# glycan at N637
+patch NGLB D:637 DS:1637
 patch 14bb DS:1637 DS:1638
 
+# glycan at N88
 patch NGLB E:88 ES:1088
-patch NGLB E:135 ES:1135
-patch NGLB E:156 ES:1156
-patch NGLB E:160 ES:1160
-patch NGLB E:187 ES:1187
-patch NGLB E:241 ES:1241
-patch NGLB E:262 ES:1262
-patch NGLB E:276 ES:1276
-patch NGLB E:295 ES:1295
-patch NGLB E:301 ES:1301
-patch NGLB E:332 ES:1332
-patch NGLB E:339 ES:1339
-patch NGLB E:355 ES:1355
-patch NGLB E:362 ES:1362
-patch NGLB E:386 ES:1386
-patch NGLB E:392 ES:1392
-patch NGLB E:397 ES:1397
-patch NGLB E:448 ES:1448
-
 patch 14bb ES:1088 ES:1089
 patch 14bb ES:1089 ES:1090
+# glycan at N135
+patch NGLB E:135 ES:1135
 patch 14bb ES:1135 ES:1136
+# glycan at N156
+patch NGLB E:156 ES:1156
 patch 14bb ES:1156 ES:1157
 patch 14bb ES:1157 ES:1158
+# glycan at N160
+patch NGLB E:160 ES:1160
 patch 14bb ES:1160 ES:1161
+# glycan at N187
+patch NGLB E:187 ES:1187
+# glycan at N241
+patch NGLB E:241 ES:1241
 patch 14bb ES:1241 ES:1242
 patch 14bb ES:1242 ES:1243
 patch 16ab ES:1243 ES:1246
 patch 13ab ES:1243 ES:1244
-patch 12ab ES:1244 ES:1245
+patch 12aa ES:1244 ES:1245
+# glycan at N262
+patch NGLB E:262 ES:1262
 patch 14bb ES:1262 ES:1263
 patch 14bb ES:1263 ES:1264
 patch 13ab ES:1264 ES:1267
 patch 16ab ES:1264 ES:1265
 patch 13ab ES:1265 ES:1266
-patch 12ab ES:1267 ES:1268
+patch 12aa ES:1267 ES:1268
+# glycan at N276
+patch NGLB E:276 ES:1276
 patch 14bb ES:1276 ES:1277
+# glycan at N295
+patch NGLB E:295 ES:1295
 patch 14bb ES:1295 ES:1296
+# glycan at N301
+patch NGLB E:301 ES:1301
 patch 14bb ES:1301 ES:1302
+# glycan at N332
+patch NGLB E:332 ES:1332
 patch 14bb ES:1332 ES:1333
 patch 14bb ES:1333 ES:1334
+# glycan at N339
+patch NGLB E:339 ES:1339
 patch 14bb ES:1339 ES:1340
+# glycan at N355
+patch NGLB E:355 ES:1355
 patch 14bb ES:1355 ES:1356
+# glycan N362
+patch NGLB E:362 ES:1362
 patch 14bb ES:1362 ES:1363
+# glycan at N386
+patch NGLB E:386 ES:1386
 patch 14bb ES:1386 ES:1387
 patch 14bb ES:1387 ES:1388
 patch 16ab ES:1388 ES:1390
+# model-built alpha-mannoses to complete the Man9
+if { [lsearch $MAN9 386] != -1 } {
+  patch 13ab ES:1388 ES:2391
+  patch 12aa ES:2391 ES:2392
+  patch 12aa ES:2392 ES:2393
+  patch 13ab ES:1390 ES:2394
+  patch 12aa ES:2394 ES:2395
+  patch 16ab ES:1390 ES:2396
+  patch 12aa ES:2396 ES:2397
+}
+# glycan at N392
+patch NGLB E:392 ES:1392
 patch 14bb ES:1392 ES:1393
 patch 14bb ES:1393 ES:1394
+# model-built alpha-mannoses to complete the Man9
+if { [lsearch $MAN9 392] != -1 } {
+  patch 13ab ES:1394 ES:2398
+  patch 12aa ES:2398 ES:2399
+  patch 12aa ES:2399 ES:2400
+  patch 16ab ES:1394 ES:2401
+  patch 13ab ES:2401 ES:2402
+  patch 12aa ES:2402 ES:2403
+  patch 16ab ES:2401 ES:2404
+  patch 12aa ES:2404 ES:2405
+}
+# glycan at N397
+patch NGLB E:397 ES:1397
+# glycan at N448
+patch NGLB E:448 ES:1448
 patch 14bb ES:1448 ES:1449
 patch 14bb ES:1449 ES:1450
 patch 16ab ES:1450 ES:1453
 patch 13ab ES:1450 ES:1451
-patch 12ab ES:1451 ES:1452
+patch 12aa ES:1451 ES:1452
 patch 16ab ES:1453 ES:1455
 patch 13ab ES:1453 ES:1454
-
+# glycan at N611
 patch NGLB F:611 FS:1611
-patch NGLB F:616 FS:1600
-patch NGLB F:625 FS:1625
-patch NGLB F:637 FS:1637
-
 patch 14bb FS:1611 FS:1612
 patch 16ab FS:1611 FS:1624
 patch 14bb FS:1612 FS:1613
 patch 16ab FS:1613 FS:1619
 patch 13ab FS:1613 FS:1614
-patch 12ab FS:1614 FS:1617
+patch 12aa FS:1614 FS:1617
 patch 16ab FS:1619 FS:1622
-patch 12ab FS:1619 FS:1620
+patch 12aa FS:1619 FS:1620
 patch 14bb FS:1620 FS:1621
 patch 14bb FS:1622 FS:1623
 patch 14bb FS:1625 FS:1626
 patch 16ab FS:1637 FS:1650
+# glycan at N616
+patch NGLB F:616 FS:1600
+# glycan at N625
+patch NGLB F:625 FS:1625
+# glycan at N637
+patch NGLB F:637 FS:1637
 patch 14bb FS:1637 FS:1638
 patch 14bb FS:1638 FS:1639
 patch 16ab FS:1639 FS:1645
 patch 13ab FS:1639 FS:1640
 patch 14bb FS:1640 FS:1641
-patch 12ab FS:1640 FS:1643
+patch 12aa FS:1640 FS:1643
 patch 14bb FS:1641 FS:1642
 patch 14bb FS:1643 FS:1644
 patch 16ab FS:1645 FS:1648
-patch 12ab FS:1645 FS:1646
+patch 12aa FS:1645 FS:1646
 
 guesscoord
 
