@@ -20,12 +20,20 @@ if {![info exists PSFGEN_BASEDIR]} {
 set MPER_665_to_682 [list LYS TRP ALA SER LEU TRP ASN TRP PHE ASP ILE SER ASN TRP LEU TRP TYR ILE]
 set MPER_659_to_682 [list GLN GLU LEU LEU GLU LEU ASP LYS TRP ALA SER LEU TRP ASN TRP PHE ASP ILE SER ASN TRP LEU TRP TYR ILE]
 set MPER_EXTEND 0
+set TM_683_to_709 [list LYS LEU PHE ILE MET ILE VAL GLY GLY LEU VAL GLY LEU ARG ILE VAL PHE ALA VAL LEU SER ILE VAL ASN ARG VAL ARG ]
+set TM_EXTEND 0
 set seed 12345
 set MAN9 {}
 for { set a 0 } { $a < [llength $argv] } { incr a } {
   set arg [lindex $argv $a]
   if { $arg == "-mper-extend" } {
     set MPER_EXTEND 1
+  }
+  if { $arg == "-tm-extend" } {
+    set TM_EXTEND 1
+    if { $MPER_EXTEND == "0" } {
+       set MPER_EXTEND 1
+    }
   }
   if { $arg == "-seed" } {
     incr a
@@ -158,6 +166,13 @@ segment B {
       incr lr
     }
   }
+  if { $TM_EXTEND == "1" } {
+    set lr 0
+    for { set r 683 } { $r < 710 } { incr r } {
+      residue $r [lindex $TM_683_to_709 $lr ] B
+      incr lr
+    }
+  }
 }
 
 segment BS {
@@ -231,6 +246,13 @@ segment D {
       incr lr
     }
   }
+  if { $TM_EXTEND == "1" } {
+    set lr 0
+    for { set r 683 } { $r < 710 } { incr r } {
+      residue $r [lindex $TM_683_to_709 $lr ] D
+      incr lr
+    }
+  }
 }
 
 segment DS {
@@ -296,6 +318,13 @@ segment F {
     set lr 0
     for { set r 665 } { $r < 683 } { incr r } {
       residue $r [lindex $MPER_665_to_682 $lr] F
+      incr lr
+    }
+  }
+  if { $TM_EXTEND == "1" } {
+    set lr 0
+    for { set r 683 } { $r < 710 } { incr r } {
+      residue $r [lindex $TM_683_to_709 $lr ] F
       incr lr
     }
   }
@@ -734,13 +763,16 @@ lappend LOCALFILES "unrelaxed2.pdb"
 
 if { $MPER_EXTEND == "1" } {
    foreach b { B D F } {
-      set sel [atomselect $molid "protein and chain $b and resid 658 to 682"]
+      set Cterm 682
+      if { $TM_EXTEND == "1" } {
+         set Cterm 709
+      }
+      set sel [atomselect $molid "protein and chain $b and resid 658 to $Cterm"]
       fold_alpha_helix $molid $sel
       $sel delete
    }
 }
 
-if { $DOMC == "1" } {
 set nc 1000
 set rcut 3.0
 set temperature 2.5
@@ -751,7 +783,6 @@ foreach l $loops {
   set chain [lindex $l 0]
   set residueList [[atomselect ${molid} "chain $chain and resid [lindex $l 1] to [lindex $l 2] and name CA"] get residue]
   do_loop_mc ${residueList} ${chain} ${molid} ${k} ${r0} ${bg} ${rcut} ${nc} ${temperature} [irand_dom 1000 9999] 
-}
 }
 $a writepdb "my_5fuu_mcOut.pdb"
 

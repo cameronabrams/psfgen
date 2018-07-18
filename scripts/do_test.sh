@@ -10,7 +10,8 @@ NAMD2=${HOME}/namd/NAMD_2.12_Source/Linux-x86_64-g++/namd2
 export PSFGEN_BASEDIR=${HOME}/research/psfgen
 ARGC=$#
 COLVARS_INP=my_${PDB}_colvars_op.inp
-
+STAGE=0
+NPE=8
 i=1
 while [ $i -le $ARGC ] ; do
   if [ "${!i}" = "-pdb" ]; then
@@ -33,6 +34,13 @@ while [ $i -le $ARGC ] ; do
   if [ "${!i}" = "-colvars_inp" ]; then
     i=$((i+1))
     export COLVARS_INP=${!i}
+  fi
+  if [ "${!i}" = "-stage" ]; then
+     export STAGE=1
+  fi
+  if [ "${!i}" = "-npe" ]; then
+    i=$((i+1))
+    export NPE=${!i}
   fi
   if [ "${!i}" = "-psfgen_args" ]; then
     i=$((i+1))
@@ -70,10 +78,25 @@ echo "Generating solvated system..."
 vmd -dispdev text -e $PSFGEN_BASEDIR/${PDB}/my_${PDB}_solv.tcl > psfgen2.log
 
 # 5. run NAMD
-echo "Running namd2 on solvated system..."
-ln -s $PSFGEN_BASEDIR/${PDB}/my_${PDB}_solv.namd .
-lcvi=`grep -i colvarsconfig $PSFGEN_BASEDIR/${PDB}/my_${PDB}_solv.namd  | awk '{print $2}'`
-ln -s $PSFGEN_BASEDIR/${PDB}/${COLVARS_INP} ./${lcvi}
-$CHARMRUN +p8 $NAMD2 my_${PDB}_solv.namd > solv.log
-
+if [ $STAGE = "0" ] ; then
+  echo "Running namd2 on solvated system..."
+  ln -s $PSFGEN_BASEDIR/${PDB}/my_${PDB}_solv.namd .
+  lcvi=`grep -i colvarsconfig $PSFGEN_BASEDIR/${PDB}/my_${PDB}_solv.namd  | awk '{print $2}'`
+  ln -s $PSFGEN_BASEDIR/${PDB}/${COLVARS_INP} ./${lcvi}
+  $CHARMRUN +p${NPE} $NAMD2 my_${PDB}_solv.namd > solv.log
+else
+  SYSNAME=${PDB}
+  numsteps=( 100 200 19700 )
+  ls=`echo "${#numsteps[@]} - 1" | bc`
+  firsttimestep=100; # stage-0 minimization
+  for s in `seq 0 $ls`; do
+    echo "Running namd2 (stage $s) on solvated system..."
+    cat $PSFGEN_BASEDIR/${SYSNAME}/my_${SYSNAME}_solv_stageN.namd | \
+        sed s/%STAGE%/${s}/g | \
+        sed s/%NUMSTEPS%/${numsteps[$s]}/g | \
+        sed s/%FIRSTTIMESTEP%/$firsttimestep/g > my_${SYSNAME}_solv_stage${s}.namd
+    $CHARMRUN +p${NPE} $NAMD2 my_${SYSNAME}_solv_stage${s}.namd > solv_stage${s}.log
+    firsttimestep=`echo "$firsttimestep + ${numsteps[$s]}" | bc`
+done
+fi
 echo "Done."
