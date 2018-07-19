@@ -31,6 +31,8 @@ $ mkdir lib
 $ cd src
 $ make bondstruct.so
 ```
+You will need tcl headers and `swig` installed for this.
+
 7. Add the following to your `~/.vmdrc` file:
 ```
 source $PSFGEN_BASEDIR/scripts/vmdrc.tcl
