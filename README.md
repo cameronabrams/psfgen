@@ -19,7 +19,10 @@ The _src_ directory contains files that can be "sourced" by psfgen scripts.  The
 2. VMD v. 1.8.3
 3. CHARMM36 topologies and parameters (toppar_c36_jul16.tgz is the version used here) unpacked in ${HOME}/charmm/toppar
 4. packmol
-5. This repository cloned into ${HOME}/psfgen (or, if somewhere else, point to it with the environment variable PSFGEN_BASEDIR)
+5. This repository cloned into a local directory and pointed to by the environment variable PSFGEN_BASEDIR; for example, in your `.bashrc`,
+```
+export PSFGEN_BASEDIR /home/myusername/psfgen
+```
 6. A locally compiled `bondstruct.so` module for the loop Monte Carlo procedures.  To build this:
 
 ```
@@ -27,6 +30,10 @@ $ cd $PSFGEN_BASEDIR
 $ mkdir lib
 $ cd src
 $ make bondstruct.so
+```
+7. Add the following to your `~/.vmdrc` file:
+```
+source $PSFGEN_BASEDIR/scripts/vmdrc.tcl
 ```
 
 ## Supported systems
