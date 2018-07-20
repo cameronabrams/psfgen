@@ -324,8 +324,8 @@ patch 14bb GS:607 GS:608
 patch 14bb GS:608 GS:609
 patch 13ab GS:609 GS:610
 patch 16ab GS:609 GS:613
-patch 12ab GS:610 GS:611
-patch 12ab GS:611 GS:612
+patch 12aa GS:610 GS:611
+patch 12aa GS:611 GS:612
 patch NGLB G:276 GS:614
 patch 14bb GS:614 GS:615
 patch 14bb GS:615 GS:616
@@ -339,7 +339,7 @@ patch NGLB G:355 GS:623
 patch NGLB G:362 GS:624
 patch 14bb GS:624 GS:625
 patch 14bb GS:625 GS:626
-patch 13bb GS:626 GS:627
+patch 13ab GS:626 GS:627
 patch NGLB G:386 GS:628
 patch 14bb GS:628 GS:629
 patch 14bb GS:629 GS:630
@@ -364,8 +364,8 @@ patch 14bb IS:607 IS:608
 patch 14bb IS:608 IS:609
 patch 13ab IS:609 IS:610
 patch 16ab IS:609 IS:613
-patch 12ab IS:610 IS:611
-patch 12ab IS:611 IS:612
+patch 12aa IS:610 IS:611
+patch 12aa IS:611 IS:612
 patch NGLB I:276 IS:614
 patch 14bb IS:614 IS:615
 patch 14bb IS:615 IS:616
@@ -379,7 +379,7 @@ patch NGLB I:355 IS:623
 patch NGLB I:362 IS:624
 patch 14bb IS:624 IS:625
 patch 14bb IS:625 IS:626
-patch 13bb IS:626 IS:627
+patch 13ab IS:626 IS:627
 patch NGLB I:386 IS:628
 patch 14bb IS:628 IS:629
 patch 14bb IS:629 IS:630
@@ -404,8 +404,8 @@ patch 14bb JS:607 JS:608
 patch 14bb JS:608 JS:609
 patch 13ab JS:609 JS:610
 patch 16ab JS:609 JS:613
-patch 12ab JS:610 JS:611
-patch 12ab JS:611 JS:612
+patch 12aa JS:610 JS:611
+patch 12aa JS:611 JS:612
 patch NGLB J:276 JS:614
 patch 14bb JS:614 JS:615
 patch 14bb JS:615 JS:616
@@ -419,7 +419,7 @@ patch NGLB J:355 JS:623
 patch NGLB J:362 JS:624
 patch 14bb JS:624 JS:625
 patch 14bb JS:625 JS:626
-patch 13bb JS:626 JS:627
+patch 13ab JS:626 JS:627
 patch NGLB J:386 JS:628
 patch 14bb JS:628 JS:629
 patch 14bb JS:629 JS:630
