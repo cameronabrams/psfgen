@@ -82,7 +82,9 @@ source $PSFGEN_BASEDIR/scripts/vmdrc.tcl
 
 21. [2YHH](http://www.rcsb.org/pdb/explore/explore.do?structureID=2yhh) -- Microvirin, with options to create the MVN(Q81K/M83R)-(G4S)n-H6-[MPER|Trp3] DAVEI
 
-22. BNM -- a single molecule of BNM-III-170 extracted from 5f4p.pdb, using CGenFF
+22. BNM -- a single molecule of BNM-III-170 extracted from 5f4p.pdb, using CGenFF, in a water box
+
+23. [5F4P](http://www.rcsb.org/pdb/explore/explore.do?structureID=5f4p) -- HIV-1 gp210 core with small-molecule CD4 mimic BNM-III-170 bound
 
 More to come...
 
