@@ -1,0 +1,38 @@
+structure  my_5jyn.psf 
+coordinates my_5jyn.pdb
+set temperature 310
+temperature $temperature
+
+set outputname my_5jyn_vac
+firsttimestep 0
+
+paraTypeCharmm      on
+parameters $env(HOME)/charmm/toppar/par_all36_prot.prm
+
+exclude             scaled1-4
+1-4scaling          1.0
+cutoff              10.
+switching           on
+switchdist          9.
+pairlistdist        11.5
+timestep            1.0  ;
+rigidbonds      none
+
+nonbondedFreq       1
+fullElectFrequency  2
+stepspercycle       4
+outputName          $outputname
+dielectric 80
+
+langevin                on
+langevinDamping         5
+langevinTemp            $temperature
+langevinHydrogen        yes
+
+outputEnergies      10
+dcdfreq             100
+restartfreq         100
+
+minimize 500
+run 2000
+
