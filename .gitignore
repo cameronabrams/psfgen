@@ -1,0 +1,12 @@
+*.o
+*_wrap.c
+*.so
+tcl-untested/
+prep/
+output/
+a.out
+bin/
+*.swp
+ref_md/
+*-working*/
+output.*tgz
