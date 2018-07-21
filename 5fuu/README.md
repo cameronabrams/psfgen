@@ -7,8 +7,8 @@ This directory contains five files:
 2. my_5fuu_vac.namd -- NAMD configuration file used to relax the "guessed" coordinates resulting from step 1.
 3. my_5fuu_solv.tcl -- VMD script that uses solvate and autoionize to generate a neutralized, solvated MD system using the coordinates from step 2 as input.
 4. my_5fuu_colvars_op.inp -- colvars input file that defines collective variables that allow for center-of-mass restraint and an orientational restraint to keep the C3v axis along z.
-5a. my_5fuu_solv.namd -- NAMD configuration file that performs a minimization and short MD of the raw solvated system; uses colvars module input file from 4.
-5b. my_5fuu_solv_stageN.namd -- NAMD configuration file template for perform ing a minimization and series of short MD simulations of the raw solvated system; uses colvars module input file from 4.  This file is used if the `-stage` flag is set, as described below, to run the final solvated MD simulation in stages to avoid patch-grid errors.
+5. my_5fuu_solv.namd -- NAMD configuration file that performs a minimization and short MD of the raw solvated system 
+5. my_5fuu_solv_stageN.namd -- NAMD configuration file template for perform ing a minimization and series of short MD simulations of the raw solvated system.  This file is used if the `-stage` flag is set, as described below, to run the final solvated MD simulation in stages to avoid patch-grid errors.
 
 ## Instructions
 
