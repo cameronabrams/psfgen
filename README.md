@@ -6,24 +6,26 @@ This repository contains psfgen scripts, TcL scripts for use in VMD, and some as
 * support for glycans and non-covalently linked sugars;
 * integration between solvation and initial MD simulation config file (easy transfer of box size);
 * support for down-puckered prolines;
-* (more to come)...
 
-The _src_ directory contains files that can be "sourced" by psfgen scripts.  The _charmm_ directory contains some custom topologies and parameters derived from the July, 2016 charmm36 parameter set.  Other directory names indicate the PDB entry for which the files contained therein are applicable.
+The _src_ directory contains files that can be sourced by psfgen scripts.  The _charmm_ directory contains some custom topologies and parameters derived from the July, 2016 charmm36 parameter set.  Other directory names indicate the PDB entry for which the files contained therein are applicable.
+
+The repository is being updated continuously.  Issue `git pull` in your local copy often to keep it up-to-date.
 
 ## Requirements
 
-1. NAMD v 2.12
+1. NAMD v. 2.12
   * Set environment variables CHARMRUN and NAMD2 to point to your system's charmrun and namd2; examples (in bash):
      * `CHARMRUN=${HOME}/namd/NAMD_2.12_Source/Linux-x86_64-g++/charmrun`
      * `NAMD2=${HOME}/namd/NAMD_2.12_Source/Linux-x86_64-g++/namd2`
 2. VMD v. 1.8.3
 3. CHARMM36 topologies and parameters (toppar_c36_jul16.tgz is the version used here) unpacked in ${HOME}/charmm/toppar
 4. packmol
-5. This repository cloned into a local directory and pointed to by the environment variable PSFGEN_BASEDIR; for example, in your `.bashrc`,
+5. tcl, tcl-devel, and swig packages installed
+6. This repository cloned into a local directory and pointed to by the environment variable PSFGEN_BASEDIR; for example, in your `.bashrc`,
 ```
-export PSFGEN_BASEDIR /home/myusername/psfgen
+export PSFGEN_BASEDIR=/home/myusername/psfgen
 ```
-6. A locally compiled `bondstruct.so` module for the loop Monte Carlo procedures.  To build this:
+7. A locally compiled `bondstruct.so` module for the loop Monte Carlo procedures.  To build this:
 
 ```
 $ cd $PSFGEN_BASEDIR
@@ -31,14 +33,13 @@ $ mkdir lib
 $ cd src
 $ make bondstruct.so
 ```
-You will need tcl headers and `swig` installed for this.
 
-7. Add the following to your `~/.vmdrc` file:
+8. Add the following to your `~/.vmdrc` file:
 ```
 source $PSFGEN_BASEDIR/scripts/vmdrc.tcl
 ```
 
-## Supported systems
+## Structures
 
 1. [3TGQ](http://www.rcsb.org/pdb/explore/explore.do?structureId=3tgq) -- unliganded core monomeric HIV-1 gp120, with NAG's;
 
