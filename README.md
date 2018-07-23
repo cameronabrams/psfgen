@@ -87,6 +87,8 @@ source $PSFGEN_BASEDIR/scripts/vmdrc.tcl
 
 23. [5F4P](http://www.rcsb.org/pdb/explore/explore.do?structureID=5f4p) -- HIV-1 gp210 core with small-molecule CD4 mimic BNM-III-170 bound
 
+24. [5JYN](http://www.rcsb.org/pdb/explore/explore.do?structureID=5jyn) -- HIV-1 gp41 transmembrane domain triple-helix embedded in a DMPC bilayer
+
 More to come...
 
 ## Acknowledgments

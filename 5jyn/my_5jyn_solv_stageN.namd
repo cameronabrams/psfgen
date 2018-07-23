@@ -49,22 +49,13 @@ langevinHydrogen        no;             # don't couple langevin bath to hydrogen
 seed                    98768674
 
 langevinpiston          on
-if { $STAGE < 5 } {
-langevinpistontarget    %PZZ%
-} else
-langevinpistontarget    1.0
-}
+langevinpistontarget    1.013
 langevinpistonperiod    200
 langevinpistondecay     100
 langevinpistontemp      $temperature
 usegrouppressure        yes
 useflexiblecell         yes
 
-if { $STAGE < 5 } {
-useConstantRatio        yes
-useConstantArea         no
-surfaceTensionTarget    %SURFACETENSION%
-}
 
 outputEnergies      10
 dcdfreq             100

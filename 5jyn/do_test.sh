@@ -73,22 +73,26 @@ if [ $RESTART = 0 ]; then
   else
     vmd -dispdev text -e $PSFGEN_BASEDIR/${PDB}/my_${PDB}_solv_1.tcl > psfgen2_1.log
   fi  
-  echo "...Running packmol; may take a while. Issue 'tail -f packmol.log' to view progress."
-  packmol < pm-tmp.in > packmol.log
+  echo "...Running packmol, stage 1: lower leaflet..."
+  packmol < pm-stage1.in > packmol-stage1.log
+  echo "...Running packmol, stage 2: upper leaflet..."
+  packmol < pm-stage2.in > packmol-stage2.log
+  echo "...Running packmol, stage 3: water and ions..."
+  packmol < pm-stage3.in > packmol-stage3.log
 fi
+
 vmd -dispdev text -e $PSFGEN_BASEDIR/${PDB}/my_${PDB}_solv_2.tcl > psfgen2_2.log
+
 # 5. run NAMD; staging to avoid patch-grid errors
-numsteps=( 100 200 400 800 1600 3200 19700 )
+numsteps=( 200 400 800 1600 6400 25600 )
 ls=`echo "${#numsteps[@]} - 1" | bc` 
-pzz=10000
-surfacetension=`grep cellbasisvector3 cell.inp | awk '{print $3/100.0}'`
+#pzz=10000
+#surfacetension=`grep cellbasisvector3 cell.inp | awk '{print $3/100.0}'`
 firsttimestep=100; # stage-0 minimization
 for s in `seq 0 $ls`; do
-  echo "Running namd2 (stage $s) on solvated/membrane system..."
+  echo "Running namd2 (stage $s of $ls) on solvated/membrane system..."
   cat $PSFGEN_BASEDIR/${PDB}/my_${PDB}_solv_stageN.namd | \
       sed s/%STAGE%/${s}/g | \
-      sed s/%PZZ%/$pzz/g | \
-      sed s/%SURFACETENSION%/$surfacetension/g | \
       sed s/%NUMSTEPS%/${numsteps[$s]}/g | \
       sed s/%FIRSTTIMESTEP%/$firsttimestep/g > my_${PDB}_solv_stage${s}.namd
   $CHARMRUN +p8 $NAMD2 my_${PDB}_solv_stage${s}.namd > solv_stage${s}.log
