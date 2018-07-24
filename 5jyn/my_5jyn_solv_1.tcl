@@ -5,9 +5,18 @@
 # drexel university
 # chemical and biological engineering
 
-set seed 12345 
-set xypad 35 
-set zpad 20 
+set inputname my_5jyn
+set seed 12345
+# pad in Angstoms along +/-X,Y from the protein to define the lateral box size 
+set xypad 35.0
+# pad in Angstroms along +/-Z from the protein to define the box height
+set zpad 20.0
+# initial depth of lipid leaflet from N to C-tail; referenced to a all-trans DMPC
+set leaflet_depth 30.0
+# factor for scaling SAPL; less than one since lipid template is all-trans
+set SAPLFAC 0.90
+# density of water layer in g/cc
+set watergcc 1.0
 for { set i 0 } { $i < $argc } { incr  i} {
    set arg [lindex $argv $i]
    if { $arg == "-seed" } {
@@ -22,35 +31,48 @@ for { set i 0 } { $i < $argc } { incr  i} {
       incr i
       set zpad [lindex $argv $i]
    }
+   if { $arg == "-leaflet_depth" } {
+      incr i
+      set leaflet_depth [lindex $argv $i]
+   }
+   if { $arg == "-saplfac" } {
+      incr i
+      set SAPLFAC [lindex $argv $i]
+   }
+   if { $arg == "-watergcc" } {
+      incr i
+      set watergcc [lindex $argv $i]
+   }
 }
 set LOCALFILES {}
 
-set inputname my_5jyn
 set PSF ${inputname}.psf
 set outputname1 ${inputname}_wb
 set outputname2 ${inputname}_i
 
 mol new $PSF
 mol addfile ${inputname}_vac.coor
-
 set a [atomselect top all]
+set mp [vecsum [$a get mass]]
+set z [vecsum [$a get charge]]
 set c [measure center $a]
 $a moveby [vecscale $c -1.0]
+$a writepdb prot.pdb; lappend LOCALFILES prot.pdb
+set minmax [measure minmax $a]
+# use a measurement of the moment of inertia to determine
+# the cross-sectional area of the protein
+set ev1 [lindex [lindex [measure inertia $a eigenvals] end] 0]
+set radius [expr sqrt( $ev1 / $mp )]
+set protein_area [expr ($radius)*($radius) * 3.141593 ]
+# done with molecule data
+mol delete top
 
 set box { { ? ? ? } { ? ? ? } }
 set basisvec { ? ? ? }
 set origin { ? ? ? }
 
-# compute the "diameter" of the protein and its XY area
-set minmax [measure minmax $a]
-set mp [vecsum [$a get mass]]
-set z [vecsum [$a get charge]]
-
-set ev1 [lindex [lindex [measure inertia $a eigenvals] end] 0]
-set radius [expr sqrt( $ev1 / $mp )]
-set protein_area [expr ($radius)*($radius) * 3.141593 ]
-
-# compute box dimensions
+# compute box lower left and upper right corners 
+# using pad values provided by user or defaults
 foreach d {0 1} {
   lset box 0 $d [format "%.6f" [expr [lindex $minmax 0 $d] - $xypad]]
   lset box 1 $d [format "%.6f" [expr [lindex $minmax 1 $d] + $xypad]]
@@ -63,53 +85,57 @@ foreach d {0 1 2} {
   lset origin $d [expr 0.5*([lindex $box 1 $d ] + [lindex $box 0 $d])] 
 }
 
-$a writepdb prot.pdb
-lappend LOCALFILES prot.pdb
-
-
-# actual box size
+# compute box dimensions
 set lx [format "%.6f" [expr [lindex [lindex $box 1] 0] - [lindex [lindex $box 0] 0]]]
 set ly [format "%.6f" [expr [lindex [lindex $box 1] 1] - [lindex [lindex $box 0] 1]]]
 set lz [format "%.6f" [expr [lindex [lindex $box 1] 2] - [lindex [lindex $box 0] 2]]]
 
-# size of box into which stuff is packed -- trimming 1 A for PBC (only in Z)
+# save corner coordinates of box into new variables; pad by 1 A for PBC (only in Z)
 set xmin [format "%.6f" [expr [lindex [lindex $box 0] 0]]]
 set xmax [format "%.6f" [expr [lindex [lindex $box 1] 0]]]
 set ymin [format "%.6f" [expr [lindex [lindex $box 0] 1]]]
 set ymax [format "%.6f" [expr [lindex [lindex $box 1] 1]]]
 set zmin [format "%.6f" [expr [lindex [lindex $box 0] 2]+1]]
-set zmax [format "%.6f" [expr [lindex [lindex $box 1] 2]+1]]
+set zmax [format "%.6f" [expr [lindex [lindex $box 1] 2]-1]]
 
-set slx [format "%.6f" [expr $xmax - $xmin]]
-set sly [format "%.6f" [expr $ymax - $ymin]]
-set slz [format "%.6f" [expr $zmax - $zmin]]
+# compute cross-sectional area A and volume V
+set A [format "%.6f" [expr $lx * $ly]]
+set V [format "%.6f" [expr $A * $lz]]
 
-set A [format "%.6f" [expr $slx * $sly]]
-set V [format "%.6f" [expr $A * $slz]]
 # midplane z-position
 set zmp [format "%.6f" [expr ($zmax + $zmin)/2.0]]
-set zLLhi [format "%.6f" [expr $zmp ]]
-set zULlo [format "%.6f" [expr $zmp ]]
-set zLLlo [format "%.6f" [expr $zmp - 30]] 
-set zULhi [format "%.6f" [expr $zmp + 30]]
+# z-coordinate of upper boundary of lower leaflet
+set zLLhi $zmp
+# z-coordinate of lower boundary of upper leaflet
+set zULlo $zmp
+# z-coordinate of lower boundary of lower leaflet
+set zLLlo [format "%.6f" [expr $zmp - $leaflet_depth]] 
+# z-coordinate of upper boundary of upper leaflet
+set zULhi [format "%.6f" [expr $zmp + $leaflet_depth]]
+# z-coordinate of upper boundary of lower water layer
 set zLWhi [format "%.6f" [expr $zLLlo - 1]]
+# z-coordinate of lower boundary of lower water layer
 set zLWlo $zmin
+# z-coordinate of lower boundary or upper water layer
 set zUWlo [format "%.6f" [expr $zULhi + 1]]
+# z-coordinate of upper boundary of upper water layer
 set zUWhi $zmax
+
 # water volume
 set Vw [format "%.6f" [expr $A * (($zLWhi - $zLWlo) + ($zUWhi - $zUWlo))]]
 
 # SAPL for DMPC is 60.6 A^2 (Nagle, Biophys J, 2005; 10.1529/biophysj.104.056606)
-set SAPLFAC 0.85 
 set SAPL [expr 60.6*$SAPLFAC]
 # assume protein complex's XY-projection is circular 
+# compute available cross-sectional area for packing lipids
 set AvailA [expr $A - $protein_area]
+# compute the number of lipids per leaflet
 set nLipid [expr int($AvailA/$SAPL)]
+# compute the TOTAL number of waters in BOTH layers
+set nw [expr int( 1.0 / 18.0 * (0.6022*$watergcc*$Vw) )]
 
-set MWw 18.0
-set densgcc 1.0
-set nw [expr int( 1.0 / $MWw * (0.6022*$densgcc*$Vw) )]
-
+# compute the number of solvent ions necessary to neutralize only
+# this is the total in both layers
 set nna 0
 set ncl 0
 if { $z > 0 } {
@@ -145,6 +171,7 @@ puts "             na: [expr int($nna/2)]"
 puts "--------------- [format "%12.6f"  $zmin] -----------------"
 
 # generate packmol input files
+# stage 1 packs the protein at the middle and then packs just the lower leaflet
 set fp [open "pm-stage1.in" "w"]
 puts $fp "
 output my_5jyn_packed_stage1.pdb
@@ -164,6 +191,7 @@ structure dmpc.pdb
 end structure
 "
 close $fp
+# stage 2 packs only the upper leaflet
 set fp [open "pm-stage2.in" "w"]
 puts $fp "
 output my_5jyn_packed_stage2.pdb
@@ -183,6 +211,7 @@ structure dmpc.pdb
 end structure
 "
 close $fp
+# stage 3 packs the waters and solvent ions
 set fp [open "pm-stage3.in" "w"]
 puts $fp "
 output my_5jyn_packed.pdb
@@ -248,6 +277,8 @@ end structure
 }
 close $fp
 
+# here we generate local copies of the template PDB files for TIP3P water, solvent ions,
+# and a perfectly all-trans, verically oriented (head group high) DMPC molecule
 set water_file [ open TIP3.pdb w ]
 puts $water_file "
 HETATM    1  H1  TIP3    1       9.626   6.787  12.673  0.00  0.00      W
@@ -266,7 +297,8 @@ close $cl_file
 set lipid_file [ open dmpc.pdb w ]
 # the following is a pdbfile generated by running psfgen/guesscoord on 
 # positions for N, C13, and C14 of DMPC, followed by rotation of one
-# C-C bond to bring the two tails into a parallel arrangement
+# C-C bond to bring the two tails into a parallel arrangement, and 
+# euler rotations to make the molecule as "vertical" as possible
 puts $lipid_file "
 ATOM      1  N   DMPCA  62       0.912  -0.508  13.425  1.00  0.00      A    N
 ATOM      2  C13 DMPCA  62       2.024  -1.012  14.369  1.00  0.00      A    C
@@ -389,8 +421,8 @@ ATOM    118 H14Z DMPCA  62       0.527  -2.355 -14.616  0.00  0.00      A    H
 "
 close $lipid_file
 
-# generate an input file for the first solvated MD simulation
-# namd config file
+# generate the cell.inp file that is included in by the first
+# solvated MD simulation namd config file
 set fp [open "cell.inp" "w"]
 puts $fp "cellbasisvector1 [lindex $basisvec 0] 0 0"
 puts $fp "cellbasisvector2 0 [lindex $basisvec 1] 0"
