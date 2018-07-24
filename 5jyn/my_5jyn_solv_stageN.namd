@@ -13,6 +13,7 @@ if { $STAGE > 0 } {
 }
 
 set outputname sol-stage${STAGE}
+outputName          $outputname
 
 paraTypeCharmm      on
 exclude             scaled1-4
@@ -39,7 +40,6 @@ wrapall on
 nonbondedFreq       1
 fullElectFrequency  2
 stepspercycle       10
-outputName          $outputname
 
 # Langevin Dynamics for T-control and P-control
 langevin                on;            # do langevin dynamics
@@ -56,12 +56,12 @@ langevinpistontemp      $temperature
 usegrouppressure        yes
 useflexiblecell         yes
 
-
 outputEnergies      10
+xstfreq             10
 dcdfreq             100
 restartfreq         1000
 
-if { $STAGE < 4 } {
+if { $STAGE < 6 } {
   fixedatoms on
   fixedatomsfile my_5jyn_caB1.pdb
   fixedatomscol B

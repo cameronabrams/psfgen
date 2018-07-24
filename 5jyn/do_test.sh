@@ -1,5 +1,6 @@
 #!/bin/bash
-# master script for generating an MD system
+# master script for generating an MD system of 5jyn TM trimer
+# in a DMPC membrane
 #
 PDB=5jyn
 NAMD2=${HOME}/namd/NAMD_2.12_Source/Linux-x86_64-g++/namd2
@@ -84,10 +85,8 @@ fi
 vmd -dispdev text -e $PSFGEN_BASEDIR/${PDB}/my_${PDB}_solv_2.tcl > psfgen2_2.log
 
 # 5. run NAMD; staging to avoid patch-grid errors
-numsteps=( 200 400 800 1600 6400 25600 )
+numsteps=( 200 400 800 1600 6400 25600 51200 )
 ls=`echo "${#numsteps[@]} - 1" | bc` 
-#pzz=10000
-#surfacetension=`grep cellbasisvector3 cell.inp | awk '{print $3/100.0}'`
 firsttimestep=100; # stage-0 minimization
 for s in `seq 0 $ls`; do
   echo "Running namd2 (stage $s of $ls) on solvated/membrane system..."
@@ -98,5 +97,27 @@ for s in `seq 0 $ls`; do
   $CHARMRUN +p8 $NAMD2 my_${PDB}_solv_stage${s}.namd > solv_stage${s}.log
   firsttimestep=`echo "$firsttimestep + ${numsteps[$s]}" | bc`
 done
+
+# 6. make a plot of the volume of the system as a function of time
+grep ^ENERGY: solv_stage?.log | awk '{print $2,$19}' > V.dat
+Vmax=`cat V.dat | awk 'BEGIN{m=0}{if (m<$2) m=$2}END{print m}'`
+Vmin=`cat V.dat | awk 'BEGIN{m=99999999}{if (m>$2) m=$2}END{print m}'`
+cat > tmp.gp << EOF
+set term pdfcairo enhanced color fontscale 0.7 lw 1.5
+set out "V.pdf"
+set encoding iso_8859_1
+set border 3
+set xtics nomirror
+set ytics nomirror
+set xlabel "time, 10^3 steps (1 step = 2 fs)"
+set ylabel "volume, 10^3 \305^3"
+ymin=int($Vmin/1000) - 1
+ymax=int($Vmax/1000) + 1
+set yr [ymin:ymax]
+set ytics ymin,2,ymax
+p "V.dat" u (\$1/2000):(\$2/1000.) not w l
+EOF
+gnuplot tmp.gp
+rm tmp.gp
 
 echo "Done."

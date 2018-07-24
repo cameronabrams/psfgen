@@ -6,15 +6,24 @@
 # chemical and biological engineering
 
 set seed 12345 
+set xypad 35 
+set zpad 20 
 for { set i 0 } { $i < $argc } { incr  i} {
    set arg [lindex $argv $i]
    if { $arg == "-seed" } {
       incr i
       set seed [lindex $argv $i]
    }
+   if { $arg == "-xypad" } {
+      incr i
+      set xypad [lindex $argv $i]
+   }
+   if { $arg == "-zpad" } {
+      incr i
+      set zpad [lindex $argv $i]
+   }
 }
 set LOCALFILES {}
-set pad 35 
 
 set inputname my_5jyn
 set PSF ${inputname}.psf
@@ -25,30 +34,29 @@ mol new $PSF
 mol addfile ${inputname}_vac.coor
 
 set a [atomselect top all]
-
 set c [measure center $a]
-
 $a moveby [vecscale $c -1.0]
 
 set box { { ? ? ? } { ? ? ? } }
 set basisvec { ? ? ? }
 set origin { ? ? ? }
 
+# compute the "diameter" of the protein and its XY area
 set minmax [measure minmax $a]
-set diameterx [expr [lindex $minmax 1 0]-[lindex $minmax 0 0]]
-set diametery [expr [lindex $minmax 1 1]-[lindex $minmax 0 1]]
-set diameter $diameterx
-if { [expr $diameter > $diametery] } {
-   set diameter $diametery
-}
-set protein_area [expr ($diameter+4)*($diameter+4) * 3.141593 / 4.0]
+set mp [vecsum [$a get mass]]
+set z [vecsum [$a get charge]]
 
+set ev1 [lindex [lindex [measure inertia $a eigenvals] end] 0]
+set radius [expr sqrt( $ev1 / $mp )]
+set protein_area [expr ($radius)*($radius) * 3.141593 ]
+
+# compute box dimensions
 foreach d {0 1} {
-  lset box 0 $d [format "%.6f" [expr [lindex $minmax 0 $d] - $pad]]
-  lset box 1 $d [format "%.6f" [expr [lindex $minmax 1 $d] + $pad]]
+  lset box 0 $d [format "%.6f" [expr [lindex $minmax 0 $d] - $xypad]]
+  lset box 1 $d [format "%.6f" [expr [lindex $minmax 1 $d] + $xypad]]
 }
-lset box 0 2 [expr [lindex $minmax 0 2] - 20]
-lset box 1 2 [expr [lindex $minmax 1 2] + 20]
+lset box 0 2 [expr [lindex $minmax 0 2] - $zpad]
+lset box 1 2 [expr [lindex $minmax 1 2] + $zpad]
 
 foreach d {0 1 2} {
   lset basisvec $d [expr [lindex $box 1 $d ] - [lindex $box 0 $d]] 
@@ -58,19 +66,17 @@ foreach d {0 1 2} {
 $a writepdb prot.pdb
 lappend LOCALFILES prot.pdb
 
-set mp [vecsum [$a get mass]]
-set z [vecsum [$a get charge]]
 
 # actual box size
 set lx [format "%.6f" [expr [lindex [lindex $box 1] 0] - [lindex [lindex $box 0] 0]]]
 set ly [format "%.6f" [expr [lindex [lindex $box 1] 1] - [lindex [lindex $box 0] 1]]]
 set lz [format "%.6f" [expr [lindex [lindex $box 1] 2] - [lindex [lindex $box 0] 2]]]
 
-# size of box into which stuff is packed -- trimming 1 A for PBC
-set xmin [format "%.6f" [expr [lindex [lindex $box 0] 0]+1]]
-set xmax [format "%.6f" [expr [lindex [lindex $box 1] 0]-1]]
-set ymin [format "%.6f" [expr [lindex [lindex $box 0] 1]+1]]
-set ymax [format "%.6f" [expr [lindex [lindex $box 1] 1]-1]]
+# size of box into which stuff is packed -- trimming 1 A for PBC (only in Z)
+set xmin [format "%.6f" [expr [lindex [lindex $box 0] 0]]]
+set xmax [format "%.6f" [expr [lindex [lindex $box 1] 0]]]
+set ymin [format "%.6f" [expr [lindex [lindex $box 0] 1]]]
+set ymax [format "%.6f" [expr [lindex [lindex $box 1] 1]]]
 set zmin [format "%.6f" [expr [lindex [lindex $box 0] 2]+1]]
 set zmax [format "%.6f" [expr [lindex [lindex $box 1] 2]+1]]
 
@@ -94,18 +100,15 @@ set zUWhi $zmax
 set Vw [format "%.6f" [expr $A * (($zLWhi - $zLWlo) + ($zUWhi - $zUWlo))]]
 
 # SAPL for DMPC is 60.6 A^2 (Nagle, Biophys J, 2005; 10.1529/biophysj.104.056606)
-# but using 64 per charmm-gui
-set SAPLFAC 1.0
-set SAPL [expr 64.0*$SAPLFAC]
+set SAPLFAC 0.85 
+set SAPL [expr 60.6*$SAPLFAC]
 # assume protein complex's XY-projection is circular 
 set AvailA [expr $A - $protein_area]
 set nLipid [expr int($AvailA/$SAPL)]
-#set nLipid 5
 
 set MWw 18.0
 set densgcc 1.0
 set nw [expr int( 1.0 / $MWw * (0.6022*$densgcc*$Vw) )]
-#set nw 200
 
 set nna 0
 set ncl 0

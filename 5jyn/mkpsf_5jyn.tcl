@@ -31,10 +31,14 @@ set LOCALFILES {}
 mol new 5jyn.pdb waitfor all
 set a [atomselect top all]
 $a frame 14
-$a writepdb "5jyn_1.pdb"; lappend LOCALFILES 5jyn.pdb
+$a writepdb "5jyn_1.pdb"; lappend LOCALFILES 5jyn_1.pdb
 mol delete top
 mol new 5jyn_1.pdb
 alnpa top
+set a [atomselect top all] 
+$a move [transaxis x 180 degrees]
+$a moveby [vecscale -1 [measure center $a]]
+
 foreach c {A B C} {
   [atomselect top "chain $c"] writepdb "${c}.pdb"; lappend LOCALFILES ${c}.pdb
 }
