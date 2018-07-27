@@ -27,7 +27,7 @@ extern int bondstruct_getrightside_count ( bondstruct * bs, int b );
 extern int bondstruct_getbondindex ( bondstruct * bs, int i, int j );
 
 extern void free_intarray ( int * a );
-extern double my_roughenergy ( double * x1, double * y1, double * z1, int n1, double * x2, double * y2, double * z2, int n2, double cut );
+extern double my_roughenergy ( int * i1, double * x1, double * y1, double * z1, int n1, int * i2, double * x2, double * y2, double * z2, int n2, double cut );
 extern void bondstruct_deactivate_by_fixed ( bondstruct * bs, int fa );
 extern int bondstruct_isactive ( bondstruct * bs, int b ); 
 

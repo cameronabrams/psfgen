@@ -1,9 +1,10 @@
 structure  my_5u7o-davei-l7.psf 
 coordinates my_5u7o-davei-l7_mcOut.pdb
+bincoordinates my_5u7o-davei-l7_vac_stage2.coor
 set temperature 310
 temperature $temperature
 
-set outputname my_5u7o-davei-l7_vac
+set outputname my_5u7o-davei-l7_vac_stage3
 firsttimestep 0
 
 paraTypeCharmm      on
@@ -41,10 +42,17 @@ fixedatoms yes
 fixedatomsfile my_5u7o-davei-l7_fix.pdb
 fixedatomscol B
 
-outputEnergies      10
+outputEnergies      100
 dcdfreq             100
-restartfreq         100
+restartfreq         1000
 
-minimize 1000
-run 2000
+colvars on
+colvarsconfig  drag_daveis_colvars.inp
+if { [file exists calc_colvar_forces.tcl] } {
+  source calc_colvar_forces.tcl
+}
+extrabonds on
+extrabondsfile extrabonds-TRP3.inp
+
+run 75000
 

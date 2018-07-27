@@ -234,16 +234,20 @@ void free_intarray ( int * a ) {
    free(a);
 }
 
-double my_roughenergy ( double * x1, double * y1, double * z1, int n1, double * x2, double * y2, double * z2, int n2, double cut ) {
+double my_roughenergy ( int * i1, double * x1, double * y1, double * z1, int n1, int * i2, double * x2, double * y2, double * z2, int n2, double cut ) {
    int i,j;
    double cut2=cut*cut;
    double d2,E=0.0;
    for (i=0;i<n1;i++) {
       for (j=0;j<n2;j++) {
-         d2 =(x1[i]-x2[j])*(x1[i]-x2[j]);
-         d2+=(y1[i]-y2[j])*(y1[i]-y2[j]);
-         d2+=(z1[i]-z2[j])*(z1[i]-z2[j]);
-         if (d2<cut2) E+=1.0;
+         if (i1[i]!=i2[j]) {
+           d2 =(x1[i]-x2[j])*(x1[i]-x2[j]);
+           d2+=(y1[i]-y2[j])*(y1[i]-y2[j]);
+           d2+=(z1[i]-z2[j])*(z1[i]-z2[j]);
+           if (d2<cut2) {
+              E+=pow(sqrt(d2)-cut,2);
+           }
+         }
       }
    }
    return E;

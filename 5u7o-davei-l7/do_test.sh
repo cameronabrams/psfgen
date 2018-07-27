@@ -13,12 +13,9 @@ export PSFGEN_BASEDIR=${HOME}/research/psfgen
 ARGC=$#
 COLVARS_INP=my_${PDB}_colvars_op.inp
 SEED=12345
+RESTART=0
 i=1
 while [ $i -le $ARGC ] ; do
-  if [ "${!i}" = "-pdb" ]; then
-    i=$((i+1))
-    PDB=${!i}
-  fi
   if [ "${!i}" = "-namd2" ]; then
     i=$((i+1))
     NAMD2=${!i}
@@ -39,6 +36,10 @@ while [ $i -le $ARGC ] ; do
     i=$((i+1))
     export SEED=${!i}
   fi
+  if [ "${!i}" = "-restart" ]; then
+    i=$((i+1))
+    export RESTART=${!i}
+  fi
   if [ "${!i}" = "-psfgen_args" ]; then
     i=$((i+1))
     j=0
@@ -51,6 +52,7 @@ while [ $i -le $ARGC ] ; do
   i=$((i+1))
 done
 
+if [ "$RESTART" -le "1" ] ; then
 # 1. download ${PDB}.pdb if it is not already here
 if [ ! -e ${PDB}.pdb ]; then
   echo "Retrieving ${PDB}.pdb..."
@@ -63,18 +65,33 @@ fi
 
 # 2. make the psf
 echo "Generating vacuum system..."
-if [ ${#psfgen_args} -ge 0 ]; then
+if [ ${#psfgen_args} -ge "0" ]; then
   vmd -dispdev text -e $PSFGEN_BASEDIR/${SYSNAME}/mkpsf_${SYSNAME}.tcl -args -seed $SEED ${psfgen_args[*]} > psfgen1.log
 else
   vmd -dispdev text -e $PSFGEN_BASEDIR/${SYSNAME}/mkpsf_${SYSNAME}.tcl -args -seed $SEED > psfgen1.log
 fi
+fi
 
-# 3. run NAMD
-echo "Running namd2 on vacuum system..."
-ln -s $PSFGEN_BASEDIR/${SYSNAME}/my_${SYSNAME}_vac.namd .
-$CHARMRUN +p8 $NAMD2 my_${SYSNAME}_vac.namd > vac.log
+# 3. run vacuum NAMD stages
+if [ "$RESTART" -lt "2" ] ; then
+echo "Running namd2 on vacuum system (stage 1)..."
+cp -f $PSFGEN_BASEDIR/${SYSNAME}/my_${SYSNAME}_vac_stage1.namd .
+$CHARMRUN +p8 $NAMD2 my_${SYSNAME}_vac_stage1.namd > vac_stage1.log
+fi
+if [ "$RESTART" -lt "3" ] ; then
+echo "Running namd2 on vacuum system (stage 2)..."
+cp -f $PSFGEN_BASEDIR/${SYSNAME}/my_${SYSNAME}_vac_stage2.namd .
+$CHARMRUN +p8 $NAMD2 my_${SYSNAME}_vac_stage2.namd > vac_stage2.log
+fi
+if [ "$RESTART" -lt "4" ] ; then
+echo "Running namd2 on vacuum system (stage 3)..."
+cp -f $PSFGEN_BASEDIR/${SYSNAME}/calc_colvar_forces.tcl .
+cp -f $PSFGEN_BASEDIR/${SYSNAME}/my_${SYSNAME}_vac_stage3.namd .
+$CHARMRUN +p8 $NAMD2 my_${SYSNAME}_vac_stage3.namd > vac_stage3.log
+fi
 
 # 4. solvate
+if [ "$RESTART" -lt "5" ] ; then
 echo "Generating solvated system..."
 vmd -dispdev text -e $PSFGEN_BASEDIR/${SYSNAME}/my_${SYSNAME}_solv.tcl > psfgen2.log
 
@@ -91,5 +108,10 @@ for s in `seq 0 $ls`; do
   $CHARMRUN +p8 $NAMD2 my_${SYSNAME}_solv_stage${s}.namd > solv_stage${s}.log
   firsttimestep=`echo "$firsttimestep + ${numsteps[$s]}" | bc`
 done
+fi
+
+if [ "$RESTART" -ge "5" ]; then
+  echo "RESTART is $RESTART, but max is 4, so nothing is done."
+fi
 
 echo "Done."

@@ -34,7 +34,7 @@ int * bondstruct_getbondpointer ( bondstruct * bs, int i );
 int * bondstruct_getrightside_pointer ( bondstruct * bs, int b );
 int bondstruct_getrightside_count ( bondstruct * bs, int b );
 int bondstruct_getbondindex ( bondstruct * bs, int i, int j );
-double my_roughenergy ( double * x1, double * y1, double * z1, int n1, double * x2, double * y2, double * z2, int n2, double cut );
+double my_roughenergy ( int * i1, double * x1, double * y1, double * z1, int n1, int * i2, double * x2, double * y2, double * z2, int n2, double cut );
 void bondstruct_deactivate_by_fixed ( bondstruct * bs, int fa );
 int bondstruct_isactive ( bondstruct * bs, int b ); 
 #endif

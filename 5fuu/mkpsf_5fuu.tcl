@@ -24,6 +24,8 @@ set TM_683_to_709 [list LYS LEU PHE ILE MET ILE VAL GLY GLY LEU VAL GLY LEU ARG 
 set TM_EXTEND 0
 set seed 12345
 set MAN9 {}
+set LOG_DCD 0
+set logid -1
 for { set a 0 } { $a < [llength $argv] } { incr a } {
   set arg [lindex $argv $a]
   if { $arg == "-mper-extend" } {
@@ -42,6 +44,11 @@ for { set a 0 } { $a < [llength $argv] } { incr a } {
   if { $arg == "-man9" } { 
     incr a
     lappend MAN9 [lindex $argv $a]
+  }
+  if { $arg == "-log-dcd" } {
+    set LOG_DCD 1
+    incr a
+    set log_dcd_file [lindex $argv $a]
   }
 }
 
@@ -734,6 +741,7 @@ regenerate angles dihedrals
 writepsf "my_5fuu.psf"
 writepdb "unrelaxed.pdb"
 
+
 lappend LOCALFILES unrelaxed.pdb
 
 mol delete top
@@ -743,6 +751,13 @@ set molid [molinfo top get id]
 set or [measure center [atomselect top "all"] weight mass]
 set a [atomselect top all]
 $a moveby [vecscale -1 $or]
+if { $LOG_DCD != "-1" } {
+   mol new my_5fuu.psf
+   mol addfile unrelaxed.pdb
+   set logid [molinfo top get id]
+   mol top $molid
+   log_addframe ${molid} ${logid}
+}
 set ca [measure center [atomselect top "protein and chain A C E"] weight mass]
 set cb [measure center [atomselect top "protein and chain B D F"] weight mass]   
 set pi 3.1415928
@@ -768,7 +783,7 @@ if { $MPER_EXTEND == "1" } {
          set Cterm 709
       }
       set sel [atomselect $molid "protein and chain $b and resid 658 to $Cterm"]
-      fold_alpha_helix $molid $sel
+      fold_alpha_helix $molid $sel 0
       $sel delete
    }
 }
@@ -782,9 +797,14 @@ set bg [atomselect ${molid} "noh"]
 foreach l $loops {
   set chain [lindex $l 0]
   set residueList [[atomselect ${molid} "chain $chain and resid [lindex $l 1] to [lindex $l 2] and name CA"] get residue]
-  do_loop_mc ${residueList} ${chain} ${molid} ${k} ${r0} ${bg} ${rcut} ${nc} ${temperature} [irand_dom 1000 9999] 
+  do_loop_mc ${residueList} ${chain} ${molid} ${k} ${r0} ${bg} ${rcut} ${nc} ${temperature} [irand_dom 1000 9999] $logid
 }
 $a writepdb "my_5fuu_mcOut.pdb"
+
+if { $LOG_DCD != -1 } {
+   set loga [atomselect $logid all]
+   animate write dcd $log_dcd_file waitfor all sel $loga $logid
+}
 
 # make a pdb file that fixes all heavy atoms in the original
 # crystal structure -- all added atoms are set as unfixed

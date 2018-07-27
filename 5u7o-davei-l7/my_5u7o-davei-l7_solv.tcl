@@ -13,7 +13,7 @@ set outputname1 ${inputname}_wb
 set outputname2 ${inputname}_i
 
 mol new $PSF
-mol addfile ${inputname}_vac.coor
+mol addfile ${inputname}_vac_stage3.coor
 
 set a [atomselect top all]
 

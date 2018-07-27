@@ -15,12 +15,22 @@ if {![info exists PSFGEN_BASEDIR]} {
       set PSFGEN_BASEDIR $env(HOME)/research/psfgen
   }
 }
-
+# Membrane-proximal external region sequence (HXB2)
+set MPER_664_to_682 [list ASP LYS TRP ALA SER LEU TRP ASN TRP PHE ASP ILE SER ASN TRP LEU TRP TYR ILE]
+# transmembrane domain sequence (HXB2)
+set TM_683_to_709 [list LYS LEU PHE ILE MET ILE VAL GLY GLY LEU VAL GLY LEU ARG ILE VAL PHE ALA VAL LEU SER ILE VAL ASN ARG VAL ARG ]
 # check for any arguments
 set protomer_only 0
 set seed 12345
 set MPER_EXTEND 0
+set TM_EXTEND 0
+# number of linker repeats
 set numll 7
+# outward radial distance from reference attractor atom for DAVEI linker growth
+set attractor_radius 60
+set SKIP_LOOPMC 0
+set LOG_DCD 0
+set logid -1
 for { set a 0 } { $a < [llength $argv] } { incr a } {
   set arg [lindex $argv $a]
   if { $arg == "+protomer" } {
@@ -33,10 +43,30 @@ for { set a 0 } { $a < [llength $argv] } { incr a } {
   if { $arg == "-mper-extend" } {
      set MPER_EXTEND 1
   }
+  if { $arg == "-tm-extend" } {
+     set TM_EXTEND 1
+  }
   if { $arg == "-numll" } {
      incr a
      set numll [lindex $argv $a]
   }
+  if { $arg == "-attractor-radius" } {
+     incr a
+     set attractor_radius [lindex $argv $a]
+  }
+  if { $arg == "-skip-loopmc" } {
+     set SKIP_LOOPMC 1
+  }
+  if { $arg == "-log-dcd" } {
+     set LOG_DCD 1
+     incr a
+     set log_dcd_file [lindex $argv $a]
+  }
+}
+
+if { $TM_EXTEND == "1" && $MPER_EXTEND == "0" } {
+   puts "Warning: activating MPER_EXTEND since TM_EXTEND was activated."
+   set MPER_EXTEND 1
 }
 
 # load some custom TcL procedures to set coordinates correctly
@@ -97,6 +127,7 @@ foreach j $aeg_anlist {
 }
 
 $a writepdb "unit0.pdb"
+
 
 if { $protomer_only == "0"} {
 
@@ -306,15 +337,18 @@ foreach u $ulist g $glist b $blist d $dlist e $elist h $hlist l $llist x $xlist 
     residue 567 LYS ${b}
     pdb ${b}-s7.pdb 
     if { $MPER_EXTEND == "1" } {
-      residue 664 ASP ${b}
-      residue 665 LYS ${b}
-      residue 666 TRP ${b}
-      residue 667 ALA ${b}
-      residue 668 SER ${b}
-      residue 669 LEU ${b}
-      residue 670 TRP ${b}
-      residue 671 ASN ${b}
-      residue 672 TRP ${b}
+      set lr 0
+      for { set r 664 } { $r < 683 } { incr r } {
+        residue $r [lindex $MPER_664_to_682 $lr] ${b}
+        incr lr
+      }
+      if { $TM_EXTEND == "1" } {
+        set lr 0
+        for { set r 683 } { $r < 710 } { incr r } {
+          residue $r [lindex $TM_683_to_709 $lr ] ${b}
+          incr lr
+        }
+      }
     }
   }
 
@@ -491,16 +525,27 @@ mol new my_${SYSNAME}.psf
 mol addfile my_${SYSNAME}.pdb
 set molid [molinfo top get id]
 
+# initialize a logging molecule
+if { $LOG_DCD == "1" } {
+   # set logid [log_initialize my_${SYSNAME}.psf my_${SYSNAME}.pdb] 
+   mol new my_${SYSNAME}.psf
+   mol addfile my_${SYSNAME}.pdb
+   set logid [molinfo top get id]
+   puts "Logging molecule number $logid to be saved to $log_dcd_file"
+   mol top $molid
+}
+
 set a [atomselect top all]
 $a set beta 1 ;# pretty much everything is fixed except...
 
-foreach g $glist b $blist {
-  [atomselect top "chain $g and resid 61"] set beta 0
-  [atomselect top "chain $g and resid 138 to 142"] set beta 0
-  [atomselect top "chain $g and resid 186 to 189"] set beta 0
-  [atomselect top "chain $g and resid 399 to 409"] set beta 0
-  [atomselect top "chain $b and resid 512 to 517"] set beta 0
-  [atomselect top "chain $b and resid 548 to 567"] set beta 0
+foreach g $glist b $blist x $xlist {
+  [atomselect ${molid} "chain $g and resid 61"] set beta 0
+  [atomselect ${molid} "chain $g and resid 138 to 142"] set beta 0
+  [atomselect ${molid} "chain $g and resid 186 to 189"] set beta 0
+  [atomselect ${molid} "chain $g and resid 399 to 409"] set beta 0
+  [atomselect ${molid} "chain $b and resid 512 to 517"] set beta 0
+  [atomselect ${molid} "chain $b and resid 547 to 568"] set beta 0
+  [atomselect ${molid} "chain $x"] set beta 0
 } 
 
 $a writepdb "my_${SYSNAME}_fix.pdb"
@@ -510,66 +555,359 @@ $a set beta 0
 # make a slight manual adjustment to the backbone trajectory for the
 # unstructured residues added in gp41 to prevent massive collisions
 foreach b $blist {
-  set residueList [[atomselect top "chain ${b} and resid 547 to 567 and name CA"] get residue]
+  set residueList [[atomselect ${molid} "chain ${b} and resid 547 to 567 and name CA"] get residue]
   set r1 [lindex $residueList 0]
   set r2 [lindex $residueList end]
   Crot_phi $r1 $r2 ${b} $molid -180
+  log_addframe $molid $logid
 }
 
+# fold the Trp3 portions of the DAVEI's into alpha helices
 foreach x $xlist {
-   set sel [atomselect $molid "segname ${x}T"]
-   fold_alpha_helix $molid $sel
-   $sel delete
+  puts "Fold-alpha: seg ${x}T"
+  set sel [atomselect ${molid} "segname ${x}T"]
+  fold_alpha_helix $molid $sel extrabonds-${x}T.inp
+  lappend LOCALFILES extrabonds-${x}T.inp
+  $sel delete
+  log_addframe $molid $logid
 }
 
+# fold the optional MPER and TM extensions into alpha helices
 if { $MPER_EXTEND == "1" } {
-   foreach b $blist {
-      set sel [atomselect $molid "protein and chain $b and resid 662 to 672"]
-      fold_alpha_helix $molid $sel
-      $sel delete
-   }
+  foreach b $blist {
+    set Cterm 682
+    if { $TM_EXTEND == "1" } {
+      set Cterm 709
+    }
+    set sel [atomselect $molid "protein and chain $b and resid 662 to $Cterm"]
+    puts "Fold-alpha: chain $b MPER/TM extension"
+    fold_alpha_helix $molid $sel extrabonds-${b}.inp
+    lappend LOCALFILES extrabonds-${b}.inp
+    $sel delete
+    log_addframe $molid $logid
+  }
 }
 
 $a writepdb "my_${SYSNAME}_mcIn.pdb"
 lappend LOCALFILES my_${SYSNAME}_mcIn.pdb
 
+exec cat extrabonds-XT.inp extrabonds-YT.inp extrabonds-ZT.inp > extrabonds-TRP3.inp
+
+# loop MC to relax CA-C bonds at ends of loops (modeled-in residues)
 set nc 1000
 set rcut 3.0
 set temperature 2.5
 set k 10.0
 set r0 1.5
 set bg [atomselect ${molid} "noh"]
-if { 1 } {
-foreach g $glist b $blist {
-  set residueList [[atomselect ${molid} "chain ${g} and resid 138 to 142 and name CA"] get residue]
-  do_loop_mc ${residueList} ${g} ${molid} ${k} ${r0} ${bg} ${rcut} ${nc} ${temperature} [irand_dom 100 9999]
-  set residueList [[atomselect ${molid} "chain ${g} and resid 186 to 189 and name CA"] get residue]
-  do_loop_mc ${residueList} ${g} ${molid} ${k} ${r0} ${bg} ${rcut} ${nc} ${temperature} [irand_dom 100 9999]
-  set residueList [[atomselect ${molid} "chain ${g} and resid 399 to 409 and name CA"] get residue]
-  do_loop_mc ${residueList} ${g} ${molid} ${k} ${r0} ${bg} ${rcut} ${nc} ${temperature} [irand_dom 100 9999]
-  set residueList [[atomselect ${molid} "chain ${b} and resid 547 to 567 and name CA"] get residue]
-  do_loop_mc ${residueList} ${b} ${molid} ${k} ${r0} ${bg} ${rcut} ${nc} ${temperature} [irand_dom 100 9999]
+set nl 1
+set Nl [expr 4 * [llength $glist]]
+if { $SKIP_LOOPMC == "0" } {
+  foreach g $glist b $blist {
+    set residueList [[atomselect ${molid} "chain ${g} and resid 138 to 142 and name CA"] get residue]
+    # Measure cartesian distance from root amide nitrogen (this very first modeled-in atom)
+    # to end of grown loop (alpha carbon of last modeled-in residue)
+    set car [measure bond [[atomselect ${molid} "chain $g and ((residue [lindex $residueList 0] and name N) or (residue [lindex $residueList end] and name CA))"] get index]]
+    # Define a local background as all heavy atoms within this distance from either the root or 
+    # the receiving atom of the loop (carbonyl carbon of the last residue of the loop, which guesscoord
+    # always appends to the N-terminal-most crystallographic residue).  It is strictly impossible
+    # for any atoms in the loop to sterically collide with any atoms outside this background selection.
+    set tbg [atomselect ${molid} "noh and within $car of (chain ${g} and ((residue [lindex $residueList 0] and name N) or (residue [lindex $residueList end] and name C)))"]
+    puts "LOOPMC ($nl of $Nl): chain $g resid $residueList"
+    # Call the do_loop_mc procedure; see loopmc.tcl for an explanation of the arguments
+    do_loop_mc ${residueList} ${g} ${molid} ${k} ${r0} ${tbg} ${rcut} ${nc} ${temperature} [irand_dom 100 9999] $logid
+    incr nl
+    set residueList [[atomselect ${molid} "chain ${g} and resid 186 to 189 and name CA"] get residue]
+    set car [measure bond [[atomselect ${molid} "chain $g and ((residue [lindex $residueList 0] and name N) or (residue [lindex $residueList end] and name CA))"] get index]]
+    set tbg [atomselect ${molid} "noh and within $car of (chain ${g} and ((residue [lindex $residueList 0] and name N) or (residue [lindex $residueList end] and name C)))"]
+    puts "LOOPMC ($nl of $Nl): chain $g residues $residueList"
+    do_loop_mc ${residueList} ${g} ${molid} ${k} ${r0} ${tbg} ${rcut} ${nc} ${temperature} [irand_dom 100 9999] $logid
+    incr nl
+    set residueList [[atomselect ${molid} "chain ${g} and resid 399 to 409 and name CA"] get residue]
+    set car [measure bond [[atomselect ${molid} "chain $g and ((residue [lindex $residueList 0] and name N) or (residue [lindex $residueList end] and name CA))"] get index]]
+    set tbg [atomselect ${molid} "noh and within $car of (chain ${g} and ((residue [lindex $residueList 0] and name N) or (residue [lindex $residueList end] and name C)))"]
+    puts "LOOPMC ($nl of $Nl): chain $g resid [lindex $residueList 0] to [lindex $residueList end]"
+    do_loop_mc ${residueList} ${g} ${molid} ${k} ${r0} ${tbg} ${rcut} ${nc} ${temperature} [irand_dom 100 9999] $logid
+    incr nl
+    set residueList [[atomselect ${molid} "chain ${b} and resid 547 to 567 and name CA"] get residue]
+    # this is a big one -- use the full background bg instead of a local background tbg
+    puts "LOOPMC ($nl of $Nl): chain $b resid $residueList"
+    do_loop_mc ${residueList} ${b} ${molid} ${k} ${r0} ${bg} ${rcut} ${nc} ${temperature} [irand_dom 100 9999] $logid
+    incr nl
+  }
 }
-}
-set k [expr $k / 10]
-set temperature 2.5
-set nc 2000
-#set bg2 [atomselect top "name CA or (noh and resname AEG DLS1 DLS2)"] 
 
-foreach x $xlist b $blist bir [list 1 2 0] {
+set k [ expr $k/10 ]
+set out_targ_points {}
+# flexMC to position the ends of the DAVEI's (experimental)
+foreach x $xlist b $blist bir [list 1 2 0] g $glist {
+   # 1. identify the flexible chain
    set msel [atomselect ${molid} "(chain $x and resname AEG DLS1 DLS2) or (segname ${x}T)"]
+   # 2. identify atoms on the flexible chain that can be "left-hand-sides" of rotatable bonds
    set ri [[atomselect ${molid} "(chain $x and ((resname AEG and name C24 C26) or (resname DLS1 and name C1 C2 O2 C3 C4 O3 C5 C6 O4 C7 C8 O5 C9 C10 C12 C13 C14) or (resname DLS2 and name N C1 C2 O1 C3 C4 O2 C5))) or (segname ${x}T and resname ASP and resid 1 and name N)"] get index]
+   # 3. identify atoms on the flexible chain that can be "right-hand-sides" of rotatable bonds
    set rj [[atomselect ${molid} "(chain $x and ((resname AEG and name C26) or (resname DLS1 and name N1 C2 O2 C3 C4 O3 C5 C6 O4 C7 C8 O5 C9 C10 N2 C13 C14 C15) or (resname DLS2 and name C1 C2 O1 C3 C4 O2 C5 C6))) or (segname ${x}T and resname ASP and resid 1 and name CA)"] get index]
-   set i [[atomselect ${molid} "segname ${x}T and resid 9 and name CA"] get index]
-   set j [[atomselect ${molid} "chain $b and resid 641 and name CA"] get index]
-   if { $MPER_EXTEND == "1" } {
-     set j [[atomselect ${molid} "chain [lindex $blist $bir] and resid 670 and name CA"] get index]
-   }
+   # 4. Define the fixed atom on the flexible chain; no rotations that would move this atom are allowed
    set fa [[atomselect ${molid} "chain ${x} and resname AEG and name C1"] get index]
-   do_flex_mc $molid $msel $ri $rj $fa $k $i $j $bg $rcut $nc $temperature [irand_dom 100 9999]
+
+   # Flex-mc in two stages:  1. untargeted; 2. targeted
+   # 5. alpha-carbon on the C-terminus of DAVEI Trp3
+   set i [[atomselect ${molid} "segname ${x}T and resid 9 and name CA"] get index]
+   # 6. perform an untargeted flex-mc just to remove steric overlaps (see that the $i arg is repeated --
+   #    this signals that there is no targeting)
+   do_flex_mc $molid $msel $ri $rj $fa $k $i $i $bg $rcut $nc $temperature [irand_dom 100 9999] $logid
+   # 7. pick alpha-carbon on an env residue near or on MPER
+   set pp [atomselect ${molid} "chain $b and resid 648 and name CA"]
+   set j [$pp get index]
+   # 8. make a phantom target position by moving this atom
+   #    attractor_radius away from the trimer axis in the XY plane
+   set ppr [list [$pp get x] [$pp get y] [$pp get z]]
+   set tcom [measure center $bg]
+   set com [list [lindex $tcom 0] [lindex $tcom 1] [lindex $ppr 2]]
+   set dppr [vecsub $ppr $com]
+   set rdppr [veclength $dppr]
+   set sppr [vecadd $ppr [vecscale $dppr [expr $attractor_radius/$rdppr]]]
+   lappend out_targ_points $sppr
+   $pp set x [lindex $sppr 0]
+   $pp set y [lindex $sppr 1]
+   puts "FLEXMC: chain $x end-attracts to index $j at $sppr (r [veclength [vecsub $sppr $com]]) (orig $ppr (r [veclength [vecsub $ppr $com]]))"
+   # 9. continue the flex-mc WITH targeting
+   do_flex_mc $molid $msel $ri $rj $fa $k $i $j $bg $rcut $nc $temperature [irand_dom 100 9999] $logid
+   # 10. restore the target CA's x and y position
+   $pp set x [lindex $ppr 0]
+   $pp set y [lindex $ppr 1]
+   # 11. log the coordinates in the logging molecule
+   log_addframe $molid $logid
+   $pp delete
 }
+puts "out_targ_points: $out_targ_points"
 
 $a writepdb "my_${SYSNAME}_mcOut.pdb"
+
+# finalize logging molecule
+# log_finalize $logid
+if { $LOG_DCD == "1" } {
+   set loga [atomselect $logid all]
+   animate write dcd $log_dcd_file waitfor all sel $loga $logid
+   mol delete $logid
+}
+
+# generate a colvars input file for vacuum MD SMD (vac stage2)
+# the objective is to place the trp3 peptide part of DAVEI
+# as close as possible to the nearest MPER segment
+
+# Stage 1 -- SMD-pull trp3's toward the targeting points used above to give clearance
+set tr1 [lindex [[atomselect top "segname XT and resid 1 and name CA"] get {x y z}] 0]
+set tr2 [lindex [[atomselect top "segname YT and resid 1 and name CA"] get {x y z}] 0]
+set tr3 [lindex [[atomselect top "segname ZT and resid 1 and name CA"] get {x y z}] 0]
+set fp [open "clear_daveis_colvars.inp" "w"]
+puts $fp "
+colvarstrajfrequency 100
+colvar {
+  name trp3_1
+  cartesian {
+    atoms {
+      psfsegid XT
+      atomnameresiduerange CA 9-9
+    }
+  }
+}
+colvar {
+  name trp3_2
+  cartesian {
+    atoms {
+      psfsegid YT
+      atomnameresiduerange CA 9-9
+    }
+  }
+}
+colvar {
+  name trp3_3
+  cartesian {
+    atoms {
+      psfsegid ZT
+      atomnameresiduerange CA 9-9
+    }
+  }
+}
+#colvar {
+#  name trp3_1a
+#  alpha {
+#    psfsegid XT
+#    residuerange 1-9
+#  }
+#}
+#colvar {
+#  name trp3_2a
+#  alpha {
+#    psfsegid YT
+#    residuerange 1-9
+#  }
+#}
+#colvar {
+#  name trp3_3a
+#  alpha {
+#    psfsegid ZT
+#    residuerange 1-9
+#  }
+#}
+harmonic {
+  colvars trp3_1 
+  centers ( [lindex $tr1 0] , [lindex $tr1 1] , [lindex $tr1 2] ) 
+  targetcenters [format %s [pc3 [lindex $out_targ_points 0]]] 
+  forceconstant 1.0
+  targetnumsteps 30000 
+}
+harmonic {
+  colvars trp3_2 
+  centers ( [lindex $tr2 0] , [lindex $tr2 1] , [lindex $tr2 2] ) 
+  targetcenters [format %s [pc3 [lindex $out_targ_points 1]]] 
+  forceconstant 1.0
+  targetnumsteps 30000 
+}
+harmonic {
+  colvars trp3_3
+  centers ( [lindex $tr3 0] , [lindex $tr3 1] , [lindex $tr3 2] ) 
+  targetcenters [format %s [pc3 [lindex $out_targ_points 2]]] 
+  forceconstant 1.0
+  targetnumsteps 30000 
+}
+# keep trp3's alpha helical
+#harmonic {
+#  colvars trp3_1a trp3_2a trp3_3a
+#  centers 1.0 1.0 1.0
+#  forceconstant 100.0
+#}
+"
+close $fp
+
+# Stage 2: drag Trp3's toward Env MPER's
+
+if { $MPER_EXTEND == "1" } {
+  set env_targ_as "664 to 672"
+  set env_targ_cv "664-672"
+  set env_avoid_cv "610-630"
+} else {
+  set env_targ_as "659 to 663"
+  set env_targ_cv "659-663"
+  set env_avoid_cv "610-630"
+}
+set dx [veclength [vecsub [lindex $out_targ_points 0] [measure center [atomselect $molid "chain C and resid $env_targ_as"]]]]
+set dy [veclength [vecsub [lindex $out_targ_points 1] [measure center [atomselect $molid "chain A and resid $env_targ_as"]]]]
+set dz [veclength [vecsub [lindex $out_targ_points 2] [measure center [atomselect $molid "chain B and resid $env_targ_as"]]]]
+set fp [open "drag_daveis_colvars.inp" "w"]
+puts $fp "
+colvarstrajfrequency 100
+scriptedcolvarforces on
+colvar {
+   name trp3_1
+   distance {
+     group1 {
+       psfsegid XT
+       atomnameresiduerange CA 1-9
+     }
+     group2 {
+       psfsegid C
+       atomnameresiduerange CA $env_targ_cv
+     }
+   }
+}
+colvar {
+   name trp3_2
+   distance {
+     group1 {
+       psfsegid YT
+       atomnameresiduerange CA 1-9
+     }
+     group2 {
+       psfsegid A
+       atomnameresiduerange CA $env_targ_cv
+     }
+   }
+}
+colvar {
+   name trp3_3
+   distance {
+     group1 {
+       psfsegid ZT
+       atomnameresiduerange CA 1-9
+     }
+     group2 {
+       psfsegid B
+       atomnameresiduerange CA $env_targ_cv
+     }
+   }
+}
+colvar {
+   name trp3_1av
+   distance {
+     group1 {
+       psfsegid XT
+       atomnameresiduerange CA 1-9
+     }
+     group2 {
+       psfsegid B
+       atomnameresiduerange CA $env_avoid_cv
+     }
+   }
+}
+colvar {
+   name trp3_2av
+   distance {
+     group1 {
+       psfsegid YT
+       atomnameresiduerange CA 1-9
+     }
+     group2 {
+       psfsegid C
+       atomnameresiduerange CA $env_avoid_cv
+     }
+   }
+}
+colvar {
+   name trp3_3av
+   distance {
+     group1 {
+       psfsegid ZT
+       atomnameresiduerange CA 1-9
+     }
+     group2 {
+       psfsegid A
+       atomnameresiduerange CA $env_avoid_cv
+     }
+   }
+}
+colvar {
+  name trp3_1a
+  alpha {
+    psfsegid XT
+    residuerange 1-9
+  }
+}
+colvar {
+  name trp3_2a
+  alpha {
+    psfsegid YT
+    residuerange 1-9
+  }
+}
+colvar {
+  name trp3_3a
+  alpha {
+    psfsegid ZT
+    residuerange 1-9
+  }
+}
+
+harmonic {
+  colvars trp3_1 trp3_2 trp3_3
+  centers $dx $dy $dz
+  targetcenters 4.0 4.0 4.0
+  forceconstant 10.0
+  targetnumsteps 60000 60000 60000
+}
+"
+close $fp
 
 foreach f $LOCALFILES {
   exec rm $f

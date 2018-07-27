@@ -21,12 +21,17 @@ proc .. {from to} {
     return $o
 }
 
-# a VERY rough energy calculation -- just counts contacts 
+proc pc3 { pt } {
+  return "( [lindex $pt 0] , [lindex $pt 1] , [lindex $pt 2] )"
+}
+
+# computes overlap energy between atoms in sel1 and sel2.  The "my_roughenergy" function (implemented in C)
+# uses a repulsive pair potential of the form A*(x-cut)^2 for x<cut.  Residue index lists are
+# sent so the my_roughenergy does not compute pair interactions for atoms in the same residue 
 proc roughenergy {sel1 sel2 cut}  {
   set E 0.0
-  set efac 1.0
   if { [$sel1 num] > 0 && [$sel2 num] > 0 } {
-   set E [my_roughenergy [ListToArray [$sel1 get x]] [ListToArray [$sel1 get y]] [ListToArray [$sel1 get z]] [$sel1 num] [ListToArray [$sel2 get x]] [ListToArray [$sel2 get y]] [ListToArray [$sel2 get z]] [$sel2 num] $cut]
+   set E [my_roughenergy [intListToArray [$sel1 get residue]] [ListToArray [$sel1 get x]] [ListToArray [$sel1 get y]] [ListToArray [$sel1 get z]] [$sel1 num] [intListToArray [$sel2 get residue]] [ListToArray [$sel2 get x]] [ListToArray [$sel2 get y]] [ListToArray [$sel2 get z]] [$sel2 num] $cut]
   }
   return $E
 }
@@ -141,6 +146,16 @@ proc irand_dom { min max } {
    return [expr int(rand() * ($max - $min + 1)) + $min]
 }
 
+# logs frames to a logging molecule
+proc log_addframe { molid logid } {
+   if { $logid != "-1" } {
+     [atomselect $molid all] writepdb "tmp.pdb"
+     animate read pdb tmp.pdb $logid
+     puts "Logging molecule has [molinfo $logid get numframes] frames."
+     exec rm -f tmp.pdb
+   }
+}
+
 # uses a Metropolis MC algorithm w/ "temperature" to shrink the 
 # CA-C bond in the last residue indicated in the "residueList"
 # by changing phi,psi angles in residues in residueList 
@@ -151,7 +166,8 @@ proc irand_dom { min max } {
 # of the environment atoms which the loop atoms 
 # are not allowed to overlap, where the overlap distance
 # is "rcut" (A).
-proc do_loop_mc { residueList c molid k r0 env rcut maxcycles temperature iseed } {
+# "logid" is the optional molecule id of a logging molecule (-1 means do nothing)
+proc do_loop_mc { residueList c molid k r0 env rcut maxcycles temperature iseed logid } {
 
   set msel [atomselect $molid "chain $c and residue $residueList"]
   set mselnoh [atomselect $molid "chain $c and residue $residueList and noh"]
@@ -161,8 +177,8 @@ proc do_loop_mc { residueList c molid k r0 env rcut maxcycles temperature iseed 
   set co [atomselect $molid "chain $c and residue $rend and name C"]
   set ca [atomselect $molid "chain $c and residue $rend and name CA"]
   set idx [list [$ca get index] [$co get index]]
-  puts "$rend $idx [$env num]"
-  puts "CFALOOPMC) idx $idx distance C-CA($rend) [measure bond $idx]"
+  set ibl [format "%.2f" [measure bond $idx]]
+  puts "CFALOOPMC) residue $rend CA_[$ca get index]-C_[$co get index]: $ibl A"
 
   expr srand($iseed)
 
@@ -211,10 +227,11 @@ proc do_loop_mc { residueList c molid k r0 env rcut maxcycles temperature iseed 
       # accept the move
       set E0 $E
       incr nacc
-      puts "CFALOOPMC) cycle $cyc nacc $nacc (ratio [format "%.5f" [expr (1.0*$nacc)/($cyc+1)]]) CA-C($rend): [format "%.2f" [measure bond $idx]] [format "link-penalty %.2f steric-penalty %.2f" $SE $EE]"
+      puts "CFALOOPMC) ($rend) cyc $cyc na $nacc ([format "%.5f" [expr (1.0*$nacc)/($cyc+1)]]) CA-C: [format "%.2f" [measure bond $idx]] [format "lnk-pnlty %.2f strc-pnlty %.2f" $SE $EE]"
+      log_addframe $molid $logid
     }
   }
-  puts "CFALOOPMC) cycle $cyc nacc $nacc (ratio [format "%.5f" [expr (1.0*$nacc)/($cyc+1)]]) CA-C($rend): [format "%.2f" [measure bond $idx]]"
+  puts "CFALOOPMC) ($rend) cyc $cyc na $nacc ([format "%.5f" [expr (1.0*$nacc)/($cyc+1)]]) CA-C: [format "%.2f" [measure bond $idx]]"
 }
 
 # matrix inversion routine from http://wiki.tcl.tk/14921 (Keith Vetter)
@@ -378,7 +395,7 @@ proc genbondrot { molid sel i j deg } {
    }
 }
 
-proc fold_alpha_helix { molid sel } {
+proc fold_alpha_helix { molid sel ebfn } {
    set ni {}
    set ci {}
    set cai {}
@@ -401,6 +418,9 @@ proc fold_alpha_helix { molid sel } {
    set in 0
    set ica 0
    set ic 0
+   if { $ebfn != "0" } {
+     set fp [open $ebfn "w"]
+   }
    while { $in < [expr $nn - 1] } {
      set psi {}
      set phi {}
@@ -417,12 +437,19 @@ proc fold_alpha_helix { molid sel } {
      lappend phi [lindex $ci $ic]
      set PSIM [measure dihed $psi]
      set PHIM [measure dihed $phi]
-     puts "psi $psi ($PSIM) phi $phi ($PHIM)"
+#     puts "psi $psi ($PSIM) phi $phi ($PHIM)"
      set SPHI [expr -60 - ($PHIM)]
      set SPSI [expr -45 - ($PSIM)]
+     if { $ebfn != "0" } {
+       puts $fp "dihedral $psi 10.0 -45.0"
+       puts $fp "dihedral $phi 10.0 -60.0"
+     }
      genbondrot $molid $sel [lindex $psi 1] [lindex $psi 2] $SPSI
      genbondrot $molid $sel [lindex $phi 1] [lindex $phi 2] $SPHI
 #     puts "$SPHI $SPSI"
+   }
+   if { $ebfn != "0" } {
+     close $fp
    }
 }
 
@@ -497,21 +524,21 @@ proc random_loop { molid sel } {
 #   bonds by random amounts. 
 # temperature is the Metropolis temperature.
 # iseed is the rng seed.
-proc do_flex_mc { molid msel ri rj fa k i j envsel rcut maxcycles temperature iseed } {
+proc do_flex_mc { molid msel ri rj fa k i j envsel rcut maxcycles temperature iseed logid } {
 
    set bl [$msel getbonds]
    set il [$msel get index]
    set bs [make_bondstruct $molid $msel $ri $rj]
    bondstruct_deactivate_by_fixed $bs $fa
-   print_bondlist $bs
+#   print_bondlist $bs
 
-   puts "ri $ri"
-   puts "rj $rj"
-   puts "il [llength $il] : $il"
-   puts "bl [llength $bl] : $bl"
+#   puts "ri $ri"
+#   puts "rj $rj"
+#   puts "il [llength $il] : $il"
+#   puts "bl [llength $bl] : $bl"
    
    if { $i != $j } { 
-     puts "CFAFLEXMC) Initial attractor distance [measure bond [list $i $j]]"
+     puts "CFAFLEXMC) Initial attractor distance [format "%.2f" [measure bond [list $i $j]]] A"
    }
 
    flush stdout
@@ -527,7 +554,7 @@ proc do_flex_mc { molid msel ri rj fa k i j envsel rcut maxcycles temperature is
    set EE [roughenergy $msel $envsel $rcut]
    set E [expr $SE + $EE]
    set E0 $E
-   puts "CFAFLEXMC/C) init flexmc E0 $E0"
+#   puts "CFAFLEXMC) E0 $E0"
    for {set cyc 0} { $cyc < $maxcycles } { incr cyc } {
       # save coordinates
       set SAVEPOS [$msel get {x y z}]
@@ -571,16 +598,17 @@ proc do_flex_mc { molid msel ri rj fa k i j envsel rcut maxcycles temperature is
         # accept the move
         set E0 $E
         incr nacc
-        puts -nonewline "CFAFLEXMC) cycle $cyc nacc $nacc (ratio [format "%.5f" [expr (1.0*$nacc)/($cyc+1)]]) "
+        puts -nonewline "CFAFLEXMC) cyc $cyc na $nacc ([format "%.5f" [expr (1.0*$nacc)/($cyc+1)]]) "
         if { $i != $j } {
-          puts -nonewline "attractor distance: [format "%.2f" [measure bond [list $i $j]]] [format "attractor-penalty %.2f " $SE]"
+          puts -nonewline "attr dst: [format "%.2f" [measure bond [list $i $j]]] [format "attr-pnlty %.2f " $SE]"
         }
-        puts "[format "steric-penalty %.2f" $EE]"
+        puts "[format "strc-pnlty %.2f" $EE]"
+        log_addframe $molid $logid
       }
    }
    if { $i != $j } {
-     puts -nonewline "attractor distance: [format "%.2f" [measure bond [list $i $j]]] [format "attractor-penalty %.2f " $SE]"
+     puts -nonewline "attr dst: [format "%.2f" [measure bond [list $i $j]]] [format "attr-pnlty %.2f " $SE]"
    }
-   puts "[format "steric-penalty %.2f" $EE]"
+   puts "[format "strc-pnlty %.2f" $EE]"
    free_bondstruct $bs
 }
