@@ -332,6 +332,62 @@ proc cacoIn_nOut { resid chain molid } {
   return $rn
 }
 
+# returns the 3-vector cartesian coordinates of the center of the 
+# circle that passes through these three points.
+proc center_of { pt1 pt2 pt3 } {
+  set ax [lindex $pt1 0]
+  set ay [lindex $pt1 1]
+  set az [lindex $pt1 2]
+  set bx [lindex $pt2 0]
+  set by [lindex $pt2 1]
+  set bz [lindex $pt2 2]
+  set cx [lindex $pt3 0]
+  set cy [lindex $pt3 1]
+  set cz [lindex $pt3 2]
+
+  set yzzy [expr ($ay-$by)*($bz-$cz) - ($az-$bz)*($by-$cy)]
+  set zxxz [expr ($az-$bz)*($bx-$cx) - ($ax-$bx)*($bz-$cz)]
+  set xyyx [expr ($ax-$bx)*($by-$cy) - ($ay-$by)*($bx-$cx)]
+
+  set ax2 [expr $ax * $ax]
+  set ay2 [expr $ay * $ay]
+  set az2 [expr $az * $az]
+  set bx2 [expr $bx * $bx]
+  set by2 [expr $by * $by]
+  set bz2 [expr $bz * $bz]
+  set cx2 [expr $cx * $cx]
+  set cy2 [expr $cy * $cy]
+  set cz2 [expr $cz * $cz]
+
+  set MAT { {? ? ?} {? ? ?} {? ? ?} }
+  lset MAT 0 0 [expr 2*($bx-$ax)]
+  lset MAT 0 1 [expr 2*($by-$ay)]
+  lset MAT 0 2 [expr 2*($bz-$az)]
+  lset MAT 1 0 [expr 2*($cx-$bx)]
+  lset MAT 1 1 [expr 2*($cy-$by)]
+  lset MAT 1 2 [expr 2*($cz-$bz)]
+  lset MAT 2 0 $yzzy
+  lset MAT 2 1 $zxxz
+  lset MAT 2 2 $xyyx
+ 
+  set BB { ? ? ? }
+  lset BB 0 [expr $bx2-$ax2+$by2-$ay2+$bz2-$az2]
+  lset BB 1 [expr $cx2-$bx2+$cy2-$by2+$cz2-$bz2]
+  lset BB 2 [expr $ax*$yzzy+$ay*$zxxz+$az*$xyyx]
+
+  set AMAT [Inverse3 $MAT]
+
+  set o { ? ? ? }
+  lset o 0 [expr [lindex $AMAT 0 0] * [lindex $BB 0] + [lindex $AMAT 0 1] * [lindex $BB 1] + [lindex $AMAT 0 2] * [lindex $BB 2]]
+  lset o 1 [expr [lindex $AMAT 1 0] * [lindex $BB 0] + [lindex $AMAT 1 1] * [lindex $BB 1] + [lindex $AMAT 1 2] * [lindex $BB 2]]
+  lset o 2 [expr [lindex $AMAT 2 0] * [lindex $BB 0] + [lindex $AMAT 2 1] * [lindex $BB 1] + [lindex $AMAT 2 2] * [lindex $BB 2]]
+
+  #puts "check: [veclength [vecsub $pt1 $o]] [veclength [vecsub $pt2 $o]] [veclength [vecsub $pt3 $o]]"
+
+  return $o
+
+}
+
 # generic molecular fragment rotation
 # "sel" is an existing atomselection for the molecule
 # i and j are the indices of the two bonded atoms
