@@ -360,21 +360,22 @@ foreach u $ulist g $glist b $blist d $dlist e $elist h $hlist l $llist x $xlist 
     pdb ${b}-s9.pdb
   }
 
+  # BMS molecule atoms from PDB file
   segment ${x} {
     pdb ${x}-s10.pdb
   }
-
+  # DLS1 linker (PEG/azide)
   segment ${x}1 {
     residue 1 DLS1 ${x}
   }
-
+  # DLS2 aminodiethoxyacetate units
   segment ${x}2 {
     for { set ll 0 } { $ll < $numll } { incr ll } {
        set lll [expr $ll + 1 ]
        residue $lll DLS2 ${x}
     }
   }
-
+  # Trp3 with no N-terminal patch and a neutral C-terminal patch
   segment ${x}T {
     first none
     residue 1 ASP ${x}
@@ -494,15 +495,16 @@ foreach u $ulist g $glist b $blist d $dlist e $elist h $hlist l $llist x $xlist 
   patch 16ab ${g}S:641 ${g}S:642
 
 # bonds in DAVEI
+  # from AEG/BMS to the PEG/azide linker
   patch AL1P ${x}:1 ${x}1:1
+  # PEG azide linker to the first aminodiethoxyacetate monomer
   patch LL12 ${x}1:1 ${x}2:1
-  patch LL22 ${x}2:1 ${x}2:2
-  patch LL22 ${x}2:2 ${x}2:3
-  patch LL22 ${x}2:3 ${x}2:4
-  patch LL22 ${x}2:4 ${x}2:5
-  patch LL22 ${x}2:5 ${x}2:6
-  patch LL22 ${x}2:6 ${x}2:7
-  patch LL2P ${x}2:7 ${x}T:1
+  # subsequent aminodeithoxyacetate monomers
+  for { set nll 1 } { $nll < $numll } { incr nll } {
+    patch LL22 ${x}2:${nll} ${x}2:[expr $nll+1]
+  }
+  # terminal aminodiethoxyacetate monomer to Trp3 resid 1
+  patch LL2P ${x}2:${numll} ${x}T:1
 
   guesscoord
   regenerate angles dihedrals
