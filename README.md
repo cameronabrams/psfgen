@@ -15,8 +15,8 @@ The repository is being updated continuously.  Issue `git pull` in your local co
 
 1. NAMD v. 2.12.  Set environment variables CHARMRUN and NAMD2 to point to your system's `charmrun` and `namd2`; examples (in `~/.bashrc`):
 ```
-export `CHARMRUN=${HOME}/namd/NAMD_2.12_Source/Linux-x86_64-g++/charmrun`
-export `NAMD2=${HOME}/namd/NAMD_2.12_Source/Linux-x86_64-g++/namd2`
+export CHARMRUN=${HOME}/namd/NAMD_2.12_Source/Linux-x86_64-g++/charmrun
+export NAMD2=${HOME}/namd/NAMD_2.12_Source/Linux-x86_64-g++/namd2
 ```
 2. VMD v. 1.8.3
 3. CHARMM36 topologies and parameters (toppar_c36_jul16.tgz is the version used here) unpacked in ${HOME}/charmm/toppar
