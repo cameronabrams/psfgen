@@ -292,6 +292,8 @@ proc cacoIn_nOut { resid chain molid } {
   set c  [atomselect $molid "chain $chain and resid $resid and name C"]
   set o  [atomselect $molid "chain $chain and resid $resid and name O"]
 
+#  puts "$molid $chain $resid [$ca get name] [$c get name] [$o get name]"
+
   set r1 [lindex [$ca get {x y z}] 0]
   set r2 [lindex [$c  get {x y z}] 0]
   set r3 [lindex [$o  get {x y z}] 0]
