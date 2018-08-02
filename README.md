@@ -9,19 +9,20 @@ This repository contains psfgen scripts, TcL scripts for use in VMD, and some as
 
 The _src_ directory contains files that can be sourced by psfgen scripts.  The _charmm_ directory contains some custom topologies and parameters derived from the July, 2016 charmm36 parameter set.  Other directory names indicate the PDB entry for which the files contained therein are applicable.
 
-The repository is being updated continuously.  Issue `git pull` in your local copy often to keep it up-to-date.
+The repository is being updated continuously.  Issue `git pull` in your local copy often to keep it up-to-date.  The `master` branch should be functional.
 
 ## Requirements
 
-1. NAMD v. 2.12
-  * Set environment variables CHARMRUN and NAMD2 to point to your system's charmrun and namd2; examples (in bash):
-     * `CHARMRUN=${HOME}/namd/NAMD_2.12_Source/Linux-x86_64-g++/charmrun`
-     * `NAMD2=${HOME}/namd/NAMD_2.12_Source/Linux-x86_64-g++/namd2`
+1. NAMD v. 2.12.  Set environment variables CHARMRUN and NAMD2 to point to your system's `charmrun` and `namd2`; examples (in `~/.bashrc`):
+```
+export `CHARMRUN=${HOME}/namd/NAMD_2.12_Source/Linux-x86_64-g++/charmrun`
+export `NAMD2=${HOME}/namd/NAMD_2.12_Source/Linux-x86_64-g++/namd2`
+```
 2. VMD v. 1.8.3
 3. CHARMM36 topologies and parameters (toppar_c36_jul16.tgz is the version used here) unpacked in ${HOME}/charmm/toppar
 4. packmol
-5. tcl, tcl-devel, and swig packages installed
-6. This repository cloned into a local directory and pointed to by the environment variable PSFGEN_BASEDIR; for example, in your `.bashrc`,
+5. tcl, tcl-devel, and swig
+6. This repository cloned into a local directory and pointed to by the environment variable PSFGEN_BASEDIR; for example, in `~/.bashrc`,
 ```
 export PSFGEN_BASEDIR=/home/myusername/psfgen
 ```
@@ -89,6 +90,8 @@ source $PSFGEN_BASEDIR/scripts/vmdrc.tcl
 
 24. [5JYN](http://www.rcsb.org/pdb/explore/explore.do?structureID=5jyn) -- HIV-1 gp41 transmembrane domain triple-helix embedded in a DMPC bilayer
 
+25. [5VN8](http://www.rcsb.org/pdb/explore/explore.do?structureID=5vn8) -- HIV-1 gp140 SOSIP trimer in the CD4-bound "open" conformation, with option to model-in MPER helices and the small-molecule entry-inhibitor BNM-III-170.
+
 More to come...
 
 ## Acknowledgments
@@ -101,7 +104,7 @@ More to come...
 
 4. [CGenFF](https://cgenff.paramchem.org/) is a web-based service for generating CHARMM General Forcefield parameters.  Please cite K. Vanommeslaeghe, E. Hatcher, C. Acharya, S. Kundu, S. Zhong, J. Shim, E. Darian, O. Guvench, P. Lopes, I. Vorobyov, A. D. MacKerell Jr., CHARMM General Force Field: A Force field for Drug-Like Molecules Compatible with the CHARMM All-Atom Additive Biological Force Field, J. Comput. Chem. 2010, 31, 671-690. 
 
-5. All codes and data in this repository have been made possible with partial support from NIH through grants AI084117, AI093248, GM115249, GM056550, and GM100472, the National Science Foundation through grants DMR-1207389 and MCB-1330205, and the US Army through grants W911NF-12-2-0022, W911-NF-13-1-0046, and W911NF-12-R-0011.
+5. All codes and data in this repository have been made possible with partial support from NIH through grants AI084117, AI093248, GM115249, GM056550, and GM100472, the National Science Foundation through grants DMR-1207389 and MCB-1330205, and the US Army through grants W911NF-12-2-0022, W911-NF-13-1-0046, W911NF-12-R-0011, and W911NF-17-2-0227.
 
 2017-2018, Cameron F Abrams
 
