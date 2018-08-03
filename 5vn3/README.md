@@ -30,7 +30,7 @@ For the base case to generate the image below, I ran this as
 ~/research/psfgen/5vn3/do_test.sh -seed 77101 -psfgen_args -mper-extend -log-dcd make.dcd -dock-bnm -lmct 2.5 -lmck 1.0 -lmr0 2.0
 ```
 
-![img](5vn3.png)
+![img](my_5vn3.png)
 
 Rendering of solvated open HIV-1 Env SOSIP trimer from PDB 5vn3 [1]; gp120's in purple ribbon, gp41's in light blue ribbon, glycans as silver sticks, waters within 3.0 A of protein or glycan in grey, docked BNM-III-170 inhibitors [2] in orange stick.
 
