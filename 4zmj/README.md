@@ -1,4 +1,4 @@
-# 4ZMJ -- unliganded SOSIP trimer with glycans
+# 4ZMJ -- unliganded SOSIP trimer with glycans; option to model-in MPER's
 
 ## Files
 
@@ -11,31 +11,13 @@ This directory contains five files:
 
 ## Instructions
 
-If you have cloned this repository, then make sure PSFGEN_BASEDIR resolves to the root directory of your local copy.  If you did not
-clone the repository, you will have to figure this part out on your own.  It is also assumed below that CHARMRUN resolves to your local charmrun executable and NAMD2 resolves to your local NAMD2 executable.  For me, these are /home/cfa/namd/NAMD_2.12_Source/Linux-x86_64-g++/charmrun and /home/cfa/namd/NAMD_2.12_Source/Linux-x86_64-g++/namd2.
+```
+mkdir my_4zmj
+cd my_4zmj
+$PSFGEN_BASEDIR/scripts/do_test.sh -pdb 4zmj [-psfgen_args -seed # -mper-extend]
+```
 
-1. Download 4zmj.pdb to a clean directory
+The `-seed` flag allows the user to set the random-number generator seed.  The flag `-mper-extend` instructs the script to grow in the MPER residues on each gp41 as an alpha-helix, out to residue 682.
 
-> wget http://www.rcsb.org/pdb/files/4zmj.pdb
-
-2. Use VMD in text mode to generate the psf/pdb
-
-> vmd -dispdev text -e $PSFGEN_BASEDIR/4zmj/mkpsf_4zmj.tcl
-
-3. Run NAMD to relax bonds and guessed-in atoms
-
-> ln -s $PSFGEN_BASEDIR/4zmj/my_4zmj_vac.namd .
-
-> $CHARMRUN +p1 $NAMD2 my_4zmj_vac.namd > vac.log
-
-4. Use VMD to solvate and neutralize the output of step 3
-
-> vmd -dispdev text -e $PSFGEN_BASEDIR/4zmj/my_4zmj_solv.tcl
-
-5. Run NAMD to minimize and shake out the solvated system
-
-> ln -s $PSFGEN_BASEDIR/4zmj/my_4zmj_solv.namd .
-
-> $CHARMRUN +p16 $NAMD2 my_4zmj_solv.namd > solv.log
-
-2017, Cameron F Abrams
+2017-2018, Cameron F Abrams
+cfa22@drexel.edu
