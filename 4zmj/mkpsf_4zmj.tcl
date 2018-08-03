@@ -1,7 +1,7 @@
 # VMD/psfgen script for generating psf/pdb pair for PDB 4zmj
 # unliganded trimeric HIV-1 gp140
 #
-# cameron f abrams (c) 2017
+# cameron f abrams (c) 2017-2018
 # drexel university
 # chemical and biological engineering
 #
@@ -18,11 +18,35 @@ if {![info exists PSFGEN_BASEDIR]} {
 
 # check for any arguments
 set protomer_only 0
-foreach arg $argv {
+set LOG_DCD 0
+set logid -1
+# Membrane-proximal external region sequence (HXB2)
+set MPER_665_to_682 [list LYS TRP ALA SER LEU TRP ASN TRP PHE ASP ILE SER ASN TRP LEU TRP TYR ILE]
+set seed 12345
+set MPER_EXTEND 0
+for { set a 0 } { $a < [llength $argv] } { incr a } {
+  set arg [lindex $argv $a]
   if { $arg == "+protomer" } {
      set protomer_only 1
   }
+  if { $arg == "-seed" } {
+     incr a
+     set seed [lindex $argv $a]
+  }
+  if { $arg == "-mper-extend" } {
+     set MPER_EXTEND 1
+  }
+  if { $arg == "-skip-loopmc" } {
+     set SKIP_LOOPMC 1
+  }
+  if { $arg == "-log-dcd" } {
+     set LOG_DCD 1
+     incr a
+     set log_dcd_file [lindex $argv $a]
+  }
 }
+
+expr srand($seed)
 
 # load some custom TcL procedures to set coordinates correctly
 source ${PSFGEN_BASEDIR}/src/loopmc.tcl
@@ -176,6 +200,13 @@ foreach g $glist b $blist {
     residue 567 LYS ${b}
     residue 568 LEU ${b}
     pdb ${b}-s5.pdb 
+    if { $MPER_EXTEND == "1" } {
+      set lr 0
+      for { set r 665 } { $r < 683 } { incr r } {
+        residue $r [lindex $MPER_665_to_682 $lr] ${b}
+        incr lr
+      }
+    }
   }
   segment ${b}S {
     pdb ${b}g.pdb
@@ -232,7 +263,7 @@ foreach g $glist b $blist {
 
   patch 13ab ${g}S:604 ${g}S:606
   patch 16ab ${g}S:604 ${g}S:605
-  patch 12ab ${g}S:606 ${g}S:607 
+  patch 12aa ${g}S:606 ${g}S:607 
 
   guesscoord
   regenerate angles dihedrals
@@ -254,7 +285,15 @@ lappend LOCALFILES my_4zmj.pdb
 mol new my_4zmj.psf
 mol addfile my_4zmj.pdb
 set molid [molinfo top get id]
-
+# initialize a logging molecule
+if { $LOG_DCD == "1" } {
+   # set logid [log_initialize my_${SYSNAME}.psf my_${SYSNAME}.pdb]
+   mol new my_4zmj.psf
+   mol addfile my_4zmj.pdb
+   set logid [molinfo top get id]
+   puts "Logging molecule number $logid to be saved to $log_dcd_file" 
+   mol top $molid
+}
 set a [atomselect top all]
 $a set beta 1 ;# pretty much everything is fixed except...
 
@@ -282,6 +321,20 @@ foreach b $blist {
   Crot_phi $r1 $r2 ${b} $molid -180
   Crot_psi $r1 $r2 ${b} $molid -30
   Crot_phi $r1 $r2 ${b} $molid 10
+  log_addframe $molid $logid
+}
+
+# fold the optional MPER and TM extensions into alpha helices
+if { $MPER_EXTEND == "1" } {
+  foreach b $blist {
+    set Cterm 682
+    set sel [atomselect $molid "protein and chain $b and resid 662 to $Cterm"]
+    puts "Fold-alpha: chain $b MPER/TM extension"
+    fold_alpha_helix $molid $sel extrabonds-${b}.inp
+    lappend LOCALFILES extrabonds-${b}.inp
+    $sel delete
+    log_addframe $molid $logid
+  }
 }
 
 $a writepdb "my_4zmj_mcIn.pdb"
@@ -290,20 +343,28 @@ lappend LOCALFILES my_4zmj_mcIn.pdb
 set nc 1000
 set rcut 3.0
 set temperature 2.5
-set k 10.0
-set r0 1.5
+set k 1.0
+set r0 2.0
 set bg [atomselect ${molid} "noh"]
 
 foreach g $glist b $blist {
   set residueList [[atomselect ${molid} "chain ${g} and resid 186 and name CA"] get residue]
-  do_loop_mc ${residueList} ${g} ${molid} ${k} ${r0} ${bg} ${rcut} ${nc} ${temperature} [irand_dom 1000 9999]
+  do_loop_mc ${residueList} ${g} ${molid} ${k} ${r0} ${bg} ${rcut} ${nc} ${temperature} [irand_dom 1000 9999] $logid
   set residueList [[atomselect ${molid} "chain ${g} and resid 398 to 408 and name CA"] get residue]
-  do_loop_mc ${residueList} ${g} ${molid} ${k} ${r0} ${bg} ${rcut} ${nc} ${temperature} [irand_dom 1000 9999]
+  do_loop_mc ${residueList} ${g} ${molid} ${k} ${r0} ${bg} ${rcut} ${nc} ${temperature} [irand_dom 1000 9999] $logid
   set residueList [[atomselect ${molid} "chain ${b} and resid 548 to 568 and name CA"] get residue]
-  do_loop_mc ${residueList} ${b} ${molid} ${k} ${r0} ${bg} ${rcut} ${nc} ${temperature} [irand_dom 1000 9999]
+  do_loop_mc ${residueList} ${b} ${molid} ${k} ${r0} ${bg} ${rcut} ${nc} ${temperature} [irand_dom 1000 9999] $logid
 }
 
 $a writepdb "my_4zmj_mcOut.pdb"
+
+# finalize logging molecule
+# log_finalize $logid
+if { $LOG_DCD == "1" } {
+   set loga [atomselect $logid all]
+   animate write dcd $log_dcd_file waitfor all sel $loga $logid
+   mol delete $logid
+}
 
 foreach f $LOCALFILES {
   exec rm $f
