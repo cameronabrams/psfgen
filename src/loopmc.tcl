@@ -25,6 +25,15 @@ proc pc3 { pt } {
   return "( [lindex $pt 0] , [lindex $pt 1] , [lindex $pt 2] )"
 }
 
+proc my_increment { numlet } {
+   if { [string is integer $numlet] == "1" } {
+     return [expr $numlet + 1]
+   }
+   set c [format %c [expr [scan [string index $numlet end] %c] + 1]]
+   set nn [string replace $numlet end end $c]
+   return $nn
+}
+
 # computes overlap energy between atoms in sel1 and sel2.  The "my_roughenergy" function (implemented in C)
 # uses a repulsive pair potential of the form A*(x-cut)^2 for x<cut.  Residue index lists are
 # sent so the my_roughenergy does not compute pair interactions for atoms in the same residue 

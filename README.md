@@ -58,7 +58,7 @@ source $PSFGEN_BASEDIR/scripts/vmdrc.tcl
 
 8. [4H8W](http://www.rcsb.org/pdb/explore/explore.do?structureID=4h8w) -- HIV-1 gp120 core clade A/E, with options to implement any number of the following mutations: (1) S375H (to bring back to clade A/E WT), (2) H61Y, (3) Q105H, (4) V108I, or (5) NIK474-476DMR, all of which represent the clade-C sequence;
 
-9. [5VN3](http://www.rcsb.org/pdb/explore/explore.do?structureID=5vn3) -- HIV-1 gp140 SOSIP trimer with bound sCD4 and FAB 17b
+9. [5VN3](http://www.rcsb.org/pdb/explore/explore.do?structureID=5vn3) -- HIV-1 gp140 SOSIP trimer with bound sCD4 and FAB 17b; option to dock small-molecule CD4 mimetic BNM-III-170
 
 10. [3G9R](http://www.rcsb/org/pdb/explore/explore.do?structureID=3g9r) -- HIV-1 gp41 membrane proximal external region (MPER) in an engineered coiled-coil trimer  
 
@@ -90,7 +90,7 @@ source $PSFGEN_BASEDIR/scripts/vmdrc.tcl
 
 24. [5JYN](http://www.rcsb.org/pdb/explore/explore.do?structureID=5jyn) -- HIV-1 gp41 transmembrane domain triple-helix embedded in a DMPC bilayer
 
-25. [5VN8](http://www.rcsb.org/pdb/explore/explore.do?structureID=5vn8) -- HIV-1 gp140 SOSIP trimer in the CD4-bound "open" conformation, with option to model-in MPER helices and the small-molecule entry-inhibitor BNM-III-170.
+25. [5VN8](http://www.rcsb.org/pdb/explore/explore.do?structureID=5vn8) -- HIV-1 gp140 SOSIP trimer in the b12-bound "open" conformation, with option to model-in MPER helices and the small-molecule entry-inhibitor BNM-III-170.
 
 More to come...
 

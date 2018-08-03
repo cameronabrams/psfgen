@@ -193,11 +193,11 @@ set k 10.0
 set r0 1.5
 set bg [atomselect ${molid} "noh"]
 set residueList [[atomselect ${molid} "chain G and resid 318 to 323 and name CA"] get residue]
-do_loop_mc ${residueList} G ${molid} ${k} ${r0} ${bg} ${rcut} ${nc} ${temperature} [irand_dom 1000 9999]
+do_loop_mc ${residueList} G ${molid} ${k} ${r0} ${bg} ${rcut} ${nc} ${temperature} [irand_dom 1000 9999] -1
 set residueList [[atomselect ${molid} "chain G and resid 403 to 409 and name CA"] get residue]
-do_loop_mc ${residueList} G ${molid} ${k} ${r0} ${bg} ${rcut} ${nc} ${temperature} [irand_dom 1000 9999]
+do_loop_mc ${residueList} G ${molid} ${k} ${r0} ${bg} ${rcut} ${nc} ${temperature} [irand_dom 1000 9999] -1
 set residueList [[atomselect ${molid} "chain G and resid 460 to 462 and name CA"] get residue]
-do_loop_mc ${residueList} G ${molid} ${k} ${r0} ${bg} ${rcut} ${nc} ${temperature} [irand_dom 1000 9999]
+do_loop_mc ${residueList} G ${molid} ${k} ${r0} ${bg} ${rcut} ${nc} ${temperature} [irand_dom 1000 9999] -1
 
 $a writepdb "my_4h8w_mcOut.pdb"
 
