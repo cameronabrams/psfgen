@@ -140,6 +140,24 @@ segment A {
 
 segment AS {
   pdb A-glycan.pdb
+  # model-build Man9 at N262
+  if { [lsearch $MAN9 262] != -1 } {
+    residue 1269 AMAN A
+    residue 1270 AMAN A
+    residue 1271 AMAN A
+    residue 1272 AMAN A
+  }
+  # model-build Man9 at N332
+  if { [lsearch $MAN9 332] != -1 } {
+    residue 2335 AMAN A
+    residue 2336 AMAN A
+    residue 2337 AMAN A
+    residue 2338 AMAN A
+    residue 2339 AMAN A
+    residue 2340 AMAN A
+    residue 2341 AMAN A
+    residue 2342 AMAN A
+  }
   # model-building the Man9 at N386
   if { [lsearch $MAN9 386] != -1 } {
     residue 2389 AMAN A
@@ -161,6 +179,19 @@ segment AS {
     residue 2402 AMAN A
     residue 2403 AMAN A
     residue 2404 AMAN A
+  }
+  # model-build Man9 at N448
+  if { [lsearch $MAN9 448] != -1 } {
+    residue 2449 BGNA A
+    residue 2450 BMAN A
+    residue 2451 AMAN A
+    residue 2452 AMAN A
+    residue 2453 AMAN A
+    residue 2454 AMAN A 
+    residue 2455 AMAN A
+    residue 2456 AMAN A
+    residue 2457 AMAN A
+    residue 2458 AMAN A
   }
 }
 
@@ -219,6 +250,24 @@ segment C {
 
 segment CS {
   pdb C-glycan.pdb
+  # model-build Man9 at N332
+  if { [lsearch $MAN9 332] != -1 } {
+    residue 2335 AMAN C
+    residue 2336 AMAN C
+    residue 2337 AMAN C
+    residue 2338 AMAN C
+    residue 2339 AMAN C
+    residue 2340 AMAN C
+    residue 2341 AMAN C
+    residue 2342 AMAN C
+  }
+  # model-building the Man9 at N262
+  if { [lsearch $MAN9 262] != -1 } {
+    residue 1269 AMAN C
+    residue 1270 AMAN C
+    residue 1271 AMAN C
+    residue 1272 AMAN C
+  }
   # model-building the Man9 at N386
   if { [lsearch $MAN9 386] != -1 } {
     residue 2389 AMAN C
@@ -241,6 +290,12 @@ segment CS {
     residue 2402 AMAN C
     residue 2403 AMAN C
     residue 2404 AMAN C
+  }
+  # model-build Man9 at N448
+  if { [lsearch $MAN9 448] != -1 } {
+    residue 2456 AMAN C
+    residue 2457 AMAN C
+    residue 2458 AMAN C
   }
 }
 
@@ -296,6 +351,24 @@ segment E {
 
 segment ES {
   pdb E-glycan.pdb
+  # model-build Man9 at N332
+  if { [lsearch $MAN9 332] != -1 } {
+    residue 2335 AMAN E
+    residue 2336 AMAN E
+    residue 2337 AMAN E
+    residue 2338 AMAN E
+    residue 2339 AMAN E
+    residue 2340 AMAN E
+    residue 2341 AMAN E
+    residue 2342 AMAN E
+  }
+  # model-building the Man9 at N262
+  if { [lsearch $MAN9 262] != -1 } {
+    residue 1269 AMAN E
+    residue 1270 AMAN E
+    residue 1271 AMAN E
+    residue 1272 AMAN E
+  }
   # model-building the Man9 at N386
   if { [lsearch $MAN9 386] != -1 } {
     residue 2391 AMAN E
@@ -316,6 +389,12 @@ segment ES {
     residue 2403 AMAN E
     residue 2404 AMAN E
     residue 2405 AMAN E
+  }
+  # model-build Man9 at N448
+  if { [lsearch $MAN9 448] != -1 } {
+    residue 2456 AMAN E
+    residue 2457 AMAN E
+    residue 2458 AMAN E
   }
 }
 
@@ -405,7 +484,7 @@ patch 14bb AS:1161 AS:1162
 patch NGLB A:241 AS:1241
 patch 14bb AS:1241 AS:1242
 patch 14bb AS:1242 AS:1243
-# glycan at N262
+# glycan at N262  Man9
 patch NGLB A:262 AS:1262
 patch 14bb AS:1262 AS:1263
 patch 14bb AS:1263 AS:1264
@@ -413,6 +492,12 @@ patch 16ab AS:1264 AS:1265
 patch 13ab AS:1264 AS:1267
 patch 13ab AS:1265 AS:1266
 patch 12aa AS:1267 AS:1268
+if { [lsearch $MAN9 262] != -1 } {
+  patch 16ab AS:1265 AS:1269
+  patch 12aa AS:1269 AS:1270
+  patch 12aa AS:1266 AS:1271
+  patch 12aa AS:1268 AS:1272
+}
 # glycan at N276
 patch NGLB A:276 AS:1276
 patch 14bb AS:1276 AS:1277
@@ -423,10 +508,20 @@ patch 14bb AS:1295 AS:1296
 # glycan at N301
 patch NGLB A:301 AS:1301
 patch 14bb AS:1301 AS:1302
-# glycan at N332
+# glycan at N332  Man9
 patch NGLB A:332 AS:1332
 patch 14bb AS:1332 AS:1333
 patch 14bb AS:1333 AS:1334
+if { [lsearch $MAN9 332] != "-1" } {
+  patch 16ab AS:1334 AS:2335
+  patch 16ab AS:2335 AS:2338
+  patch 12aa AS:2338 AS:2339
+  patch 13ab AS:2335 AS:2336
+  patch 12aa AS:2336 AS:2337
+  patch 13ab AS:1334 AS:2340
+  patch 12aa AS:2340 AS:2341
+  patch 12aa AS:2341 AS:2342
+}
 # glycan at N339
 patch NGLB A:339 AS:1339
 patch 14bb AS:1339 AS:1340
@@ -471,6 +566,18 @@ patch NGLB A:397 AS:1397
 # glycan at N448
 patch NGLB A:448 AS:1448
 patch 14bb AS:1448 AS:1449
+if { [lsearch $MAN9 448] != "-1"] } {
+  patch 14bb AS:1448 AS:2449
+  patch 14bb AS:2449 AS:2450
+  patch 16ab AS:2450 AS:1453
+  patch 16ab AS:2453 AS:2455
+  patch 12aa AS:2455 AS:2456
+  patch 13ab AS:2453 AS:2454
+  patch 12aa AS:2454 AS:2457
+  patch 13ab AS:1450 AS:1451
+  patch 12aa AS:2451 AS:2452
+  patch 12aa AS:2452 AS:2458
+}
 # glycan at 611
 patch NGLB B:611 BS:1611
 patch 14bb BS:1611 BS:1612
@@ -530,6 +637,12 @@ patch 13ab CS:1264 CS:1267
 patch 16ab CS:1264 CS:1265
 patch 13ab CS:1265 CS:1266
 patch 12aa CS:1267 CS:1268
+if { [lsearch $MAN9 262] != -1 } {
+  patch 16ab CS:1265 CS:1269
+  patch 12aa CS:1269 CS:1270
+  patch 12aa CS:1266 CS:1271
+  patch 12aa CS:1268 CS:1272
+}
 # glycan at N276
 patch NGLB C:276 CS:1276
 patch 14bb CS:1276 CS:1277
@@ -545,6 +658,16 @@ patch 14bb CS:1302 CS:1303
 patch NGLB C:332 CS:1332
 patch 14bb CS:1332 CS:1333
 patch 14bb CS:1333 CS:1334
+if { [lsearch $MAN9 332] != "-1" } {
+  patch 16ab CS:1334 CS:2335
+  patch 16ab CS:2335 CS:2338
+  patch 12aa CS:2338 CS:2339
+  patch 13ab CS:2335 CS:2336
+  patch 12aa CS:2336 CS:2337
+  patch 13ab CS:1334 CS:2340
+  patch 12aa CS:2340 CS:2341
+  patch 12aa CS:2341 CS:2342
+}
 # glycan at N339
 patch NGLB C:339 CS:1339
 patch 14bb CS:1339 CS:1340
@@ -596,6 +719,11 @@ patch 16ab CS:1450 CS:1453
 patch 12aa CS:1451 CS:1452
 patch 13ab CS:1453 CS:1454
 patch 16ab CS:1453 CS:1455
+if { [lsearch $MAN9 448] != "-1"] } {
+  patch 12aa CS:1455 CS:2456
+  patch 12aa CS:1454 CS:2457
+  patch 12aa CS:1452 CS:2458
+}
 # glycan at N611
 patch NGLB D:611 DS:1611
 patch 14bb DS:1611 DS:1612
@@ -640,6 +768,12 @@ patch 13ab ES:1264 ES:1267
 patch 16ab ES:1264 ES:1265
 patch 13ab ES:1265 ES:1266
 patch 12aa ES:1267 ES:1268
+if { [lsearch $MAN9 262] != -1 } {
+  patch 16ab ES:1265 ES:1269
+  patch 12aa ES:1269 ES:1270
+  patch 12aa ES:1266 ES:1271
+  patch 12aa ES:1268 ES:1272
+}
 # glycan at N276
 patch NGLB E:276 ES:1276
 patch 14bb ES:1276 ES:1277
@@ -653,6 +787,16 @@ patch 14bb ES:1301 ES:1302
 patch NGLB E:332 ES:1332
 patch 14bb ES:1332 ES:1333
 patch 14bb ES:1333 ES:1334
+if { [lsearch $MAN9 332] != "-1" } {
+  patch 16ab ES:1334 ES:2335
+  patch 16ab ES:2335 ES:2338
+  patch 12aa ES:2338 ES:2339
+  patch 13ab ES:2335 ES:2336
+  patch 12aa ES:2336 ES:2337
+  patch 13ab ES:1334 ES:2340
+  patch 12aa ES:2340 ES:2341
+  patch 12aa ES:2341 ES:2342
+}
 # glycan at N339
 patch NGLB E:339 ES:1339
 patch 14bb ES:1339 ES:1340
@@ -703,6 +847,11 @@ patch 13ab ES:1450 ES:1451
 patch 12aa ES:1451 ES:1452
 patch 16ab ES:1453 ES:1455
 patch 13ab ES:1453 ES:1454
+if { [lsearch $MAN9 448] != "-1"] } {
+  patch 12aa ES:1455 ES:2456
+  patch 12aa ES:1454 ES:2457
+  patch 12aa ES:1452 ES:2458
+}
 # glycan at N611
 patch NGLB F:611 FS:1611
 patch 14bb FS:1611 FS:1612
@@ -751,7 +900,7 @@ set molid [molinfo top get id]
 set or [measure center [atomselect top "all"] weight mass]
 set a [atomselect top all]
 $a moveby [vecscale -1 $or]
-if { $LOG_DCD != "-1" } {
+if { $LOG_DCD != "0" } {
    mol new my_5fuu.psf
    mol addfile unrelaxed.pdb
    set logid [molinfo top get id]
@@ -801,7 +950,7 @@ foreach l $loops {
 }
 $a writepdb "my_5fuu_mcOut.pdb"
 
-if { $LOG_DCD != -1 } {
+if { $LOG_DCD != "0" } {
    set loga [atomselect $logid all]
    animate write dcd $log_dcd_file waitfor all sel $loga $logid
 }

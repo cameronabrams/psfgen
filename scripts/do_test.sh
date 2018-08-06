@@ -78,7 +78,7 @@ echo "Generating solvated system..."
 vmd -dispdev text -e $PSFGEN_BASEDIR/${PDB}/my_${PDB}_solv.tcl > psfgen2.log
 
 # 5. run NAMD
-if [ $STAGE = "0" ] ; then
+if [ $STAGE -eq 0 ] ; then
   echo "Running namd2 on solvated system..."
   ln -s $PSFGEN_BASEDIR/${PDB}/my_${PDB}_solv.namd .
   lcvi=`grep -i colvarsconfig $PSFGEN_BASEDIR/${PDB}/my_${PDB}_solv.namd  | awk '{print $2}'`

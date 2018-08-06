@@ -160,7 +160,7 @@ proc log_addframe { molid logid } {
    if { $logid != "-1" } {
      [atomselect $molid all] writepdb "tmp.pdb"
      animate read pdb tmp.pdb $logid
-     puts "Logging molecule has [molinfo $logid get numframes] frames."
+     puts "Molid $molid - logging molecule $logid has [molinfo $logid get numframes] frames."
      exec rm -f tmp.pdb
    }
 }
