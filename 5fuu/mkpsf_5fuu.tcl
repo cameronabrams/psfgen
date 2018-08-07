@@ -182,7 +182,6 @@ segment AS {
   }
   # model-build Man9 at N448
   if { [lsearch $MAN9 448] != -1 } {
-    residue 2449 BGNA A
     residue 2450 BMAN A
     residue 2451 AMAN A
     residue 2452 AMAN A
@@ -566,15 +565,14 @@ patch NGLB A:397 AS:1397
 # glycan at N448
 patch NGLB A:448 AS:1448
 patch 14bb AS:1448 AS:1449
-if { [lsearch $MAN9 448] != "-1"] } {
-  patch 14bb AS:1448 AS:2449
-  patch 14bb AS:2449 AS:2450
-  patch 16ab AS:2450 AS:1453
+if { [lsearch $MAN9 448] != "-1" } {
+  patch 14bb AS:1449 AS:2450
+  patch 16ab AS:2450 AS:2453
   patch 16ab AS:2453 AS:2455
   patch 12aa AS:2455 AS:2456
   patch 13ab AS:2453 AS:2454
   patch 12aa AS:2454 AS:2457
-  patch 13ab AS:1450 AS:1451
+  patch 13ab AS:2450 AS:2451
   patch 12aa AS:2451 AS:2452
   patch 12aa AS:2452 AS:2458
 }
@@ -719,7 +717,7 @@ patch 16ab CS:1450 CS:1453
 patch 12aa CS:1451 CS:1452
 patch 13ab CS:1453 CS:1454
 patch 16ab CS:1453 CS:1455
-if { [lsearch $MAN9 448] != "-1"] } {
+if { [lsearch $MAN9 448] != "-1" } {
   patch 12aa CS:1455 CS:2456
   patch 12aa CS:1454 CS:2457
   patch 12aa CS:1452 CS:2458
@@ -847,7 +845,7 @@ patch 13ab ES:1450 ES:1451
 patch 12aa ES:1451 ES:1452
 patch 16ab ES:1453 ES:1455
 patch 13ab ES:1453 ES:1454
-if { [lsearch $MAN9 448] != "-1"] } {
+if { [lsearch $MAN9 448] != "-1" } {
   patch 12aa ES:1455 ES:2456
   patch 12aa ES:1454 ES:2457
   patch 12aa ES:1452 ES:2458
