@@ -1,13 +1,4 @@
-# 5VN3 -- Soluble, cleaved sosip trimer with glycans, CD4-/17b-bound conformation, option for BNM-III-170 docking
-
-## Files
-
-This directory contains five files:
-1. mkpsf_5vn3.tcl -- VMD/psfgen script that creates the first vacuum psf/pdb pair.  It uses a monte-carlo-based loop model-builder to build in the missing residues. By choice, we are currently NOT including the sCD4 and 17b chains in the built structure. However, we do build in all the glycans present for the gp120 chains (G, I, J) and gp41 chains (A, B, D).
-2. my_5vn3_vac.namd -- NAMD configuration file used to relax the "guessed" coordinates resulting from step 1.
-3. my_5vn3_solv.tcl -- VMD script that uses solvate and autoionize to generate a neutralized, solvated MD system using the coordinates from step 2 as input.
-4. my_5vn3_colvars_op.inp -- colvars input file that defines collective variables that allow for center-of-mass restraint and an orientational restraint to keep the C3v axis along z.
-5. my_5vn3_solv.namd -- NAMD configuration file that performs a minimization and short MD of the raw solvated system; uses colvars module input file from 4.
+# 5VN3 -- Soluble, cleaved sosip trimer with glycans, CD4-/17b-bound conformation, option for BNM-III-170 docking with further option to grow a DAVEI
 
 ## Instructions
 
@@ -34,9 +25,19 @@ For the base case to generate the image below, I ran this as
 
 Rendering of solvated open HIV-1 Env SOSIP trimer from PDB 5vn3 [1]; gp120's in purple ribbon, gp41's in light blue ribbon, glycans as silver sticks, waters within 3.0 A of protein or glycan in grey, docked BNM-III-170 inhibitors [2] in orange stick.
 
+## DAVEI OPTION
+
+To further elaborate the model by growing spacer/linker/Trp3 onto the BNM molecule and docking this, do
+```
+$ mkdir 5vn3
+$ cd 5vn3
+$ $PSFGEN_BASEDIR/5vn8/do_test_davei.sh [-seed #] [-restart #] [-psfgen_args [-mper-extend] [-log-dcd <filename.dcd>] [-dock-bnm] [-davei #] [-lmct #] [-lmck #] [-lmcr0 #] [-lmcnc #]]
+```
+All switches and flags as above, except the `-davei` flag, which, if set, indicates the number of aminodiethoxyacetate linker repeat units should be grown between the PEG-azide spacer (also added) and a Trp3 peptide.
+
 ## REMAKE BONDSTRUCT.SO
 
-If you have not done so as of July 27, 2018, you need to remake `bondstruct.so` in the `src` directory.
+If you have not done so as of August 22, 2018, you need to remake `bondstruct.so` in the `src` directory.
 ```
 $ cd $PSFGEN_BASEDIR
 $ git pull
