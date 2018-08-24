@@ -510,7 +510,7 @@ $a writepdb "unrelaxed2.pdb"
 
 lappend LOCALFILES "unrelaxed2.pdb"
 log_addframe $molid $logid
-if [ "$logid" -ne "-1" ]; then
+if { $logid != "-1" } {
   set la [atomselect $logid all]
   for {set li 0} {$li < [molinfo $logid get numframes]} {incr li} {
     $la frame $li
@@ -519,7 +519,7 @@ if [ "$logid" -ne "-1" ]; then
     $la move [transaxis y [expr -1 * $t] rad]
   }
   $la delete
-fi
+}
 
 if { $SKIP_LOOPMC == "0" } {
  set nc $LOOP_MC_NC
