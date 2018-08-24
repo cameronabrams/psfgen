@@ -3,7 +3,7 @@ coordinates my_5vn3_mcOut.pdb
 set temperature 310
 temperature $temperature
 
-set outputname my_5vn3_vac
+set outputname my_5vn3_vac_stage1
 firsttimestep 0
 
 paraTypeCharmm      on

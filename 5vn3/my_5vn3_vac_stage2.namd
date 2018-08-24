@@ -1,9 +1,10 @@
 structure  my_5vn3.psf 
 coordinates my_5vn3_mcOut.pdb
+bincoordinates my_5vn3_vac_stage1.coor
 set temperature 310
 temperature $temperature
 
-set outputname my_5vn3_vac
+set outputname my_5vn3_vac_stage2
 firsttimestep 0
 
 paraTypeCharmm      on
@@ -45,6 +46,10 @@ outputEnergies      10
 dcdfreq             100
 restartfreq         100
 
-minimize 1000
-run 2000
+colvars on
+colvarsconfig  clear_daveis_colvars.inp
+extrabonds on
+extrabondsfile  extrabonds-TRP3.inp
+
+run 35000
 

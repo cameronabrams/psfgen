@@ -1,6 +1,8 @@
 #!/bin/bash
-# master test script for generating a solvated system
-# Launch in a clean directory
+# master test script for generating a solvated system: ${PDB}
+#
+# Copy this file to a clean directory and launch it.
+#
 # change these absolute pathnames to match your system
 PDB=5vn3
 SPDB=5f4p
@@ -50,7 +52,7 @@ while [ $i -le $ARGC ] ; do
   i=$((i+1))
 done
 
-if [ "$RESTART" -lt "1" ] ; then
+if [ "$RESTART" -le "1" ] ; then
 # 1. download ${PDB}.pdb if it is not already here
 if [ ! -e ${PDB}.pdb ]; then
   echo "Retrieving ${PDB}.pdb..."
@@ -73,8 +75,19 @@ fi
 # 3. run vacuum NAMD stages
 if [ "$RESTART" -lt "2" ] ; then
 echo "Running namd2 on vacuum system (stage 1)..."
-cp -f $PSFGEN_BASEDIR/${SYSNAME}/my_${SYSNAME}_vac.namd .
-$CHARMRUN +p8 $NAMD2 my_${SYSNAME}_vac.namd > vac.log
+cp -f $PSFGEN_BASEDIR/${SYSNAME}/my_${SYSNAME}_vac_stage1.namd .
+$CHARMRUN +p8 $NAMD2 my_${SYSNAME}_vac_stage1.namd > vac_stage1.log
+fi
+if [ "$RESTART" -lt "3" ] ; then
+echo "Running namd2 on vacuum system (stage 2)..."
+cp -f $PSFGEN_BASEDIR/${SYSNAME}/my_${SYSNAME}_vac_stage2.namd .
+$CHARMRUN +p8 $NAMD2 my_${SYSNAME}_vac_stage2.namd > vac_stage2.log
+fi
+if [ "$RESTART" -lt "4" ] ; then
+echo "Running namd2 on vacuum system (stage 3)..."
+cp -f $PSFGEN_BASEDIR/${SYSNAME}/calc_colvar_forces.tcl .
+cp -f $PSFGEN_BASEDIR/${SYSNAME}/my_${SYSNAME}_vac_stage3.namd .
+$CHARMRUN +p8 $NAMD2 my_${SYSNAME}_vac_stage3.namd > vac_stage3.log
 fi
 
 # 4. solvate
