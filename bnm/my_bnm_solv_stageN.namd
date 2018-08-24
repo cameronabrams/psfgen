@@ -20,6 +20,9 @@ parameters $env(HOME)/charmm/toppar/par_all36_na.prm
 parameters $env(HOME)/charmm/toppar/par_all36_cgenff.prm
 parameters $env(HOME)/charmm/toppar/toppar_water_ions_namd_nonbfixes.str
 parameters $env(HOME)/research/psfgen/charmm/bnm.str
+parameters $env(HOME)/research/psfgen/charmm/dls1.str
+parameters $env(HOME)/research/psfgen/charmm/dls2.str
+parameters $env(HOME)/research/psfgen/charmm/al1p_PEG.str
 
 exclude             scaled1-4
 1-4scaling          1.0
@@ -57,6 +60,11 @@ langevinpistondecay     100
 langevinpistontemp      $temperature
 usegrouppressure        yes
 useflexiblecell         no
+
+if { [ file exists extrabonds-XT.inp ] == "1" } {
+  extrabonds on
+  extrabondsfile extrabonds-XT.inp
+}
 
 outputEnergies      10
 dcdfreq             1000

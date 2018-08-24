@@ -12,6 +12,9 @@ parameters $env(HOME)/charmm/toppar/par_all36_carb.prm
 parameters $env(HOME)/charmm/toppar/par_all36_na.prm
 parameters $env(HOME)/charmm/toppar/par_all36_cgenff.prm
 parameters $env(HOME)/research/psfgen/charmm/bnm.str
+parameters $env(HOME)/research/psfgen/charmm/dls1.str
+parameters $env(HOME)/research/psfgen/charmm/dls2.str
+parameters $env(HOME)/research/psfgen/charmm/al1p_PEG.str
 
 exclude             scaled1-4
 1-4scaling          1.0
@@ -36,6 +39,11 @@ langevinHydrogen        yes
 outputEnergies      10
 dcdfreq             100
 restartfreq         100
+
+if { [ file exists extrabonds-XT.inp ] == "1" } {
+  extrabonds on
+  extrabondsfile extrabonds-XT.inp
+}
 
 minimize 1000
 run 2000

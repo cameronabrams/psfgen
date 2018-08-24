@@ -70,6 +70,8 @@ else
 fi
 fi
 
+exit
+
 # 3. run vacuum NAMD stages
 if [ "$RESTART" -lt "2" ] ; then
 echo "Running namd2 on vacuum system (stage 1)..."
