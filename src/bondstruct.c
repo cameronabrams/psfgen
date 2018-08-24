@@ -23,6 +23,20 @@ bondstruct * new_bondstruct ( int * ia, int na ) {
    return bs;
 }
 
+void free_bondstruct ( bondstruct * bs ) {
+   int i;
+   if (bs->ia) free(bs->ia);
+   if (bs->rl) free(bs->rl);
+   if (bs->ba) {
+      for (i=0;i<bs->na;i++) free(bs->ba[i]);
+      free(bs->ba);
+   }
+   if (bs->b) free(bs->b);
+   if (bs->bra) free(bs->bra);
+   if (bs->bran) free(bs->bran);
+   free(bs);
+}
+
 int bondstruct_getlocalindex ( bondstruct * bs, int a ) {
    int la;
    for (la=0;la<bs->na && bs->ia[la]!=a;la++);
@@ -219,17 +233,6 @@ int bondstruct_arebonded ( bondstruct * bs, int a, int b ) {
   else return rm;
 }
  
-void free_bondstruct ( bondstruct * bs ) {
-   int i;
-   if (bs->ia) free(bs->ia);
-   if (bs->ba) {
-      for (i=0;i<bs->na;i++) free(bs->ba[i]);
-      free(bs->ba);
-   }
-   if (bs->b) free(bs->b);
-   free(bs);
-}
-
 void free_intarray ( int * a ) {
    free(a);
 }

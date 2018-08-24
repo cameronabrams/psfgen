@@ -7,8 +7,8 @@
 PDB=5vn3
 SPDB=5f4p
 SYSNAME=${PDB}
-CHARMRUN=${HOME}/namd/NAMD_2.12_Source/Linux-x86_64-g++/charmrun
-NAMD2=${HOME}/namd/NAMD_2.12_Source/Linux-x86_64-g++/namd2
+#CHARMRUN=${HOME}/namd/NAMD_2.12_Source/Linux-x86_64-g++/charmrun
+#NAMD2=${HOME}/namd/NAMD_2.12_Source/Linux-x86_64-g++/namd2
 export PSFGEN_BASEDIR=${HOME}/research/psfgen
 ARGC=$#
 COLVARS_INP=my_${PDB}_colvars_op.inp
@@ -52,7 +52,7 @@ while [ $i -le $ARGC ] ; do
   i=$((i+1))
 done
 
-if [ "$RESTART" -le "1" ] ; then
+if [ "$RESTART" -lt "1" ] ; then
 # 1. download ${PDB}.pdb if it is not already here
 if [ ! -e ${PDB}.pdb ]; then
   echo "Retrieving ${PDB}.pdb..."

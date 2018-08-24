@@ -644,6 +644,7 @@ for { set m 0 } { $m < 3 } { incr m } {
 if { $DOCK_BNM == "1" } {
   [atomselect $molid "same residue as exwithin 4.0 of resname BNM3"] set beta 0
   [atomselect $molid "resname BNM3"] set beta 0
+  [atomselect $molid "chain X Y Z"] set beta 0
 }
 
 $a writepdb "my_5vn3_fix.pdb"
