@@ -510,15 +510,16 @@ $a writepdb "unrelaxed2.pdb"
 
 lappend LOCALFILES "unrelaxed2.pdb"
 log_addframe $molid $logid
-set la [atomselect $logid all]
-for {set li 0} {$li < [molinfo $logid get numframes]} {incr li} {
-  $la frame $li
-  $la moveby [vecscale -1 $or]
-  $la move [transaxis z [expr -1 * $p] rad]
-  $la move [transaxis y [expr -1 * $t] rad]
-}
-$la delete
-
+if [ "$logid" -ne "-1" ]; then
+  set la [atomselect $logid all]
+  for {set li 0} {$li < [molinfo $logid get numframes]} {incr li} {
+    $la frame $li
+    $la moveby [vecscale -1 $or]
+    $la move [transaxis z [expr -1 * $p] rad]
+    $la move [transaxis y [expr -1 * $t] rad]
+  }
+  $la delete
+fi
 
 if { $SKIP_LOOPMC == "0" } {
  set nc $LOOP_MC_NC
@@ -716,7 +717,7 @@ if { [expr $DAVEI > 0] == "1" } {
   "
   close $fp
 
-  # Stage 2: drag Trp3's toward Env MPER's
+  # Stage 3: drag Trp3's toward Env MPER's
 
   if { $MPER_EXTEND == "1" } {
     set env_targ_as "664 to 672"
@@ -742,7 +743,7 @@ if { [expr $DAVEI > 0] == "1" } {
          atomnameresiduerange CA 1-9
        }
        group2 {
-         psfsegid C
+         psfsegid D
          atomnameresiduerange CA $env_targ_cv
        }
      }
@@ -794,7 +795,7 @@ if { [expr $DAVEI > 0] == "1" } {
          atomnameresiduerange CA 1-9
        }
        group2 {
-         psfsegid C
+         psfsegid D
          atomnameresiduerange CA $env_avoid_cv
        }
      }

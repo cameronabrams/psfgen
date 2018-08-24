@@ -108,11 +108,3 @@ harmonic {
     centers 0.0
 }
 
-#harmonic {
-#    name grow_dist2A
-#    colvars dist2A
-#    forceconstant 1.0
-#    centers 8.27
-#    targetCenters 16.0
-#    targetNumSteps 1000000
-#}
