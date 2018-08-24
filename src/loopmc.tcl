@@ -37,10 +37,26 @@ proc my_increment { numlet } {
 # computes overlap energy between atoms in sel1 and sel2.  The "my_roughenergy" function (implemented in C)
 # uses a repulsive pair potential of the form A*(x-cut)^2 for x<cut.  Residue index lists are
 # sent so the my_roughenergy does not compute pair interactions for atoms in the same residue 
-proc roughenergy {sel1 sel2 cut}  {
+proc roughenergy { sel1 sel2 cut }  {
   set E 0.0
   if { [$sel1 num] > 0 && [$sel2 num] > 0 } {
-   set E [my_roughenergy [intListToArray [$sel1 get residue]] [ListToArray [$sel1 get x]] [ListToArray [$sel1 get y]] [ListToArray [$sel1 get z]] [$sel1 num] [intListToArray [$sel2 get residue]] [ListToArray [$sel2 get x]] [ListToArray [$sel2 get y]] [ListToArray [$sel2 get z]] [$sel2 num] $cut]
+   set r1 [intListToArray [$sel1 get residue]]
+   set r2 [intListToArray [$sel2 get residue]]
+   set x1 [ListToArray [$sel1 get x]]
+   set x2 [ListToArray [$sel2 get x]]
+   set y1 [ListToArray [$sel1 get y]]
+   set y2 [ListToArray [$sel2 get y]]
+   set z1 [ListToArray [$sel1 get z]]
+   set z2 [ListToArray [$sel2 get z]]
+   set E [my_roughenergy $r1 $x1 $y1 $z1 [$sel1 num] $r2 $x2 $y2 $z2 [$sel2 num] $cut]
+   delete_arrayint $r1
+   delete_arrayint $r2
+   delete_array $x1
+   delete_array $x2
+   delete_array $y1
+   delete_array $y2
+   delete_array $z1
+   delete_array $z2
   }
   return $E
 }
