@@ -31,7 +31,7 @@ To further elaborate the model by growing spacer/linker/Trp3 onto the BNM molecu
 ```
 $ mkdir 5vn3
 $ cd 5vn3
-$ $PSFGEN_BASEDIR/5vn8/do_test_davei.sh [-seed #] [-restart #] [-psfgen_args [-mper-extend] [-log-dcd <filename.dcd>] [-dock-bnm] [-davei #] [-lmct #] [-lmck #] [-lmcr0 #] [-lmcnc #]]
+$ $PSFGEN_BASEDIR/5vn8/do_test.sh [-seed #] [-restart #] [-psfgen_args [-mper-extend] [-log-dcd <filename.dcd>] [-dock-bnm] [-davei #] [-lmct #] [-lmck #] [-lmcr0 #] [-lmcnc #]]
 ```
 All switches and flags as above, except the `-davei` flag, which, if set, indicates the number of aminodiethoxyacetate linker repeat units should be grown between the PEG-azide spacer (also added) and a Trp3 peptide.
 
