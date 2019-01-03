@@ -77,6 +77,10 @@ for { set a 0 } { $a < [llength $argv] } { incr a } {
      incr a
      set DAVEI [lindex $argv $a]
   }
+  if { $arg == "-attractor_radius" } {
+     incr a
+     set attractor_radius [lindex $argv $a]
+  }
 }
 
 if { [expr $DAVEI > 0] == "1" } {
