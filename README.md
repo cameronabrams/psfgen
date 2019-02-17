@@ -92,6 +92,8 @@ source $PSFGEN_BASEDIR/scripts/vmdrc.tcl
 
 25. [5VN8](http://www.rcsb.org/pdb/explore/explore.do?structureID=5vn8) -- HIV-1 gp140 SOSIP trimer in the b12-bound "open" conformation, with option to model-in MPER helices and the small-molecule entry-inhibitor BNM-III-170.
 
+26. [2K7W](http://www.rcsb.org/pdb/explore/explore.do?structureID=2k7w) -- BAX proapoptotic protein with option to include bound BIM SAHB peptide.
+
 More to come...
 
 ## Acknowledgments
@@ -104,9 +106,13 @@ More to come...
 
 4. [CGenFF](https://cgenff.paramchem.org/) is a web-based service for generating CHARMM General Forcefield parameters.  Please cite K. Vanommeslaeghe, E. Hatcher, C. Acharya, S. Kundu, S. Zhong, J. Shim, E. Darian, O. Guvench, P. Lopes, I. Vorobyov, A. D. MacKerell Jr., CHARMM General Force Field: A Force field for Drug-Like Molecules Compatible with the CHARMM All-Atom Additive Biological Force Field, J. Comput. Chem. 2010, 31, 671-690. 
 
-5. All codes and data in this repository have been made possible with partial support from NIH through grants AI084117, AI093248, GM115249, GM056550, and GM100472, the National Science Foundation through grants DMR-1207389 and MCB-1330205, and the US Army through grants W911NF-12-2-0022, W911-NF-13-1-0046, W911NF-12-R-0011, and W911NF-17-2-0227.
+5. The [RCSB](https://rcsb.org) is funded by grant DBI-1338415 from the National Science Foundation, the National Institutes of Health, and the US Department of Energy.  Please see the following reference:
 
-2017-2018, Cameron F Abrams
+The Protein Data Bank H.M. Berman, J. Westbrook, Z. Feng, G. Gilliland, T.N. Bhat, H. Weissig, I.N. Shindyalov, P.E. Bourne (2000) Nucleic Acids Research, 28: 235-242. doi:10.1093/nar/28.1.235
+
+6. All codes and data in this repository have been made possible with partial support from NIH through grants AI084117, AI093248, GM115249, GM056550, and GM100472, the National Science Foundation through grants DMR-1207389 and MCB-1330205, and the US Army through grants W911NF-12-2-0022, W911-NF-13-1-0046, W911NF-12-R-0011, and W911NF-17-2-0227.
+
+2017-2019, Cameron F Abrams
 
 cfa22@drexel.edu
 
