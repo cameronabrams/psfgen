@@ -106,7 +106,7 @@ More to come...
 
 4. [CGenFF](https://cgenff.paramchem.org/) is a web-based service for generating CHARMM General Forcefield parameters.  Please cite K. Vanommeslaeghe, E. Hatcher, C. Acharya, S. Kundu, S. Zhong, J. Shim, E. Darian, O. Guvench, P. Lopes, I. Vorobyov, A. D. MacKerell Jr., CHARMM General Force Field: A Force field for Drug-Like Molecules Compatible with the CHARMM All-Atom Additive Biological Force Field, J. Comput. Chem. 2010, 31, 671-690. 
 
-5. The [RCSB](https://rcsb.org) is funded by grant DBI-1338415 from the National Science Foundation, the National Institutes of Health, and the US Department of Energy.  Please cite:  ``H.M. Berman, J. Westbrook, Z. Feng, G. Gilliland, T.N. Bhat, H. Weissig, I.N. Shindyalov, P.E. Bourne. The Protein Data Bank. Nucleic Acids Research, 2000;28:235-242. doi:10.1093/nar/28.1.235.
+5. The [RCSB](https://rcsb.org) is funded by grant DBI-1338415 from the National Science Foundation, the National Institutes of Health, and the US Department of Energy.  Please cite:  ``H.M. Berman, J. Westbrook, Z. Feng, G. Gilliland, T.N. Bhat, H. Weissig, I.N. Shindyalov, P.E. Bourne. The Protein Data Bank. Nucleic Acids Research, 2000;28:235-242. doi:10.1093/nar/28.1.235.''
 
 6. All codes and data in this repository have been made possible with partial support from NIH through grants AI084117, AI093248, GM115249, GM056550, and GM100472, the National Science Foundation through grants DMR-1207389 and MCB-1330205, and the US Army through grants W911NF-12-2-0022, W911-NF-13-1-0046, W911NF-12-R-0011, and W911NF-17-2-0227.
 
