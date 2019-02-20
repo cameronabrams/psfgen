@@ -18,6 +18,7 @@ if {![info exists PSFGEN_BASEDIR]} {
 
 set BIM 0  ; # set to 1 to include the BIM SAHB peptide
 set FRM 0  ; # allow user to select which of the frames in the NMR structure to use
+set P168G 0 ; # allow user to perform P168G mutation
 for { set a 0 } { $a < [llength $argv] } { incr a } {
    set arg [lindex $argv $a]
    if { $arg == "-bim" } {
@@ -26,6 +27,10 @@ for { set a 0 } { $a < [llength $argv] } { incr a } {
    if { $arg == "-frm" } {
       incr a
       set FRM [lindex $argv $a]
+   }
+   if { $arg == "-P168G" } {
+      incr a
+      set P168G 1
    }
 }
 
@@ -54,6 +59,9 @@ pdbalias residue HIS HSD
 
 segment A { 
   pdb A.pdb
+  if { $P168G == "1" } {
+     mutate 168 GLY
+  }
 }
 coordpdb A.pdb A
 

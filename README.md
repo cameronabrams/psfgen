@@ -100,15 +100,13 @@ More to come...
 
 1. VMD and NAMD are products of the [Theoretical and Computational Biophysics Group at the NIH Center for Macromolecular Modeling and Bioinformatics at the University of Illinois at Urbana-Champaign](http://www.ks.uiuc.edu)
 
-2. [Packmol](https://www.ime.unicamp.br/~martinez/packmol/userguide.shtml) is a product of Leandro Martinez in the Institute of Chemistry at the University of Campinas.  Please cite ``L. Martínez, R. Andrade, E. G. Birgin, J. M. Martínez. Packmol: A package for building initial configurations for molecular dynamics simulations. Journal of Computational Chemistry, 30(13):2157-2164, 2009.'' 
+2. [Packmol](https://www.ime.unicamp.br/~martinez/packmol/userguide.shtml) is a product of Leandro Martinez in the Institute of Chemistry at the University of Campinas.  Please cite ``L. Martínez, R. Andrade, E. G. Birgin, J. M. Martínez. Packmol: A package for building initial configurations for molecular dynamics simulations. Journal of Computational Chemistry, 2009;30:2157-2164.'' 
 
 3. The [CHARMM force field](http://mackerell.umaryland.edu/charmm_ff.shtml) is described in MacKerell, Jr., A.D., Feig, M., and Brooks, III, C.L. "Extending the treatment of backbone energetics in protein force fields: limitations of gas-phase quantum mechanics in reproducing protein conformational distributions in molecular dynamics simulations," Journal of Computational Chemistry, 25: 1400-1415, 2004.
 
 4. [CGenFF](https://cgenff.paramchem.org/) is a web-based service for generating CHARMM General Forcefield parameters.  Please cite K. Vanommeslaeghe, E. Hatcher, C. Acharya, S. Kundu, S. Zhong, J. Shim, E. Darian, O. Guvench, P. Lopes, I. Vorobyov, A. D. MacKerell Jr., CHARMM General Force Field: A Force field for Drug-Like Molecules Compatible with the CHARMM All-Atom Additive Biological Force Field, J. Comput. Chem. 2010, 31, 671-690. 
 
-5. The [RCSB](https://rcsb.org) is funded by grant DBI-1338415 from the National Science Foundation, the National Institutes of Health, and the US Department of Energy.  Please see the following reference:
-
-The Protein Data Bank H.M. Berman, J. Westbrook, Z. Feng, G. Gilliland, T.N. Bhat, H. Weissig, I.N. Shindyalov, P.E. Bourne (2000) Nucleic Acids Research, 28: 235-242. doi:10.1093/nar/28.1.235
+5. The [RCSB](https://rcsb.org) is funded by grant DBI-1338415 from the National Science Foundation, the National Institutes of Health, and the US Department of Energy.  Please cite:  ``H.M. Berman, J. Westbrook, Z. Feng, G. Gilliland, T.N. Bhat, H. Weissig, I.N. Shindyalov, P.E. Bourne. The Protein Data Bank. Nucleic Acids Research, 2000;28:235-242. doi:10.1093/nar/28.1.235.
 
 6. All codes and data in this repository have been made possible with partial support from NIH through grants AI084117, AI093248, GM115249, GM056550, and GM100472, the National Science Foundation through grants DMR-1207389 and MCB-1330205, and the US Army through grants W911NF-12-2-0022, W911-NF-13-1-0046, W911NF-12-R-0011, and W911NF-17-2-0227.
 
