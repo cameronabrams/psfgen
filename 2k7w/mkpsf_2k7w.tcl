@@ -29,7 +29,6 @@ for { set a 0 } { $a < [llength $argv] } { incr a } {
       set FRM [lindex $argv $a]
    }
    if { $arg == "-P168G" } {
-      incr a
       set P168G 1
    }
 }
