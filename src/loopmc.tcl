@@ -94,6 +94,20 @@ proc Crot_phi { r rend c molid deg } {
    $n delete
 }
 
+# same as above, but treats last residue as C-terminus
+proc Crot_phi_toCterm { r rend c molid deg } {
+   set rot [atomselect $molid "((residue $r and not name N and not name HN) or (residue > $r and residue <= $rend)) and chain $c"]; checknum [$rot num] "no rot in Crot_phi";
+   set n [atomselect $molid "residue $r and name N"] ; checknum [$n num] "No N in Crot_phi";
+   set ca [atomselect $molid "residue $r and name CA"]; checknum [$ca num] "No CA in Crot_phi";
+   set p1 [lindex [$n get {x y z}] 0]
+   set p2 [lindex [$ca get {x y z}] 0]
+   set ax [vecsub $p2 $p1]
+   $rot move [trans center $p1 axis $ax $deg degrees]
+   $rot delete
+   $ca delete
+   $n delete
+}
+
 proc Crot_psi { r rend c molid deg } {
    set rot [atomselect $molid "((residue $r and name O) or (residue > $r and residue < $rend) or (residue $rend and not name C and not name O)) and chain $c"]; checknum [$rot num] "no rot in Crot_psi";
    set ca [atomselect $molid "residue $r and name CA"]; checknum [$ca num] "No CA in Crot_psi";
@@ -106,6 +120,20 @@ proc Crot_psi { r rend c molid deg } {
    $ca delete
    $co delete
 }
+
+proc Crot_psi_toCterm { r rend c molid deg } {
+   set rot [atomselect $molid "((residue $r and name O) or (residue > $r and residue <= $rend)) and chain $c"]; checknum [$rot num] "no rot in Crot_psi";
+   set ca [atomselect $molid "residue $r and name CA"]; checknum [$ca num] "No CA in Crot_psi";
+   set co [atomselect $molid "residue $r and name C"] ; checknum [$co num] "No C in Crot_psi";
+   set p1 [lindex [$ca get {x y z}] 0]
+   set p2 [lindex [$co get {x y z}] 0]
+   set ax [vecsub $p2 $p1]
+   $rot move [trans center $p1 axis $ax $deg degrees]
+   $rot delete
+   $ca delete
+   $co delete
+}
+
 
 # rotate the side chain of residue r of chain c in mol molid around
 # chi1 by deg degrees
