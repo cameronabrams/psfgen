@@ -1,11 +1,12 @@
-# psfgen -- advanced VMD/TcL and psfgen/TcL scripts for generating configurations and CHARMM36 topologies for use with NAMD
+# psfgen -- Advanced scripts for generating configurations and CHARMM36 topologies for use with NAMD
 
-This repository contains psfgen scripts, TcL scripts for use in VMD, and some associated CHARMM36 topology and parameter files and NAMD config files used to generate _initial conditions_ for production MD simulations of various systems.  It should be helpful to anyone already familiar with using `psfgen` to build systems using CHARMM topologies who also needs access to some more advanced system-building capabilities than are available in most tutorials.  Some of the features this repository provides beyond what psfgen can easily do are the following:
+This repository contains psfgen scripts, TcL scripts for use in VMD, and some associated CHARMM36 topology and parameter files and NAMD config files used to generate _initial conditions_ for production MD simulations of various systems.  It should be helpful to anyone already familiar with using [psfgen](https://www.ks.uiuc.edu/Research/vmd/plugins/psfgen) to build systems using CHARMM topologies who also needs access to some more advanced system-building capabilities than are available in the [psfgen tutorial](https://www.ks.uiuc.edu/Research/namd/tutorial/NCSA2002/hands-on).  It is strongly recommended that users have familiarity with the psfgen plugin via the excellent [user guide](https://www.ks.uiuc.edu/Research/vmd/plugins/psfgen/ug.pdf). Some of the features this repository provides beyond what psfgen can easily do are the following:
 
-* support for rudimentary loop model-building to include residues missing in the experimental PDB file but present in the crystallized protein sequence;
-* support for glycans and non-covalently linked sugars;
+* support for rudimentary loop model-building to include residues missing in a PDB file but present in the crystallized protein sequence;
+* support for glycans and non-covalently linked sugars and other ligands;
 * integration between solvation and initial MD simulation config file (easy transfer of box size);
 * support for down-puckered prolines;
+* de-novo membrane-building using packmol
 
 The _src_ directory contains files that can be sourced by psfgen scripts.  The _charmm_ directory contains some custom topologies and parameters derived from the July, 2016 charmm36 parameter set.  Other directory names indicate the PDB entry for which the files contained therein are applicable.
 
@@ -94,11 +95,13 @@ source $PSFGEN_BASEDIR/scripts/vmdrc.tcl
 
 26. [2K7W](http://www.rcsb.org/pdb/explore/explore.do?structureID=2k7w) -- BAX proapoptotic protein with option to include bound BIM SAHB peptide.
 
+27. [3CP1](http://www.rcsb.org/pdb/explore/explore.do?structureID=3cp1) -- HIV-1 gp41 NHR/CHR six-helix bundle, with option to grow in MPER and TM, and membrane-embedding.
+
 More to come...
 
 ## Acknowledgments
 
-1. VMD and NAMD are products of the [Theoretical and Computational Biophysics Group at the NIH Center for Macromolecular Modeling and Bioinformatics at the University of Illinois at Urbana-Champaign](http://www.ks.uiuc.edu)
+1. [VMD](http://www.ks.uiuc.edu/Research/vmd) and [NAMD](http://www.ks.uiuc.edu/Research/namd) were developed at the [Theoretical and Computational Biophysics Group at the NIH Center for Macromolecular Modeling and Bioinformatics at the University of Illinois at Urbana-Champaign](http://www.ks.uiuc.edu).  Please cite ``W. Humphrey, A. Dalke, and K. Schulten.  VMD -- Visual Molecular Dynamics. Journal of Molecular Graphics, 1996;14:33-38'' (VMD) and ``J. C. Phillips, R. Braun, W. Wang, J. Gumbart, E. Tajkhorshid, E. Villa, C. Chipot, R. D. Skeel, L. Kale, and K. Schulten. Scalable molecular dynamics with NAMD. Journal of Computational Chemistry, 2005;26:1781-1802'' (NAMD).
 
 2. [Packmol](https://www.ime.unicamp.br/~martinez/packmol/userguide.shtml) is a product of Leandro Martinez in the Institute of Chemistry at the University of Campinas.  Please cite ``L. Martínez, R. Andrade, E. G. Birgin, J. M. Martínez. Packmol: A package for building initial configurations for molecular dynamics simulations. Journal of Computational Chemistry, 2009;30:2157-2164.'' 
 
