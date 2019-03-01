@@ -3,6 +3,7 @@
 # from PDB 3CP1 with option to extend with MPER/TMD
 #
 PDB=3cp1
+SPDB=(3idi 4xaw)
 NAMD2=${HOME}/namd/NAMD_2.12_Source/Linux-x86_64-g++/namd2
 if [ -z "$PSFGEN_BASEDIR" ] ; then
   PSFGEN_BASEDIR=${HOME}/research/psfgen
