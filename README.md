@@ -97,6 +97,8 @@ source $PSFGEN_BASEDIR/scripts/vmdrc.tcl
 
 27. [3CP1](http://www.rcsb.org/pdb/explore/explore.do?structureID=3cp1) -- HIV-1 gp41 NHR/CHR six-helix bundle, with option to grow in MPER and TM, and membrane-embedding.
 
+28. EOH -- a single ethanol molecule extracted from 3TOD, using CGENFF
+
 More to come...
 
 ## Acknowledgments
