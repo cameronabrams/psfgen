@@ -99,6 +99,10 @@ source $PSFGEN_BASEDIR/scripts/vmdrc.tcl
 
 28. EOH -- a single ethanol molecule extracted from 3TOD, using CGENFF
 
+29. GXG -- a single GXG tripeptide, where X can be any residue, with 
+an option to make a mixture of any molarity of GXG with an ethanol/water
+cosolvent
+
 More to come...
 
 ## Acknowledgments
