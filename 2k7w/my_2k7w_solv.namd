@@ -35,7 +35,7 @@ langevin                on;            # do langevin dynamics
 langevinDamping         5;              # damping coefficient (gamma) of 5/ps
 langevinTemp            $temperature;   # bath temperature
 langevinHydrogen        no;             # don't couple langevin bath to hydrogens
-seed                    98768674
+seed                    %SEED%
 
 langevinpiston          on
 langevinpistontarget    1.013  ;# 1-bar

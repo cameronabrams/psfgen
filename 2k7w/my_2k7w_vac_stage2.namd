@@ -1,9 +1,13 @@
 structure  my_2k7w.psf 
 coordinates my_2k7w.pdb
+set inputname my_2k7w_vac_stage1
+bincoordinates ${inputname}.coor
+binvelocities ${inputname}.vel
+extendedsystem ${inputname}.xsc
 set temperature 310
-temperature $temperature
+#temperature $temperature
 
-set outputname my_2k7w_vac_stage1
+set outputname my_2k7w_vac
 firsttimestep 0
 
 paraTypeCharmm      on
@@ -29,14 +33,12 @@ langevinDamping         5
 langevinTemp            $temperature
 langevinHydrogen        yes
 
-fixedatoms yes
-fixedatomsfile my_2k7w_fix.pdb
-fixedatomscol B
-
 outputEnergies      10
 dcdfreq             100
 restartfreq         100
 
-minimize 1000
-run 2000
+colvars on
+colvarsconfig cvomega.inp
+
+run 20000
 
