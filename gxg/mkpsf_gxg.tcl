@@ -14,11 +14,15 @@ if {![info exists PSFGEN_BASEDIR]} {
 }
 source ${PSFGEN_BASEDIR}/src/loopmc.tcl
 set X ALA 
+set CNEU 0
 for { set a 0 } { $a < [llength $argv] } { incr a } {
    set arg [lindex $argv $a]
    if { $arg == "-x" } {
       incr a
       set X [lindex $argv $a]
+   }
+   if { $arg == "-cneu" } {
+      set CNEU 1
    }
 }
 
@@ -31,6 +35,9 @@ mol new skel.pdb
 set n2pos [cacoIn_nOut 1 A 0]
 
 segment A {
+  if { $CNEU == "1" } {
+    last CNEU
+  } 
   pdb skel.pdb
   residue 2 ${X} A
   residue 3 GLY A

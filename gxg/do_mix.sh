@@ -1,7 +1,7 @@
 #!/bin/bash
 # master test script for generating an ethanol/water cosolvent system
 #
-# Copy this file to a clean directory and launch it.
+# Launch in a clean directory
 #
 # change these absolute pathnames to match your system
 PDB=gxg
@@ -14,6 +14,10 @@ PM=0.2 ; # concentration of GXG tripeptide in molar
 WE=0.55 ; # wt fraction of ethanol in water/ethanol mixture
 L=50; # box size in angstroms
 gxg_pdb=my_gxg_q.pdb
+gxg_psf=my_gxg.psf
+seed=$RANDOM
+FP=GLYP
+LP=CTER
 while [ $i -le $ARGC ] ; do
   if [ "${!i}" = "-L" ]; then
     i=$((i+1))
@@ -27,9 +31,21 @@ while [ $i -le $ARGC ] ; do
     i=$((i+1))
     WE=${!i}
   fi
+  if [ "${!i}" = "-fp" ]; then
+    i=$((i+1))
+    FP=${!i}
+  fi
+  if [ "${!i}" = "-lp" ]; then
+    i=$((i+1))
+    LP=${!i}
+  fi
   if [ "${!i}" = "-gxg_pdb" ]; then
     i=$((i+1))
     gxg_pdb=${!i}
+  fi
+  if [ "${!i}" = "-gxg_psf" ]; then
+    i=$((i+1))
+    gxg_psf=${!i}
   fi
   if [ "${!i}" = "-namd2" ]; then
     i=$((i+1))
@@ -38,6 +54,10 @@ while [ $i -le $ARGC ] ; do
   if [ "${!i}" = "-charmrun" ]; then
     i=$((i+1))
     CHARMRUN=${!i}
+  fi
+  if [ "${!i}" = "-seed" ]; then
+    i=$((i+1))
+    seed=${!i}
   fi
   if [ "${!i}" = "-psfgen_basedir" ]; then
     i=$((i+1))
@@ -55,13 +75,15 @@ while [ $i -le $ARGC ] ; do
   i=$((i+1))
 done
 
+z=`cat $gxg_psf | cut -b 10-10,35-44 | grep ^A | awk 'BEGIN{s=0}{s+=$2}END{printf("%.0f\n",s);}'`
+echo "Charge: $z"
 cp $PSFGEN_BASEDIR/${PDB}/my_eoh_q.pdb .
 echo "Generating packmol input files..."
-tclsh $PSFGEN_BASEDIR/${PDB}/my_${PDB}_mix_packmolin.tcl -pm $PM -we $WE -L $L -eoh_pdb my_eoh_q.pdb -gxg_pdb $gxg_pdb > psfgen_mix_1.log
+tclsh $PSFGEN_BASEDIR/${PDB}/my_${PDB}_mix_packmolin.tcl -seed $seed -pm $PM -we $WE -L $L -eoh_pdb my_eoh_q.pdb -gxg_pdb $gxg_pdb -z $z > psfgen_mix_1.log
 echo "Running packmol..."
 packmol < pm-tmp.in
 echo "Making mixture psf..."
-vmd -dispdev text -e $PSFGEN_BASEDIR/${PDB}/my_${PDB}_mix_mkpsf.tcl > psfgen_mix_2.log
+vmd -dispdev text -e $PSFGEN_BASEDIR/${PDB}/my_${PDB}_mix_mkpsf.tcl -args -firstpatch $FP -lastpatch $LP > psfgen_mix_2.log
 
 # run NAMD
 numsteps=( 100 200 400 800 1600 16900 )

@@ -6,10 +6,11 @@
 # Launch this in a clean directory!
 #
 # change these absolute pathnames to match your system
-PDB=gxg
 CHARMRUN=${HOME}/namd/NAMD_2.12_Source/Linux-x86_64-g++/charmrun
 NAMD2=${HOME}/namd/NAMD_2.12_Source/Linux-x86_64-g++/namd2
 export PSFGEN_BASEDIR=${HOME}/research/psfgen
+
+PDB=gxg
 ARGC=$#
 i=1
 while [ $i -le $ARGC ] ; do

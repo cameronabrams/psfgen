@@ -14,6 +14,8 @@ set L 50.0
 set eoh_pdb "my_eoh_q.pdb"
 set gxg_pdb "my_gxg_q.pdb"
 
+set seed [exec date +%s]
+
 for {set i 0} {$i < $argc} {incr i} {
    if { [lindex $argv $i] == "-pm" } {
      incr i
@@ -27,9 +29,17 @@ for {set i 0} {$i < $argc} {incr i} {
      incr i
      set L [lindex $argv $i]
    }
+   if { [lindex $argv $i] == "-seed" } {
+     incr i
+     set seed [lindex $argv $i]
+   }
    if { [lindex $argv $i] == "-eoh_pdb" } {
      incr i
      set eoh_pdb [lindex $argv $i]
+   }
+   if { [lindex $argv $i] == "-z" } {
+     incr i
+     set z [lindex $argv $i]
    }
    if { [lindex $argv $i] == "-gxg_pdb" } {
      incr i
@@ -47,8 +57,6 @@ if { ! [file exists $gxg_pdb] } {
    puts "tripeptide molecule pdb $gxg_pdb not found."
    exit
 }
-
-set seed [exec date +%s]
 
 set box { { ? ? ? } { ? ? ? } }
 set basisvec { ? ? ? }
@@ -83,6 +91,15 @@ set densgcc 0.7
 # compute number of GXG molecules
 set ngxg [expr int(6.022e-4 * $pm * $V)]
 
+# compute number of counterions
+set nna 0
+set ncl 0
+if { $z > 0 } {
+   set ncl [expr round($z)*$ngxg]
+} elseif { $z < 0 } {
+   set nna [expr round(-$z)*$ngxg]
+}
+
 # compute approximate numbers of water and ethanol molecules
 set MWw 18.0
 set MWe 46.0
@@ -95,9 +112,7 @@ set ne [expr int((1-$molfw)*$nwifpure)]
 
 set check_wfw [expr ($nw*$MWw)/($ne*$MWe + $nw*$MWw)]
 
-puts "$ngxg $nw $ne $check_wfw"
-
-puts "system will have $ngxg gxg, $nw waters, $ne ethanols."
+puts "system will have $ngxg gxg, $nw waters, $ne ethanols, $nna sodium, $ncl chlorides."
 
 set fp [open "pm-tmp.in" "w"]
 puts $fp "
@@ -128,6 +143,26 @@ end structure
 "
 }
 
+if { $nna > 0 } {
+  puts $fp "
+structure SOD.pdb
+   resnumbers 0
+   number $nna
+   inside box $xmin $ymin $zmin $xmax $ymax $zmax
+end structure
+"
+}
+if { $ncl > 0 } {
+  puts $fp "
+structure CL.pdb
+   resnumbers 0
+   number $ncl
+   inside box $xmin $ymin $zmin $xmax $ymax $zmax
+end structure
+"
+}
+close $fp
+
 for {set i 0} {$i < $nws} {incr i} {
   set water_file [ open tip3-[lindex $ws $i].pdb w ]
   puts $water_file "HETATM    1  H1  TIP3    1       9.626   6.787  12.673  0.00  0.00      W[lindex $ws $i]"
@@ -135,6 +170,14 @@ for {set i 0} {$i < $nws} {incr i} {
   puts $water_file "HETATM    3  OH2 TIP3    1      10.203   7.604  12.673  0.00  0.00      W[lindex $ws $i]"
   close $water_file
 }
+
+set sod_file [ open SOD.pdb w ]
+puts $sod_file  "HETATM    1 SOD  SOD    2        0.000   0.000   0.000  0.00  0.00      I" 
+close $sod_file
+
+set cl_file [ open CL.pdb w ] 
+puts $cl_file  "HETATM    1 CLA  CLA    2        0.000   0.000   0.000  0.00  0.00      I" 
+close $cl_file
 
 # generate an input file for the first solvated MD simulation
 # namd config file

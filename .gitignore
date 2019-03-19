@@ -6,6 +6,7 @@ prep/
 output/
 a.out
 bin/
+lib/
 *.swp
 ref_md/
 *-working*/
