@@ -13,6 +13,7 @@ COLVARS_INP=my_${PDB}_colvars_op.inp
 STAGE=0
 NPE=8
 i=1
+seed=$RANDOM
 while [ $i -le $ARGC ] ; do
   if [ "${!i}" = "-pdb" ]; then
     i=$((i+1))
@@ -68,10 +69,15 @@ else
   vmd -dispdev text -e $PSFGEN_BASEDIR/${PDB}/mkpsf_${PDB}.tcl > psfgen1.log
 fi
 
-# 3. run NAMD
+# 3. run NAMD in vacuum
 echo "Running namd2 on vacuum system..."
-ln -s $PSFGEN_BASEDIR/${PDB}/my_${PDB}_vac.namd .
+cp $PSFGEN_BASEDIR/${PDB}/my_${PDB}_vac.namd .
 $CHARMRUN +p1 $NAMD2 my_${PDB}_vac.namd > vac.log
+if [ -f "go-stage-2" ]; then
+   echo "Running namd2 (stage 2, `cat go-stage-2`) on vacuum system..."
+   cp $PSFGEN_BASEDIR/${PDB}/my_${PDB}_vac_stage2.namd .
+   $CHARMRUN +p1 $NAMD2 my_${PDB}_vac_stage2.namd > vac_stage2.log
+fi
 
 # 4. solvate
 echo "Generating solvated system..."
@@ -80,23 +86,29 @@ vmd -dispdev text -e $PSFGEN_BASEDIR/${PDB}/my_${PDB}_solv.tcl > psfgen2.log
 # 5. run NAMD
 if [ $STAGE -eq 0 ] ; then
   echo "Running namd2 on solvated system..."
-  ln -s $PSFGEN_BASEDIR/${PDB}/my_${PDB}_solv.namd .
+  cp $PSFGEN_BASEDIR/${PDB}/my_${PDB}_solv.namd .
+  cat my_${PDB}_solv.namd | sed s/%SEED%/$seed/g > tmp; mv tmp my_${PDB}_solv.namd
   lcvi=`grep -i colvarsconfig $PSFGEN_BASEDIR/${PDB}/my_${PDB}_solv.namd  | awk '{print $2}'`
-  ln -s $PSFGEN_BASEDIR/${PDB}/${COLVARS_INP} ./${lcvi}
+  cp $PSFGEN_BASEDIR/${PDB}/${COLVARS_INP} ./${lcvi}
   $CHARMRUN +p${NPE} $NAMD2 my_${PDB}_solv.namd > solv.log
 else
-  SYSNAME=${PDB}
-  numsteps=( 100 200 19700 )
-  ls=`echo "${#numsteps[@]} - 1" | bc`
-  firsttimestep=100; # stage-0 minimization
-  for s in `seq 0 $ls`; do
-    echo "Running namd2 (stage $s) on solvated system..."
-    cat $PSFGEN_BASEDIR/${SYSNAME}/my_${SYSNAME}_solv_stageN.namd | \
+  if [ -f $PSFGEN_BASEDIR/${SYSNAME}/my_${SYSNAME}_solv_stageN.namd ]; then
+    SYSNAME=${PDB}
+    numsteps=( 100 200 19700 )
+    ls=`echo "${#numsteps[@]} - 1" | bc`
+    firsttimestep=100; # stage-0 minimization
+    for s in `seq 0 $ls`; do
+      echo "Running namd2 (stage $s) on solvated system..."
+      cat $PSFGEN_BASEDIR/${SYSNAME}/my_${SYSNAME}_solv_stageN.namd | \
         sed s/%STAGE%/${s}/g | \
         sed s/%NUMSTEPS%/${numsteps[$s]}/g | \
         sed s/%FIRSTTIMESTEP%/$firsttimestep/g > my_${SYSNAME}_solv_stage${s}.namd
-    $CHARMRUN +p${NPE} $NAMD2 my_${SYSNAME}_solv_stage${s}.namd > solv_stage${s}.log
-    firsttimestep=`echo "$firsttimestep + ${numsteps[$s]}" | bc`
-done
+      $CHARMRUN +p${NPE} $NAMD2 my_${SYSNAME}_solv_stage${s}.namd > solv_stage${s}.log
+      firsttimestep=`echo "$firsttimestep + ${numsteps[$s]}" | bc`
+    done
+  else
+     echo "Error: staging selected by $PSFGEN_BASEDIR/${SYSNAME}/my_${SYSNAME}_solv_stageN.namd is not found."
+     exit
+  fi
 fi
 echo "Done."
