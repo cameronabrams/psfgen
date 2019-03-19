@@ -77,6 +77,12 @@ if [ -f "go-stage-2" ]; then
    echo "Running namd2 (stage 2, `cat go-stage-2`) on vacuum system..."
    cp $PSFGEN_BASEDIR/${PDB}/my_${PDB}_vac_stage2.namd .
    $CHARMRUN +p1 $NAMD2 my_${PDB}_vac_stage2.namd > vac_stage2.log
+else
+   for suf in coor vel xsc; do
+     if [ -f my_${PDB}_vac_stage1.${suf} ]; then
+        mv my_${PDB}_vac_stage1.${suf}  my_${PDB}_vac.${suf}
+     fi
+   done
 fi
 
 # 4. solvate
