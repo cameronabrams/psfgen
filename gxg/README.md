@@ -29,6 +29,7 @@ $ $PSFGEN_BASEDIR/gxg/do_mix.sh -pm #(0.2) -we #(0.55) -L #(50.0) -gxg_psf <name
 ```
 
 arg | meaning | default
+--- | --- | --- 
 `-pm` | peptide molarity | 0.1
 `-we` | EtOH wt fraction in peptide-free cosolvent | 0.55
 `-L`  | box length, angstroms | 50
