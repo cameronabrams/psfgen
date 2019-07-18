@@ -11,6 +11,9 @@ set pm 0.2
 set we 0.55
 # 30-angstrom cubic box
 set L 50.0
+# effective density of solvent; make lower if can't pack
+set densgcc 0.7
+
 set eoh_pdb "my_eoh_q.pdb"
 set gxg_pdb "my_gxg_q.pdb"
 
@@ -40,6 +43,10 @@ for {set i 0} {$i < $argc} {incr i} {
    if { [lindex $argv $i] == "-z" } {
      incr i
      set z [lindex $argv $i]
+   }
+   if { [lindex $argv $i] == "-densgcc" } {
+     incr i
+     set densgcc [lindex $argv $i]
    }
    if { [lindex $argv $i] == "-gxg_pdb" } {
      incr i
@@ -85,8 +92,6 @@ set ymax [lindex [lindex $box 1] 1]
 set zmin [lindex [lindex $box 0] 2]
 set zmax [lindex [lindex $box 1] 2]
 
-# might have to lower this
-set densgcc 0.7
 
 # compute number of GXG molecules
 set ngxg [expr int(6.022e-4 * $pm * $V)]

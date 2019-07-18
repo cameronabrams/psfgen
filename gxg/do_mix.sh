@@ -18,6 +18,7 @@ gxg_psf=my_gxg.psf
 seed=$RANDOM
 FP=GLYP
 LP=CTER
+densgcc=0.7
 while [ $i -le $ARGC ] ; do
   if [ "${!i}" = "-L" ]; then
     i=$((i+1))
@@ -46,6 +47,10 @@ while [ $i -le $ARGC ] ; do
   if [ "${!i}" = "-gxg_psf" ]; then
     i=$((i+1))
     gxg_psf=${!i}
+  fi
+  if [ "${!i}" = "-densgcc" ]; then
+    i=$((i+1))
+    densgcc=${!i}
   fi
   if [ "${!i}" = "-namd2" ]; then
     i=$((i+1))
@@ -79,7 +84,7 @@ z=`cat $gxg_psf | cut -b 10-10,35-44 | grep ^A | awk 'BEGIN{s=0}{s+=$2}END{print
 echo "Charge: $z"
 cp $PSFGEN_BASEDIR/${PDB}/my_eoh_q.pdb .
 echo "Generating packmol input files..."
-tclsh $PSFGEN_BASEDIR/${PDB}/my_${PDB}_mix_packmolin.tcl -seed $seed -pm $PM -we $WE -L $L -eoh_pdb my_eoh_q.pdb -gxg_pdb $gxg_pdb -z $z > psfgen_mix_1.log
+tclsh $PSFGEN_BASEDIR/${PDB}/my_${PDB}_mix_packmolin.tcl -seed $seed -pm $PM -we $WE -L $L -eoh_pdb my_eoh_q.pdb -gxg_pdb $gxg_pdb -z $z -densgcc $densgcc > psfgen_mix_1.log
 echo "Running packmol..."
 packmol < pm-tmp.in
 echo "Making mixture psf..."

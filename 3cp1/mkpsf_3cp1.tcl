@@ -30,7 +30,7 @@ set TMD_EXTEND 0
 set MPER_663_to_683 [list LEU ASP LYS TRP ALA SER LEU TRP ASN TRP PHE ASN ILE THR ASN TRP LEU TRP TYR ILE LYS]
 set TMD_684_to_709 [list LEU PHE ILE MET ILE VAL GLY GLY LEU VAL GLY LEU ARG ILE VAL PHE ALA VAL LEU SER ILE VAL ASN ARG VAL ARG]
 set SKIP_LOOPMC 0
-
+set DO_STALK 0
 set LOOP_MC_NC  1000
 set LOOP_MC_RCUT  3.0
 set LOOP_MC_TEMPERATURE  2.5
@@ -57,6 +57,9 @@ for { set a 0 } { $a < [llength $argv] } { incr a } {
      set LOG_DCD 1
      incr a
      set log_dcd_file [lindex $argv $a]
+  }
+  if { $arg == "-do-stalk" } {
+     set DO_STALK 1
   }
 }
 
@@ -232,17 +235,19 @@ if { $MPER_EXTEND == "1" } {
     $sel delete
     log_addframe $molid $logid
     
-    # fold them over!
-    puts "Folding 'em over!..."
-    set endres [[atomselect $molid "protein and chain $c and resid $Cterm and name CA"] get residue]
-    set rot1res [[atomselect $molid "protein and chain $c and resid 662 and name CA"] get residue]
-    set rot2res [[atomselect $molid "protein and chain $c and resid 672 and name CA"] get residue]
-    Crot_psi_toCterm $rot1res $endres $c $molid 120
-    log_addframe $molid $logid
-    Crot_phi_toCterm $rot1res $endres $c $molid -60
-    log_addframe $molid $logid
-    Crot_psi_toCterm $rot2res $endres $c $molid 120
-    log_addframe $molid $logid
+    if { $DO_STALK == "1" } {
+       # fold them over!
+       puts "Folding 'em over!..."
+       set endres [[atomselect $molid "protein and chain $c and resid $Cterm and name CA"] get residue]
+       set rot1res [[atomselect $molid "protein and chain $c and resid 662 and name CA"] get residue]
+       set rot2res [[atomselect $molid "protein and chain $c and resid 672 and name CA"] get residue]
+       Crot_psi_toCterm $rot1res $endres $c $molid 120
+       log_addframe $molid $logid
+       Crot_phi_toCterm $rot1res $endres $c $molid -60
+       log_addframe $molid $logid
+       Crot_psi_toCterm $rot2res $endres $c $molid 120
+       log_addframe $molid $logid
+    }
   }
 }
 
@@ -264,9 +269,12 @@ if { $SKIP_LOOPMC == "0" } {
 }
 
 $a writepdb "my_3cp1_mcOut.pdb"
-
-set fixem [atomselect top "(protein and noh and not resid 577 to 579 661 662 663 671 672 673) or (not protein and name OH2)"]
-$a set beta 0
+if { $DO_STALK == "1" } {
+  set fixem [atomselect top "(protein and noh and not resid 577 to 579 661 662 663 671 672 673) or (not protein and name OH2)"]
+} else {
+  set fixem [atomselect top "(protein and noh and not resid 577 to 579) or (not protein and name OH2)"]
+}
+  $a set beta 0
 $fixem set beta 1
 $a writepdb "my_3cp1_fixed.pdb"
 

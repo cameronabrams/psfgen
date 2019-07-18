@@ -69,7 +69,7 @@ topology $env(HOME)/charmm/toppar/toppar_water_ions_namd.str
 topology $env(HOME)/charmm/toppar/top_all36_na.rtf
 topology $env(HOME)/charmm/toppar/top_all36_carb.rtf
 topology $env(HOME)/charmm/toppar/top_all36_cgenff.rtf
-topology $PSFGEN_BASEDIR/charmm/bnm.str
+topology $PSFGEN_BASEDIR/charmm/bnm_edited.str
 
 pdbalias atom ILE CD1 CD
 
@@ -83,7 +83,7 @@ pdbalias atom BGLC O7 O
 pdbalias atom BGLC C8 CT
 
 # now, we need to fix the atom names in the BNM ligand
-foreach nbad [exec grep 5VG 5f4p.pdb | grep -w "5VG A" | grep HETATM | cut -b 13-16] ngood [exec grep ATOM ${PSFGEN_BASEDIR}/charmm/bnm.str | cut -b 6-9 | grep -v ^H] {
+foreach nbad [exec grep 5VG 5f4p.pdb | grep -w "5VG A" | grep HETATM | cut -b 13-16] ngood [exec grep ATOM ${PSFGEN_BASEDIR}/charmm/bnm_edited.str | cut -b 6-9 | grep -v ^H] {
   pdbalias atom BNM3 $nbad $ngood
 } 
 

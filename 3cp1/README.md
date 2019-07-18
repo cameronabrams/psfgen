@@ -10,7 +10,7 @@ The six-helix bundle is thought to be the end-state of the fusion cascade for HI
 TVQ ARQLLSGIVQ QQNDLLRAIE AQQHLLQLTV WGIKQL   ME WDREINNYTS LIHSLIEESQ NQQEKNEQEL LE
 ---------------NHR-------------------------   -------------CHR----------------------
 ```
-The gap from 577 to 627 is the location of the disulfide loop of gp41, and this is by construction not included in this structure.  For reference, its HXB3 sequence is below.
+The gap from 577 to 627 is the location of the disulfide loop of gp41, and this is by construction not included in this structure.  For reference, its HXB2 sequence is below.
 
 ```
 DISULFLIDE LOOP
@@ -45,7 +45,7 @@ The TMD is grown in as an alpha helix continuing from the MPER.
 $ export PSFGEN_BASEDIR=/path/to/psfgen/repository/on/your/system
 $ mkdir my_5jyn
 $ cd my_5jyn
-$ $PSFGEN_BASEDIR/5jyn/do_test.sh [-restart] [-psfgen_args -seed <#> -mper-extend -tmd-extend]
+$ $PSFGEN_BASEDIR/5jyn/do_test.sh [-restart] [-psfgen_args -seed <#> -mper-extend -tmd-extend -do-stalk]
 ```
 
 Switch | Args | Notes
@@ -53,6 +53,7 @@ Switch | Args | Notes
 `-seed` | any +int | random number generator seed
 `-mper-extend` | none | grow MPER residues as an alpha-helix at C-terminus of CHR's
 `-tmd-extend` | none | grow TM residues after MPER's (sets `-mper-extend`)
+`-do-stalk` | none | embed in DMPC membrane in putative "stalk" conformation
 
 
 ## References

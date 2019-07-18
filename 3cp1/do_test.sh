@@ -11,8 +11,12 @@ fi
 ARGC=$#
 COLVARS_INP=my_${PDB}_colvars_op.inp
 RESTART=0
+DO_STALK=0
 i=1
 while [ $i -le $ARGC ] ; do
+  if [ "${!i}" = "-do-stalk" ]; then
+    DO_STALK=1
+  fi
   if [ "${!i}" = "-restart" ]; then
     RESTART=1
   fi
@@ -48,6 +52,11 @@ while [ $i -le $ARGC ] ; do
   i=$((i+1))
 done
 
+if [ $DO_STALK ]; then
+   l=${#psfgen_args[@]}
+   psfgen_args[$l]='-do-stalk'
+fi
+
 if [ $RESTART = 0 ]; then
   # 1. download ${PDB}.pdb if it is not already here
   if [ ! -e ${PDB}.pdb ]; then
@@ -69,20 +78,29 @@ if [ $RESTART = 0 ]; then
   $CHARMRUN +p8 $NAMD2 my_${PDB}_vac.namd > vac.log
 
   # 4. solvate
-  echo "Generating solvated/membrane system..."
-  if [ ${#psfgen_args} -ge 0 ]; then
-    vmd -dispdev text -e $PSFGEN_BASEDIR/${PDB}/my_${PDB}_solv_1.tcl -args ${psfgen_args[*]} > psfgen2_1.log
-  else
-    vmd -dispdev text -e $PSFGEN_BASEDIR/${PDB}/my_${PDB}_solv_1.tcl > psfgen2_1.log
-  fi  
-  echo "...Running packmol, stage 1: lower leaflet..."
-  packmol < pm-stage1.in > packmol-stage1.log
-  echo "...Running packmol, stage 2: upper leaflet..."
-  packmol < pm-stage2.in > packmol-stage2.log
-  echo "...Running packmol, stage 3: water and ions..."
-  packmol < pm-stage3.in > packmol-stage3.log
+  if [ $DO_STALK ]; then
+    echo "Generating solvated/membrane system..."
+    if [ ${#psfgen_args} -ge 0 ]; then
+      vmd -dispdev text -e $PSFGEN_BASEDIR/${PDB}/my_${PDB}_solv_1.tcl -args ${psfgen_args[*]} > psfgen2_1.log
+    else
+      vmd -dispdev text -e $PSFGEN_BASEDIR/${PDB}/my_${PDB}_solv_1.tcl > psfgen2_1.log
+    fi  
+    echo "...Running packmol, stage 1: lower leaflet..."
+    packmol < pm-stage1.in > packmol-stage1.log
+    echo "...Running packmol, stage 2: upper leaflet..."
+    packmol < pm-stage2.in > packmol-stage2.log
+    echo "...Running packmol, stage 3: water and ions..."
+    packmol < pm-stage3.in > packmol-stage3.log
 
-  vmd -dispdev text -e $PSFGEN_BASEDIR/${PDB}/my_${PDB}_solv_2.tcl > psfgen2_2.log
+    vmd -dispdev text -e $PSFGEN_BASEDIR/${PDB}/my_${PDB}_solv_2.tcl > psfgen2_2.log
+  else
+    echo "Generating solvated system..."
+    if [ ${#psfgen_args} -ge 0 ]; then
+      vmd -dispdev text -e $PSFGEN_BASEDIR/${PDB}/my_${PDB}_solv.tcl -args ${psfgen_args[*]} > psfgen1.log
+    else
+      vmd -dispdev text -e $PSFGEN_BASEDIR/${PDB}/my_${PDB}_solv.tcl > psfgen1.log
+    fi  
+  fi
 fi # RESTART == 0
 
 # 5. run NAMD; staging to avoid patch-grid errors

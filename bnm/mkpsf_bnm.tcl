@@ -50,13 +50,13 @@ topology $env(HOME)/charmm/toppar/top_all36_prot.rtf
 topology $env(HOME)/charmm/toppar/top_all36_na.rtf
 topology $env(HOME)/charmm/toppar/top_all36_carb.rtf
 topology $env(HOME)/charmm/toppar/top_all36_cgenff.rtf
-topology ${PSFGEN_BASEDIR}/charmm/bnm.str
+topology ${PSFGEN_BASEDIR}/charmm/bnm_edited.str
 topology ${PSFGEN_BASEDIR}/charmm/dls1.str
 topology ${PSFGEN_BASEDIR}/charmm/dls2.str
 topology ${PSFGEN_BASEDIR}/charmm/al1p_PEG.str
 
 # correctly alias atom names; names in fresh pdb are bad; names in cgenff-generated bnm.str are good (derived from avogadro)
-foreach nbad [exec grep 5VG 5f4p.pdb | grep -w "5VG A" | grep HETATM | cut -b 13-16] ngood [exec grep ATOM ${PSFGEN_BASEDIR}/charmm/bnm.str | cut -b 6-9 | grep -v ^H] {
+foreach nbad [exec grep 5VG 5f4p.pdb | grep -w "5VG A" | grep HETATM | cut -b 13-16] ngood [exec grep ATOM ${PSFGEN_BASEDIR}/charmm/bnm_edited.str | cut -b 6-9 | grep -v ^H] {
   pdbalias atom BNM3 $nbad $ngood
 } 
 
@@ -109,7 +109,9 @@ writepdb "my_bnm_tmp.pdb"; lappend LOCALFILES my_bnm_tmp.pdb
 resetpsf
 mol new my_bnm.psf
 mol addfile my_bnm_tmp.pdb waitfor all
-set sel [atomselect top "segname XT"]
+if { [ expr $DAVEI > 0 ] == "1" } {
+  set sel [atomselect top "segname XT"]
+}
 fold_alpha_helix top $sel extrabonds-XT.inp
 [atomselect top all] writepdb "my_bnm.pdb"
 

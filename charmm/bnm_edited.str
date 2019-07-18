@@ -182,7 +182,7 @@ CG2O1  CG2O1   440.00     1.4890 ! ***** , from CG2DC1 CG2O1, penalty= 90
 CG2RC0 CG3C51  305.00     1.5200 ! ***** , from CG2RC0 CG3C52, penalty= 4
 CG324  CG3C51  222.50     1.5280 ! ***** , from CG321 CG3C51, penalty= 1
 CG3C51 NG2S1   320.00     1.4340 ! ***** , from CG3C51 NG2S0, penalty= 20
-
+CG334 NG3P2    255.00     1.4630 ! MGU2, methylguanidine2
 ANGLES
 CG2O1  CG2O1  NG2S1    80.00    116.50 ! ***** , from CG2R61 CG2O1 NG2S1, penalty= 25
 CG2O1  CG2O1  OG2D1    30.00    121.00 ! ***** , from CG2R61 CG2O1 OG2D1, penalty= 25
@@ -204,9 +204,11 @@ CG2RC0 CG3C52 CG3C51   65.00    108.20 ! ***** , from CG2RC0 CG3C52 CG3C52, pena
 CG2O1  NG2S1  CG3C51   50.00    120.00 ! ***** , from CG2O1 NG2S1 CG321, penalty= 10
 CG3C51 NG2S1  HGP1     35.00    117.00 ! ***** , from CG321 NG2S1 HGP1, penalty= 10
 CG324  NG3P2  CG334    40.00    115.20 ! ***** , from CG324 NG3P2 CG324, penalty= 1.7
+HGA3 CG334 NG3P2       45.00    104.00 ! MGU2, methylguanidine2
+CG334 NG3P2 HGP2       45.00    104.00 ! MGU2, methylguanidine2
 
 DIHEDRALS
-NG2S1  CG2O1  CG2O1  NG2S1      4.000  2   180.00 ! arbitrarily high to keep oxalamide planar
+NG2S1  CG2O1  CG2O1  NG2S1      4.0000  2   180.00 ! 4is an arbritrary choice so oxalamide is planar (was 0.5000), from CG321 CG2DC1 CG2O1 NG2S2, penalty= 160
 NG2S1  CG2O1  CG2O1  NG2S1      0.3500  3   180.00 ! ***** , from CG321 CG2DC1 CG2O1 NG2S2, penalty= 160
 NG2S1  CG2O1  CG2O1  NG2S1      0.4000  6     0.00 ! ***** , from CG321 CG2DC1 CG2O1 NG2S2, penalty= 160
 NG2S1  CG2O1  CG2O1  OG2D1      0.5000  2   180.00 ! ***** , from CG321 CG2DC1 CG2O1 NG2S2, penalty= 158
@@ -252,6 +254,7 @@ CG2R61 CG324  NG3P2  CG334      0.5800  3     0.00 ! ***** , from CG2R61 CG324 N
 CG2R61 CG324  NG3P2  HGP2       0.0400  3     0.00 ! ***** , from CG2R61 CG324 NG3P1 HGP2, penalty= 10
 HGA2   CG324  NG3P2  CG334      0.1000  3     0.00 ! ***** , from HGA2 CG324 NG3P2 CG324, penalty= 1.7
 HGA3   CG334  NG3P2  CG324      0.1000  3     0.00 ! ***** , from HGA3 CG334 NG3P2 CG334, penalty= 1.7
+HGA3 CG334 NG3P2 HGP2           0.4200  3     0.00 ! MGU2, methylguanidine2 / Taken together, these two params don't make much sense
 CG2RC0 CG3C51 CG3C51 CG324      3.7000  3   180.00 ! ***** , from CG2R51 CG3C52 CG3C52 CG3C52, penalty= 49
 CG2RC0 CG3C51 CG3C51 CG324      2.2500  4     0.00 ! ***** , from CG2R51 CG3C52 CG3C52 CG3C52, penalty= 49
 CG2RC0 CG3C51 CG3C51 CG324      0.2300  6   180.00 ! ***** , from CG2R51 CG3C52 CG3C52 CG3C52, penalty= 49
