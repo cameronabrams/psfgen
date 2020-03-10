@@ -20,6 +20,8 @@ if {![info exists PSFGEN_BASEDIR]} {
 set protomer_only 0
 set LOG_DCD 0
 set logid -1
+set K117A 0
+set K121A 0
 # Membrane-proximal external region sequence (HXB2)
 set MPER_665_to_682 [list LYS TRP ALA SER LEU TRP ASN TRP PHE ASP ILE SER ASN TRP LEU TRP TYR ILE]
 set seed 12345
@@ -38,6 +40,12 @@ for { set a 0 } { $a < [llength $argv] } { incr a } {
   }
   if { $arg == "-skip-loopmc" } {
      set SKIP_LOOPMC 1
+  }
+  if { $arg == "K117A" } {
+     set K117A 1
+  }
+  if { $arg == "K121A" } {
+     set K121A 1
   }
   if { $arg == "-log-dcd" } {
      set LOG_DCD 1
@@ -161,6 +169,14 @@ foreach g $glist b $blist {
     residue 407 GLY ${g}
     residue 408 SER ${g}
     pdb ${g}-s3.pdb
+    if { $K117A == 1 } {
+       puts "MKPSF> mutating 117 from K to A"
+       mutate 117 ALA
+    }
+    if { $K121A == 1 } {
+       puts "MKPSF> mutating 121 from K to A"
+       mutate 121 ALA
+    }
   }
 
   segment ${g}S {
