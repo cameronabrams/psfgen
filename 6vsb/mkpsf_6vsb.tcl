@@ -1,8 +1,7 @@
-# VMD/psfgen script for generating psf/pdb pair for PDB 5fuu
-# soluble, cleaved HIV_(JR-FL) trimer with glycans
-#  - two PGT151's (chains H,M,L,N) are deleted
+# VMD/psfgen script for generating psf/pdb pair for PDB 6vsb
+# soluble, stabilized SARS-CoV-2 S trimer
 #
-# cameron f abrams (c) 2017
+# cameron f abrams (c) 2020
 # drexel university
 # chemical and biological engineering
 #
@@ -57,6 +56,7 @@ pdbalias atom ILE CD1 CD
 #pdbalias atom BGLC O7 O
 #pdbalias atom BGLC C8 CT
 
+##### output of python3 parse_pdb_psfgen.py 6vsb.pdb below ###
 set segs  { { A   27   66 }  { A   79   95 }  { A   99  142 }  { A  156  176 } 
             { A  187  246 }  { A  261  328 }  { A  335  443 }  { A  449  454 } 
             { A  491  500 }  { A  503  620 }  { A  640  672 }  { A  687  811 } 
@@ -742,6 +742,8 @@ patch DISU C:662 C:671
 patch DISU C:743 C:749
 patch DISU C:1032 C:1043
 patch DISU C:1082 C:1126
+##### output of python3 parse_pdb_psfgen.py 6vsb.pdb above ###
+
 guesscoord
 
 regenerate angles dihedrals
