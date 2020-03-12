@@ -98,8 +98,8 @@ if [ $STAGE -eq 0 ] ; then
   cp $PSFGEN_BASEDIR/${PDB}/${COLVARS_INP} ./${lcvi}
   $CHARMRUN +p${NPE} $NAMD2 my_${PDB}_solv.namd > solv.log
 else
+  SYSNAME=${PDB}
   if [ -f $PSFGEN_BASEDIR/${SYSNAME}/my_${SYSNAME}_solv_stageN.namd ]; then
-    SYSNAME=${PDB}
     numsteps=( 100 200 19700 )
     ls=`echo "${#numsteps[@]} - 1" | bc`
     firsttimestep=100; # stage-0 minimization

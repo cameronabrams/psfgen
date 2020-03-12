@@ -30,15 +30,16 @@ langevin                on
 langevinDamping         5
 langevinTemp            $temperature
 langevinHydrogen        yes
+seed 3463871
 
-fixedatoms yes
-fixedatomsfile my_6vsb_fix.pdb
-fixedatomscol B
+#fixedatoms yes
+#fixedatomsfile my_6vsb_fix.pdb
+#fixedatomscol B
 
 outputEnergies      10
 dcdfreq             100
 restartfreq         100
 
 minimize 1000
-run 2000
+run 3000
 

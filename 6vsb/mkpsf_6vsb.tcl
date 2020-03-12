@@ -751,7 +751,7 @@ regenerate angles dihedrals
 writepsf "my_6vsb.psf"
 writepdb "unrelaxed.pdb"
 
-lappend LOCALFILES unrelaxed.pdb
+#lappend LOCALFILES unrelaxed.pdb
 
 mol delete top
 mol new my_6vsb.psf
@@ -789,14 +789,18 @@ lappend LOCALFILES "unrelaxed2.pdb"
 
 set nc 1000
 set rcut 3.0
-set temperature 2.5
+set temperature 3.0
 set k 10.0
 set r0 1.5
 set bg [atomselect ${molid} "noh"]
+set loopindex 0
+set nloops [llength $loops]
 foreach l $loops {
   set chain [lindex $l 0]
+  puts "Relaxing loop $loopindex ($l) out of $nloops"
   set residueList [[atomselect ${molid} "chain $chain and resid [lindex $l 1] to [lindex $l 2] and name CA"] get residue]
   do_loop_mc ${residueList} ${chain} ${molid} ${k} ${r0} ${bg} ${rcut} ${nc} ${temperature} [irand_dom 1000 9999] $logid
+  set loopindex [expr $loopindex + 1]
 }
 $a writepdb "my_6vsb_mcOut.pdb"
 
