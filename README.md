@@ -105,7 +105,9 @@ cosolvent
 
 30. 6VSB -- Soluble, stabilized trimeric SARS-CoV-2 S envelope protein complex, asymmetric
 
-31. 6VXX -- Soluble, stabilized trimeric SARS-CoV-2 S envelope protein complex, symmetric
+31. 6VXX -- Soluble, stabilized trimeric SARS-CoV-2 S envelope protein complex, closed
+
+32. 6VYB -- Soluble, stabilized trimeric SARS-CoV-2 S envelope protein complex, open
 
 More to come...
 
