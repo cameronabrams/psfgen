@@ -19,6 +19,9 @@ if {![info exists PSFGEN_BASEDIR]} {
 set seed 12345
 set LOG_DCD 0
 set logid -1
+set P986K 0
+set P987V 0
+set CLEAVE 0
 for { set a 0 } { $a < [llength $argv] } { incr a } {
   set arg [lindex $argv $a]
   if { $arg == "-seed" } {
@@ -29,6 +32,15 @@ for { set a 0 } { $a < [llength $argv] } { incr a } {
     set LOG_DCD 1
     incr a
     set log_dcd_file [lindex $argv $a]
+  }
+  if { $arg == "P986K" } {
+     set P986K 1
+  }
+  if { $arg == "P987V" } {
+     set P987V 1
+  }
+  if { $arg == "CLEAVE" } {
+     set CLEAVE 1
   }
 }
 
@@ -235,11 +247,11 @@ segment A {
    residue 678 THR A
    residue 679 ASN A
    residue 680 SER A
-   residue 681 PRO A
-   residue 682 GLY A
-   residue 683 SER A
-   residue 684 ALA A
-   residue 685 SER A
+   residue 681 PRO A  # furin cleavage begin
+   residue 682 GLY A  # R
+   residue 683 SER A  # R chain ends here
+   residue 684 ALA A  # begin new chain here
+   residue 685 SER A  # R 
    residue 686 SER A
    pdb A_687_to_811.pdb
    residue 812 PRO A
@@ -271,6 +283,12 @@ segment A {
    residue 851 CYS A
    residue 852 ALA A
    pdb A_853_to_1146.pdb
+   if { $P986K == 1 } {
+      mutate 986 LYS
+   }
+   if { $P987V == 1 } {
+      mutate 987 VAL
+   }
 }
 coordpdb A_27_to_66.pdb A
 coordpdb A_79_to_95.pdb A
@@ -475,6 +493,12 @@ segment B {
    residue 851 CYS B
    residue 852 ALA B
    pdb B_853_to_1146.pdb
+   if { $P986K == 1 } {
+      mutate 986 LYS
+   }
+   if { $P987V == 1 } {
+      mutate 987 VAL
+   }
 }
 coordpdb B_27_to_66.pdb B
 coordpdb B_81_to_141.pdb B
@@ -679,6 +703,12 @@ segment C {
    residue 851 CYS C
    residue 852 ALA C
    pdb C_853_to_1146.pdb
+   if { $P986K == 1 } {
+      mutate 986 LYS
+   }
+   if { $P987V == 1 } {
+      mutate 987 VAL
+   }
 }
 coordpdb C_27_to_66.pdb C
 coordpdb C_80_to_95.pdb C
@@ -707,18 +737,18 @@ coord C 621 N [cacoIn_nOut 620 C 0]
 coord C 673 N [cacoIn_nOut 672 C 0]
 coord C 812 N [cacoIn_nOut 811 C 0]
 coord C 829 N [cacoIn_nOut 828 C 0]
-patch DISU A:131 A:166
-patch DISU A:291 A:301
-patch DISU A:336 A:361
-patch DISU A:379 A:432
-patch DISU A:391 A:525
-patch DISU A:538 A:590
-patch DISU A:617 A:649
-patch DISU A:662 A:671
-patch DISU A:738 A:760
-patch DISU A:743 A:749
-patch DISU A:1032 A:1043
-patch DISU A:1082 A:1126
+patch DISU ${a}:131 ${a}:166
+patch DISU ${a}:291 ${a}:301
+patch DISU ${a}:336 ${a}:361
+patch DISU ${a}:379 ${a}:432
+patch DISU ${a}:391 ${a}:525
+patch DISU ${a}:538 ${a}:590
+patch DISU ${a}:617 ${a}:649
+patch DISU ${a}:662 ${a}:671
+patch DISU ${a}:738 ${a}:760
+patch DISU ${a}:743 ${a}:749
+patch DISU ${a}:1032 ${a}:1043
+patch DISU ${a}:1082 ${a}:1126
 patch DISU B:131 B:166
 patch DISU B:291 B:301
 patch DISU B:336 B:361
@@ -823,6 +853,11 @@ foreach s $segs {
 [atomselect top "not noh"] set beta 0
 
 $a writepdb "my_6vsb_fix.pdb"
+
+if { $CLEAVE == 1 } {
+   mol delete top
+   source $PSFGEN_BASEDIR/6vsb/cleave.tcl
+}
 
 # clean up
 foreach f $LOCALFILES { 
