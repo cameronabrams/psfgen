@@ -854,6 +854,8 @@ $a writepdb "my_6vsb_fix.pdb"
 
 if { $CLEAVE == 1 } {
    mol delete top
+   psfcontext reset
+   puts "MKPSF> Sourcing cleave.tcl..."
    source $PSFGEN_BASEDIR/6vsb/cleave.tcl
 }
 

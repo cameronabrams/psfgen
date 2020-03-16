@@ -30,14 +30,14 @@ foreach c { A B C } d { D E F } {
        pdb ${d}_cleaved.pdb
    }
    coordpdb ${d}_cleaved.pdb $d
-   patch DISU ${a}:131 ${a}:166
-   patch DISU ${a}:291 ${a}:301
-   patch DISU ${a}:336 ${a}:361
-   patch DISU ${a}:379 ${a}:432
-   patch DISU ${a}:391 ${a}:525
-   patch DISU ${a}:538 ${a}:590
-   patch DISU ${a}:617 ${a}:649
-   patch DISU ${a}:662 ${a}:671
+   patch DISU ${c}:131 ${c}:166
+   patch DISU ${c}:291 ${c}:301
+   patch DISU ${c}:336 ${c}:361
+   patch DISU ${c}:379 ${c}:432
+   patch DISU ${c}:391 ${c}:525
+   patch DISU ${c}:538 ${c}:590
+   patch DISU ${c}:617 ${c}:649
+   patch DISU ${c}:662 ${c}:671
    patch DISU ${d}:738 ${d}:760
    patch DISU ${d}:743 ${d}:749
    patch DISU ${d}:1032 ${d}:1043
