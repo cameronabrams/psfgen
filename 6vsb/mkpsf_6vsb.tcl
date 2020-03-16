@@ -33,10 +33,8 @@ for { set a 0 } { $a < [llength $argv] } { incr a } {
     incr a
     set log_dcd_file [lindex $argv $a]
   }
-  if { $arg == "P986K" } {
+  if { $arg == "WT" } {
      set P986K 1
-  }
-  if { $arg == "P987V" } {
      set P987V 1
   }
   if { $arg == "CLEAVE" } {
@@ -247,11 +245,11 @@ segment A {
    residue 678 THR A
    residue 679 ASN A
    residue 680 SER A
-   residue 681 PRO A  # furin cleavage begin
-   residue 682 GLY A  # R
-   residue 683 SER A  # R chain ends here
-   residue 684 ALA A  # begin new chain here
-   residue 685 SER A  # R 
+   residue 681 PRO A 
+   residue 682 GLY A
+   residue 683 SER A
+   residue 684 ALA A
+   residue 685 SER A 
    residue 686 SER A
    pdb A_687_to_811.pdb
    residue 812 PRO A
@@ -737,18 +735,18 @@ coord C 621 N [cacoIn_nOut 620 C 0]
 coord C 673 N [cacoIn_nOut 672 C 0]
 coord C 812 N [cacoIn_nOut 811 C 0]
 coord C 829 N [cacoIn_nOut 828 C 0]
-patch DISU ${a}:131 ${a}:166
-patch DISU ${a}:291 ${a}:301
-patch DISU ${a}:336 ${a}:361
-patch DISU ${a}:379 ${a}:432
-patch DISU ${a}:391 ${a}:525
-patch DISU ${a}:538 ${a}:590
-patch DISU ${a}:617 ${a}:649
-patch DISU ${a}:662 ${a}:671
-patch DISU ${a}:738 ${a}:760
-patch DISU ${a}:743 ${a}:749
-patch DISU ${a}:1032 ${a}:1043
-patch DISU ${a}:1082 ${a}:1126
+patch DISU A:131 A:166
+patch DISU A:291 A:301
+patch DISU A:336 A:361
+patch DISU A:379 A:432
+patch DISU A:391 A:525
+patch DISU A:538 A:590
+patch DISU A:617 A:649
+patch DISU A:662 A:671
+patch DISU A:738 A:760
+patch DISU A:743 A:749
+patch DISU A:1032 A:1043
+patch DISU A:1082 A:1126
 patch DISU B:131 B:166
 patch DISU B:291 B:301
 patch DISU B:336 B:361

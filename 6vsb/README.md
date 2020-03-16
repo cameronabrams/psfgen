@@ -17,9 +17,11 @@ Make sure PSFGEN_BASEDIR resolves to the root directory of your local copy of th
 ```
 $ mkdir 6vsb
 $ cd 6vsb
-$ $PSFGEN_BASEDIR/scripts/do_test.sh -pdb 6vsb [-stage] [-npe #] [-psfgen_args [-seed #] ]
+$ $PSFGEN_BASEDIR/scripts/do_test.sh -pdb 6vsb [-stage] [-npe #] [-psfgen_args [-seed #] CLEAVE WT]
 ```
 
 The optional `-stage` flag, if present, instructs the script to perform the solvated MD simulations in stages to avoid patch-grid errors arising from box shrinkage during volume equilibration.  The `-npe` flag allows the user to specify the number of processing cores to use in the solvated MD simulation; 8 is the default.  The optional `-psfgen_args` flag passes subsequent arguments to the mkpsf script.  The optional `-seed` flag allows the user the specify the seed for the random-number generator.
+
+The "CLEAVE" flag cleaves each chain at the furin cleavage site (between 685 and 686) and reverts residues at the site back to arginines.  The "WT" flag undoes the two proline mutations: P986 to K, and P987 to V.
 
 2017-2020, Cameron F Abrams
