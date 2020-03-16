@@ -103,7 +103,7 @@ source $PSFGEN_BASEDIR/scripts/vmdrc.tcl
 an option to make a mixture of any molarity of GXG with an ethanol/water
 cosolvent
 
-30. 6VSB -- Soluble, stabilized trimeric SARS-CoV-2 S spike protein complex, asymmetric
+30. 6VSB -- Soluble, stabilized trimeric SARS-CoV-2 S spike protein complex, open
 
 31. 6VXX -- Soluble, stabilized trimeric SARS-CoV-2 S spike protein complex, closed
 

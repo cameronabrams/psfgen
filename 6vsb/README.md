@@ -24,4 +24,8 @@ The optional `-stage` flag, if present, instructs the script to perform the solv
 
 The "CLEAVE" flag cleaves each chain at the furin cleavage site (between 685 and 686) and reverts residues at the site back to arginines.  The "WT" flag undoes the two proline mutations: P986 to K, and P987 to V.
 
+## REFERENCE
+
+Wrapp, Daniel; Wang, Nianshuang; Corbett, Kizzmekia S; Goldsmith, Jory A; Hsieh, Ching-Lin; Abiona, Olubukola; Graham, Barney S; McLellan, Jason S.  "Cryo-EM structure of the 2019-nCoV spike in the prefusion conformation." *Science* 2020; doi 10.1126/science.abb2507.
+
 2017-2020, Cameron F Abrams
