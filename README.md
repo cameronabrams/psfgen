@@ -14,10 +14,10 @@ The repository is being updated continuously.  Issue `git pull` in your local co
 
 ## Requirements
 
-1. NAMD v. 2.12.  Set environment variables CHARMRUN and NAMD2 to point to your system's `charmrun` and `namd2`; examples (in `~/.bashrc`):
+1. NAMD v. 2.13.  Set environment variables CHARMRUN and NAMD2 to point to your system's `charmrun` and `namd2`; examples (in `~/.bashrc`):
 ```
-export CHARMRUN=${HOME}/namd/NAMD_2.12_Source/Linux-x86_64-g++/charmrun
-export NAMD2=${HOME}/namd/NAMD_2.12_Source/Linux-x86_64-g++/namd2
+export CHARMRUN=${HOME}/namd/NAMD_2.13_Source/Linux-x86_64-g++/charmrun
+export NAMD2=${HOME}/namd/NAMD_2.13_Source/Linux-x86_64-g++/namd2
 ```
 2. VMD v. 1.8.3
 3. CHARMM36 topologies and parameters (toppar_c36_jul16.tgz is the version used here) unpacked in ${HOME}/charmm/toppar
@@ -103,11 +103,13 @@ source $PSFGEN_BASEDIR/scripts/vmdrc.tcl
 an option to make a mixture of any molarity of GXG with an ethanol/water
 cosolvent
 
-30. 6VSB -- Soluble, stabilized trimeric SARS-CoV-2 S spike protein complex, open
+31. [6VSB](http://www.rcsb.org/pdb/explore/explore.do?structureID=6vsb) -- Soluble, stabilized trimeric SARS-CoV-2 S spike protein complex, open
 
-31. 6VXX -- Soluble, stabilized trimeric SARS-CoV-2 S spike protein complex, closed
+32. [6VXX](http://www.rcsb.org/pdb/explore/explore.do?structureID=6vxx) -- Soluble, stabilized trimeric SARS-CoV-2 S spike protein complex, closed
 
-32. 6VYB -- Soluble, stabilized trimeric SARS-CoV-2 S spike protein complex, open
+33. [6VYB](http://www.rcsb.org/pdb/explore/explore.do?structureID=6vyb) -- Soluble, stabilized trimeric SARS-CoV-2 S spike protein complex, open
+
+34. [6M0J](http://www.rcsb.org/pdb/explore/explore/explore.do?structureID=6m0j) -- Complex of SARS-CoV-2 S spike receptor binding domain and ACE2
 
 More to come...
 
@@ -125,7 +127,7 @@ More to come...
 
 6. All codes and data in this repository have been made possible with partial support from NIH through grants AI084117, AI093248, GM115249, GM056550, and GM100472, the National Science Foundation through grants DMR-1207389 and MCB-1330205, and the US Army through grants W911NF-12-2-0022, W911-NF-13-1-0046, W911NF-12-R-0011, and W911NF-17-2-0227.
 
-2017-2019, Cameron F Abrams
+2017-2020, Cameron F Abrams
 
 cfa22@drexel.edu
 
