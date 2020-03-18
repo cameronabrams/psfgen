@@ -67,6 +67,11 @@ segment E {
    pdb E_333_to_526.pdb
 }
 coordpdb E_333_to_526.pdb E
+[atomselect top "ions"] writepdb "ions.pdb"
+segment I {
+   pdb ions.pdb
+}
+coordpdb ions.pdb I
 patch DISU A:133 A:141
 patch DISU A:344 A:361
 patch DISU A:530 A:542
