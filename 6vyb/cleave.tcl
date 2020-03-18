@@ -6,7 +6,7 @@
 # cameron f abrams cfa22@drexel.edu
 package require psfgen
 mol new my_6vyb.psf
-mol addfile my_6vxx_mcOut.pdb
+mol addfile my_6vyb_mcOut.pdb
 foreach c { A B C } d { D E F } {
    [atomselect top "chain $c and resid < 686"] writepdb "${c}_cleaved.pdb"
    set res [atomselect top "chain $c and resid > 685"]

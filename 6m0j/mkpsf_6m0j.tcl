@@ -47,6 +47,7 @@ package require psfgen
 topology $env(HOME)/charmm/toppar/top_all36_prot.rtf
 topology $env(HOME)/charmm/toppar/top_all36_carb_namd_cfa.rtf
 topology $env(HOME)/charmm/toppar/stream/carb/toppar_all36_carb_glycopeptide.str
+topology $env(HOME)/charmm/toppar/toppar_water_ions_namd_nonbfixes.str
 
 pdbalias residue HIS HSD
 pdbalias atom ILE CD1 CD
@@ -67,7 +68,9 @@ segment E {
    pdb E_333_to_526.pdb
 }
 coordpdb E_333_to_526.pdb E
-[atomselect top "ions"] writepdb "ions.pdb"
+set I [atomselect top "ions"] 
+$I set resname ZN2
+$I writepdb "ions.pdb"
 segment I {
    pdb ions.pdb
 }
