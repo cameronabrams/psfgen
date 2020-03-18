@@ -19,6 +19,9 @@ if {![info exists PSFGEN_BASEDIR]} {
 set seed 12345
 set LOG_DCD 0
 set logid -1
+set P986K 0
+set P987V 0
+set CLEAVE 0
 for { set a 0 } { $a < [llength $argv] } { incr a } {
   set arg [lindex $argv $a]
   if { $arg == "-seed" } {
@@ -29,6 +32,13 @@ for { set a 0 } { $a < [llength $argv] } { incr a } {
     set LOG_DCD 1
     incr a
     set log_dcd_file [lindex $argv $a]
+  }
+  if { $arg == "WT" } {
+     set P986K 1
+     set P987V 1
+  }
+  if { $arg == "CLEAVE" } {
+     set CLEAVE 1
   }
 }
 
@@ -261,6 +271,12 @@ segment A {
    residue 853 GLN A
    residue 854 LYS A
    pdb A_855_to_1147.pdb
+   if { $P986K == 1 } {
+      mutate 986 LYS
+   }
+   if { $P987V == 1 } {
+      mutate 987 VAL
+   }
 }
 coordpdb A_27_to_69.pdb A
 coordpdb A_82_to_113.pdb A
@@ -488,7 +504,14 @@ segment B {
    residue 852 ALA B
    residue 853 GLN B
    pdb B_854_to_1147.pdb
+   if { $P986K == 1 } {
+      mutate 986 LYS
+   }
+   if { $P987V == 1 } {
+      mutate 987 VAL
+   }
 }
+
 coordpdb B_27_to_66.pdb B
 coordpdb B_81_to_140.pdb B
 coordpdb B_164_to_172.pdb B
@@ -702,6 +725,12 @@ segment C {
    residue 854 LYS C
    residue 855 PHE C
    pdb C_856_to_1147.pdb
+   if { $P986K == 1 } {
+      mutate 986 LYS
+   }
+   if { $P987V == 1 } {
+      mutate 987 VAL
+   }
 }
 coordpdb C_27_to_66.pdb C
 coordpdb C_81_to_143.pdb C
@@ -842,6 +871,13 @@ foreach s $segs {
 [atomselect top "not noh"] set beta 0
 
 $a writepdb "my_6vyb_fix.pdb"
+
+if { $CLEAVE == 1 } {
+   mol delete top
+   psfcontext reset
+   puts "MKPSF> Sourcing cleave.tcl..."
+   source $PSFGEN_BASEDIR/6vyb/cleave.tcl
+}
 
 # clean up
 foreach f $LOCALFILES { 
