@@ -8,7 +8,7 @@
 _allowed_bond_types_=['DISU','NGLB']
 _allowed_ions_=['LIT','SOD','MG','POT','CAL','RUB','CES','BAR','ZN','CAD','CLA']
 _allowed_glycans_=['NAG']
-_ResDict_={'ZN':'ZN2'}
+_ResDict_={'ZN':'ZN2','HOH':'TIP3','NAG':'BGNA','MAN':'AMAN','BMA':'BMAN','FUC':'AFUC','GAL':'BGAL'}
 class bond:
    def __init__(self,ci,i,cj,j,t):
        self.ci=ci
@@ -219,12 +219,12 @@ class hetlist:
            q.add_res(rid)
     def print_psfgen(self):
        for h in self.h:
-           print('HET name {} chain {}: resid {}-{}'.format(h.name,h.chain,min(h.resid),max(h.resid)))
+#           print('HET name {} chain {}: resid {}-{}'.format(h.name,h.chain,min(h.resid),max(h.resid)))
            if h.name in _allowed_ions_:
               resname=_ResDict_[h.name]
               segname=h.chain+'I'
               segpdb='{}_{}_to_{}.pdb'.format(segname,min(h.resid),max(h.resid))
-              print(r'set myseg [atomselect top "resid {} to {}"]'.format(min(h.resid),max(h.resid)))
+              print(r'set myseg [atomselect top "chain {} and resid {} to {}"]'.format(h.chain,min(h.resid),max(h.resid)))
               print(r'$myseg set resname {}'.format(resname))
               print(r'$myseg writepdb "{}"'.format(segpdb))
               print(r'segment {} {{'.format(segname))
@@ -232,9 +232,27 @@ class hetlist:
               print(r'}')
               print(r'coordpdb {} {}'.format(segpdb,segname))
            elif h.name in _allowed_glycans_:
-              pass 
+              resname=_ResDict_[h.name]
+              segname=h.chain+'S'
+              segpdb='{}_{}_to_{}.pdb'.format(segname,min(h.resid),max(h.resid))
+              print(r'set myseg [atomselect top "chain {} and resid {} to {}"]'.format(h.chain,min(h.resid),max(h.resid)))
+              print(r'$myseg set resname {}'.format(resname))
+              print(r'$myseg writepdb {}'.format(segpdb))
+              print(r'segment {} {{'.format(segname))
+              print(r'   pdb {}'.format(segpdb))
+              print(r'}')
+              print(r'coordpdb {} {}'.format(segpdb,segname)) 
            elif h.name == 'HOH':
-              pass
+              resname=_ResDict_[h.name]
+              segname=h.chain+'WX'
+              segpdb='{}_{}_to_{}.pdb'.format(h.chain,min(h.resid),max(h.resid))
+              print(r'set myseg [atomselect top "chain {} and resid {} to {}"]'.format(h.chain,min(h.resid),max(h.resid)))
+              print(r'$myseg set resname {}'.format(resname))
+              print(r'$myseg writepdb {}'.format(segpdb))
+              print(r'segment {} {{'.format(segname))
+              print(r'   pdb {}'.format(segpdb))
+              print(r'}')
+              print(r'coordpdb {} {}'.format(segpdb,segname))
 
 import sys
 
