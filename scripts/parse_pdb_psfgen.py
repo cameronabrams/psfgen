@@ -247,6 +247,7 @@ class hetlist:
               segname=h.chain+'WX'
               segpdb='{}_{}_to_{}.pdb'.format(h.chain,min(h.resid),max(h.resid))
               print(r'set myseg [atomselect top "chain {} and resid {} to {}"]'.format(h.chain,min(h.resid),max(h.resid)))
+              print(r'$myseg set name OH2')
               print(r'$myseg set resname {}'.format(resname))
               print(r'$myseg writepdb {}'.format(segpdb))
               print(r'segment {} {{'.format(segname))

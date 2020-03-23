@@ -95,7 +95,9 @@ if [ $STAGE -eq 0 ] ; then
   cp $PSFGEN_BASEDIR/${PDB}/my_${PDB}_solv.namd .
   cat my_${PDB}_solv.namd | sed s/%SEED%/$seed/g > tmp; mv tmp my_${PDB}_solv.namd
   lcvi=`grep -i colvarsconfig $PSFGEN_BASEDIR/${PDB}/my_${PDB}_solv.namd  | awk '{print $2}'`
-  cp $PSFGEN_BASEDIR/${PDB}/${COLVARS_INP} ./${lcvi}
+  if [ -f $PSFGEN_BASEDIR/${PDB}/${COLVARS_INP} ] ; then
+     cp $PSFGEN_BASEDIR/${PDB}/${COLVARS_INP} ./${lcvi}
+  fi
   $CHARMRUN +p${NPE} $NAMD2 my_${PDB}_solv.namd > solv.log
 else
   SYSNAME=${PDB}
