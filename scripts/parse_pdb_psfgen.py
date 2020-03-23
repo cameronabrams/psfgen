@@ -5,19 +5,27 @@
     Cameron F Abrams
     cfa22@drexel.edu
 '''
-class ssbond:
-   def __init__(self,ci,i,cj,j):
+_allowed_bond_types_=['DISU','NGLB']
+_allowed_ions_=['LIT','SOD','MG','POT','CAL','RUB','CES','BAR','ZN','CAD','CLA']
+_allowed_glycans_=['NAG']
+_ResDict_={'ZN':'ZN2'}
+class bond:
+   def __init__(self,ci,i,cj,j,t):
        self.ci=ci
        self.i=i
        self.cj=cj
        self.j=j
+       self.type=t
        self.next=0
-   def print_ssbonds(self):
+   def print_bonds(self):
        p=self
        while p!=0:
-           print('patch DISU {}:{} {}:{}'.format(p.ci,p.i,p.cj,p.j))
+           if p.type in _allowed_bond_types_:
+              if p.type == 'NGLB':
+                 p.cj=p.cj+'S'
+              print('patch {:4s} {}:{} {}:{}'.format(p.type,p.ci,p.i,p.cj,p.j))
            p=p.next
-   def add_ssbond(self,b):
+   def add_bond(self,b):
        p=self
        while p.next!=0:
            p=p.next
@@ -187,11 +195,53 @@ class loop:
                 print('\n           ',end='')
              lc+=1
           p=p.next
+
+class het:
+    def __init__(self,nam,chn,rid):
+       self.name=nam
+       self.chain=chn
+       self.resid=[rid]
+    def add_res(self,rid):
+       self.resid.append(rid)
+
+class hetlist:
+    def __init__(self):
+       self.h=[]
+    def add_het(self,nam,chn,rid):
+       q=''
+       for h in self.h:
+           if h.name==nam and h.chain==chn:
+              q=h
+              break
+       if q=='':
+           self.h.append(het(nam,chn,rid))
+       else:
+           q.add_res(rid)
+    def print_psfgen(self):
+       for h in self.h:
+           print('HET name {} chain {}: resid {}-{}'.format(h.name,h.chain,min(h.resid),max(h.resid)))
+           if h.name in _allowed_ions_:
+              resname=_ResDict_[h.name]
+              segname=h.chain+'I'
+              segpdb='{}_{}_to_{}.pdb'.format(segname,min(h.resid),max(h.resid))
+              print(r'set myseg [atomselect top "resid {} to {}"]'.format(min(h.resid),max(h.resid)))
+              print(r'$myseg set resname {}'.format(resname))
+              print(r'$myseg writepdb "{}"'.format(segpdb))
+              print(r'segment {} {{'.format(segname))
+              print(r'   pdb {}'.format(segpdb))
+              print(r'}')
+              print(r'coordpdb {} {}'.format(segpdb,segname))
+           elif h.name in _allowed_glycans_:
+              pass 
+           elif h.name == 'HOH':
+              pass
+
 import sys
 
 fn=sys.argv[1]
 L=loop(_Missing_)
 pl=L
+H=hetlist()
 D=''
 with open(fn) as f:
     for l in f:
@@ -223,9 +273,34 @@ with open(fn) as f:
             cj=l[29:30]
             j=int(l[30:35])
             if D=='':
-               D=ssbond(ci,i,cj,j)
+               D=bond(ci,i,cj,j,'DISU')
             else:
-               D.add_ssbond(ssbond(ci,i,cj,j))
+               D.add_bond(bond(ci,i,cj,j,'DISU'))
+        if k[0]=='LINK':
+            rni=l[17:20]
+            ci=l[21:22]
+            i=int(l[23:26])
+            rnj=l[47:50]
+            cj=l[51:52]
+            j=int(l[53:56])
+            if rni=='ASN' and rnj=='NAG':
+               ltyp='NGLB'
+            else:
+               ltyp='UNKNOWN'
+            if D=='':
+               D=bond(ci,i,cj,j,ltyp)
+            else:
+               D.add_bond(bond(ci,i,cj,j,ltyp))
+        if k[0]=='HET':
+            hetnam=l[7:10].strip()
+            hetchain=l[12:13]
+            hetresid=int(l[14:17])
+            H.add_het(hetnam,hetchain,hetresid)
+        if k[0]=='HETATM' and l[17:20]=='HOH':
+            hetnam='HOH'
+            hetchain=l[21:22]
+            hetresid=int(l[22:26])
+            H.add_het(hetnam,hetchain,hetresid)
 #L.print_loops()
 #L.print_psfgen()
 cl=L.make_chain_links()
@@ -251,5 +326,6 @@ for i,c in enumerate(cl):
       print()
 for c in cl:
    c.print_psfgen()
+H.print_psfgen()
 #L.interleave()
-D.print_ssbonds()
+D.print_bonds()
