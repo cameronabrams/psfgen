@@ -67,13 +67,14 @@ pdbalias atom ILE CD1 CD
 #pdbalias atom BGLC C8 CT
 
 ##### output of python3 parse_pdb_psfgen.py 6vxx.pdb below #####
-
 set segs  { { A   27   69 }  { A   80  143 }  { A  165  172 }  { A  186  245 } 
             { A  263  444 }  { A  447  454 }  { A  462  468 }  { A  489  501 } 
             { A  503  620 }  { A  641  676 }  { A  689  827 }  { A  854 1147 } 
+           
             { B   27   69 }  { B   80  143 }  { B  165  172 }  { B  186  245 } 
             { B  263  444 }  { B  447  454 }  { B  462  468 }  { B  489  501 } 
             { B  503  620 }  { B  641  676 }  { B  689  827 }  { B  854 1147 } 
+           
             { C   27   69 }  { C   80  143 }  { C  165  172 }  { C  186  245 } 
             { C  263  444 }  { C  447  454 }  { C  462  468 }  { C  489  501 } 
             { C  503  620 }  { C  641  676 }  { C  689  827 }  { C  854 1147 } 
@@ -262,10 +263,10 @@ segment A {
    residue 853 GLN A
    pdb A_854_to_1147.pdb
    if { $P986K == 1 } {
-      mutate 986 LYS
+       mutate 986 LYS
    }
    if { $P987V == 1 } {
-      mutate 987 VAL
+       mutate 987 VAL
    }
 }
 coordpdb A_27_to_69.pdb A
@@ -466,10 +467,10 @@ segment B {
    residue 853 GLN B
    pdb B_854_to_1147.pdb
    if { $P986K == 1 } {
-      mutate 986 LYS
+       mutate 986 LYS
    }
    if { $P987V == 1 } {
-      mutate 987 VAL
+       mutate 987 VAL
    }
 }
 coordpdb B_27_to_69.pdb B
@@ -670,10 +671,10 @@ segment C {
    residue 853 GLN C
    pdb C_854_to_1147.pdb
    if { $P986K == 1 } {
-      mutate 986 LYS
+       mutate 986 LYS
    }
    if { $P987V == 1 } {
-      mutate 987 VAL
+       mutate 987 VAL
    }
 }
 coordpdb C_27_to_69.pdb C
@@ -699,6 +700,27 @@ coord C 502 N [cacoIn_nOut 501 C 0]
 coord C 621 N [cacoIn_nOut 620 C 0]
 coord C 677 N [cacoIn_nOut 676 C 0]
 coord C 828 N [cacoIn_nOut 827 C 0]
+set myseg [atomselect top "chain A and resid 1301 to 1321"]
+$myseg set resname BGNA
+$myseg writepdb AS_1301_to_1321.pdb
+segment AS {
+   pdb AS_1301_to_1321.pdb
+}
+coordpdb AS_1301_to_1321.pdb AS
+set myseg [atomselect top "chain B and resid 1301 to 1321"]
+$myseg set resname BGNA
+$myseg writepdb BS_1301_to_1321.pdb
+segment BS {
+   pdb BS_1301_to_1321.pdb
+}
+coordpdb BS_1301_to_1321.pdb BS
+set myseg [atomselect top "chain C and resid 1301 to 1321"]
+$myseg set resname BGNA
+$myseg writepdb CS_1301_to_1321.pdb
+segment CS {
+   pdb CS_1301_to_1321.pdb
+}
+coordpdb CS_1301_to_1321.pdb CS
 patch DISU A:131 A:166
 patch DISU A:291 A:301
 patch DISU A:336 A:361
@@ -735,6 +757,69 @@ patch DISU C:738 C:760
 patch DISU C:743 C:749
 patch DISU C:1032 C:1043
 patch DISU C:1082 C:1126
+patch NGLB A:61 AS:1301
+patch NGLB A:122 AS:1302
+patch NGLB A:165 AS:1321
+patch NGLB A:234 AS:1303
+patch NGLB A:282 AS:1305
+patch NGLB A:331 AS:1306
+patch NGLB A:343 AS:1307
+patch NGLB A:603 AS:1308
+patch NGLB A:616 AS:1309
+patch NGLB A:657 AS:1310
+patch NGLB A:709 AS:1311
+patch NGLB A:717 AS:1312
+patch NGLB A:801 AS:1314
+patch NGLB A:1074 AS:1316
+patch NGLB A:1098 AS:1317
+patch NGLB A:1134 AS:1319
+patch NGLB B:61 BS:1301
+patch NGLB B:122 BS:1302
+patch NGLB B:165 BS:1321
+patch NGLB B:234 BS:1303
+patch NGLB B:282 BS:1305
+patch NGLB B:331 BS:1306
+patch NGLB B:343 BS:1307
+patch NGLB B:603 BS:1308
+patch NGLB B:616 BS:1309
+patch NGLB B:657 BS:1310
+patch NGLB B:709 BS:1311
+patch NGLB B:717 BS:1312
+patch NGLB B:801 BS:1314
+patch NGLB B:1074 BS:1316
+patch NGLB B:1098 BS:1317
+patch NGLB B:1134 BS:1319
+patch NGLB C:61 CS:1301
+patch NGLB C:122 CS:1302
+patch NGLB C:165 CS:1321
+patch NGLB C:234 CS:1303
+patch NGLB C:282 CS:1305
+patch NGLB C:331 CS:1306
+patch NGLB C:343 CS:1307
+patch NGLB C:603 CS:1308
+patch NGLB C:616 CS:1309
+patch NGLB C:657 CS:1310
+patch NGLB C:709 CS:1311
+patch NGLB C:717 CS:1312
+patch NGLB C:801 CS:1314
+patch NGLB C:1074 CS:1316
+patch NGLB C:1098 CS:1317
+patch NGLB C:1134 CS:1319
+patch 14bb AS:1303 AS:1304
+patch 14bb AS:1312 AS:1313
+patch 14bb AS:1314 AS:1315
+patch 14bb AS:1317 AS:1318
+patch 14bb AS:1319 AS:1320
+patch 14bb BS:1303 BS:1304
+patch 14bb BS:1312 BS:1313
+patch 14bb BS:1314 BS:1315
+patch 14bb BS:1317 BS:1318
+patch 14bb BS:1319 BS:1320
+patch 14bb CS:1303 CS:1304
+patch 14bb CS:1312 CS:1313
+patch 14bb CS:1314 CS:1315
+patch 14bb CS:1317 CS:1318
+patch 14bb CS:1319 CS:1320
 ##### output of python3 parse_pdb_psfgen.py 6vxx.pdb above #####
 
 guesscoord

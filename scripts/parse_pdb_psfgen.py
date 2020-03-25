@@ -5,10 +5,13 @@
     Cameron F Abrams
     cfa22@drexel.edu
 '''
-_allowed_bond_types_=['DISU','NGLB']
+_allowed_bond_types_=['DISU','NGLB','14bb']
 _allowed_ions_=['LIT','SOD','MG','POT','CAL','RUB','CES','BAR','ZN','CAD','CLA']
 _allowed_glycans_=['NAG']
 _ResDict_={'ZN':'ZN2','HOH':'TIP3','NAG':'BGNA','MAN':'AMAN','BMA':'BMAN','FUC':'AFUC','GAL':'BGAL'}
+_ResName123_={'A':'ALA','R':'ARG','N':'ASN','D':'ASP','C':'CYS','Q':'GLN','E':'GLU','G':'GLY',
+               'H':'HSE','I':'ILE','L':'LEU','K':'LYS','M':'MET','F':'PHE','P':'PRO','S':'SER',
+               'T':'THR','W':'TRP','Y':'TYR','V':'VAL'}
 class bond:
    def __init__(self,ci,i,cj,j,t):
        self.ci=ci
@@ -23,6 +26,9 @@ class bond:
            if p.type in _allowed_bond_types_:
               if p.type == 'NGLB':
                  p.cj=p.cj+'S'
+              if p.type == '14bb':
+                 p.ci=p.ci+'S'
+                 p.cj=p.cj+'S'
               print('patch {:4s} {}:{} {}:{}'.format(p.type,p.ci,p.i,p.cj,p.j))
            p=p.next
    def add_bond(self,b):
@@ -30,6 +36,25 @@ class bond:
        while p.next!=0:
            p=p.next
        p.next=b
+
+class mutopt:
+   def __init__(self,lr,ri,rr,label):
+       self.lr=lr
+       self.ri=ri
+       self.rr=rr
+       self.label=label
+       self.next=0
+   def __str__(self):
+       return '{}{}{} {}'.format(self.lr,self.ri,self.rr,self.label)
+   def add_mutopt(self,nmut):
+        p=self
+        while p.next!=0:
+           p=p.next
+        p.next=nmut
+   def print_inseg_option(self):
+        print(r'   if {{ ${} == 1 }} {{'.format(self.label))
+        print(r'       mutate {} {}'.format(self.ri,self.rr))
+        print(r'   }')
 _Missing_=0
 _Present_=1
 class loop:
@@ -39,6 +64,7 @@ class loop:
        self.resid=[]
        self.next=0
        self.state=state
+       self.mut=0
    def add_res(self,c,r,i,s):
        if self.chain=='':
            self.index=0
@@ -160,6 +186,10 @@ class loop:
                for (r,i) in zip(p.rname,p.resid):
                    print('   residue {} {} {}'.format(i,r,p.chain))
            p = p.next
+       p=self.mut
+       while p!=0:
+           p.print_inseg_option()
+           p=p.next
        print('}')
        p=self
        while p!=0:
@@ -257,7 +287,33 @@ class hetlist:
 
 import sys
 
-fn=sys.argv[1]
+
+i=1
+mut_csl=0
+while i<len(sys.argv):
+    if sys.argv[i]=='-pdb':
+        i+=1
+        fn=sys.argv[i]
+    elif sys.argv[i]=='-mut':
+        i+=1
+        mut_csl=sys.argv[i]
+    i+=1
+M=0
+if mut_csl!=0:
+   muts=mut_csl.split(',')
+   for m in muts:
+      lr=_ResName123_[m[0]]
+      rr=_ResName123_[m[-1]]
+      ri=int(m[1:-1])
+      if M==0:
+         M=mutopt(lr,ri,rr,m)
+      else:
+         M.add_mutopt(mutopt(lr,ri,rr,m))
+#m=M
+#while m!=0:
+#    print(m)
+#    m=m.next
+
 L=loop(_Missing_)
 pl=L
 H=hetlist()
@@ -277,6 +333,7 @@ with open(fn) as f:
                c=k[3]
                i=int(k[4])
 #               print(c,r,i)
+ 
                pl=pl.add_res(c,r,i,_Missing_)
         if k[0]=='ATOM':
             tr=l[17:20]
@@ -296,24 +353,30 @@ with open(fn) as f:
             else:
                D.add_bond(bond(ci,i,cj,j,'DISU'))
         if k[0]=='LINK':
+            ai=l[10:15].strip()
             rni=l[17:20]
             ci=l[21:22]
-            i=int(l[23:26])
+            i=int(l[22:26])
+            aj=l[40:45].strip()
             rnj=l[47:50]
             cj=l[51:52]
-            j=int(l[53:56])
+            j=int(l[52:56])
+            ltyp='UNKNOWN'
             if rni=='ASN' and rnj=='NAG':
                ltyp='NGLB'
-            else:
-               ltyp='UNKNOWN'
+            elif rni=='NAG' and rnj=='NAG':
+#               print(ai,aj)
+               if ai=='O4' and aj=='C1':
+                  ltyp='14bb'
             if D=='':
                D=bond(ci,i,cj,j,ltyp)
             else:
+#               print('adding {}'.format(ltyp))
                D.add_bond(bond(ci,i,cj,j,ltyp))
         if k[0]=='HET':
             hetnam=l[7:10].strip()
             hetchain=l[12:13]
-            hetresid=int(l[14:17])
+            hetresid=int(l[13:17])
             H.add_het(hetnam,hetchain,hetresid)
         if k[0]=='HETATM' and l[17:20]=='HOH':
             hetnam='HOH'
@@ -344,6 +407,7 @@ for i,c in enumerate(cl):
    else:
       print()
 for c in cl:
+   c.mut=M
    c.print_psfgen()
 H.print_psfgen()
 #L.interleave()

@@ -64,7 +64,7 @@ restartfreq         1000
 if { $STAGE > 0 } {
   firsttimestep %FIRSTTIMESTEP%
 } else {
-  minimize 100
+  minimize 1000
 }
 run %NUMSTEPS%
 
