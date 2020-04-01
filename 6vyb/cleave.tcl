@@ -18,12 +18,12 @@ $glycan writepdb AS_glycan_cleaved.pdb
 set glycan [atomselect top "segname AS and resid 1311 to 1320"]
 $glycan set chain D
 $glycan writepdb DS_glycan_cleaved.pdb
-set glycan [atomselect top "segname BS and resid 1301 to 1309"]
+set glycan [atomselect top "segname BS and resid 1301 to 1309 1319"]
 $glycan writepdb BS_glycan_cleaved.pdb
 set glycan [atomselect top "segname BS and resid 1310 to 1318"]
 $glycan set chain E
 $glycan writepdb ES_glycan_cleaved.pdb
-set glycan [atomselect top "segname CS and resid 1301 to 1309"]
+set glycan [atomselect top "segname CS and resid 1301 to 1309 1320"]
 $glycan writepdb CS_glycan_cleaved.pdb
 set glycan [atomselect top "segname CS and resid 1310 to 1319"]
 $glycan set chain F
