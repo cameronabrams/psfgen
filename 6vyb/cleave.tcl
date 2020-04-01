@@ -12,11 +12,23 @@ foreach c { A B C } d { D E F } {
    set res [atomselect top "protein and chain $c and resid > 685"]
    $res set chain $d
    $res writepdb "${d}_protein_cleaved.pdb"
-   [atomselect top "segname ${c}S and (resid < 1311 or resid 1321)"] writepdb "${c}S_glycan_cleaved.pdb"
-   set res [atomselect top "segname ${c}S and resid > 1310 and not resid 1321"]
-   $res set chain $d
-   $res writepdb "${d}S_glycan_cleaved.pdb"
 }
+set glycan [atomselect top "segname AS and resid 1301 to 1310"]
+$glycan writepdb AS_glycan_cleaved.pdb
+set glycan [atomselect top "segname AS and resid 1311 to 1320"]
+$glycan set chain D
+$glycan writepdb DS_glycan_cleaved.pdb
+set glycan [atomselect top "segname BS and resid 1301 to 1309"]
+$glycan writepdb BS_glycan_cleaved.pdb
+set glycan [atomselect top "segname BS and resid 1310 to 1318"]
+$glycan set chain E
+$glycan writepdb ES_glycan_cleaved.pdb
+set glycan [atomselect top "segname CS and resid 1301 to 1309"]
+$glycan writepdb CS_glycan_cleaved.pdb
+set glycan [atomselect top "segname CS and resid 1310 to 1319"]
+$glycan set chain F
+$glycan writepdb FS_glycan_cleaved.pdb
+
 resetpsf
 topology $env(HOME)/charmm/toppar/top_all36_prot.rtf
 topology $env(HOME)/charmm/toppar/top_all36_carb_namd_cfa.rtf
