@@ -111,6 +111,8 @@ cosolvent
 
 34. [6M0J](http://www.rcsb.org/pdb/explore/explore/explore.do?structureID=6m0j) -- Complex of SARS-CoV-2 S spike receptor binding domain and ACE2
 
+34. [6W41](http://www.rcsb.org/pdb/explore/explore/explore.do?structureID=6w41) -- Complex of SARS-CoV-2 S spike receptor binding domain and hAb CR3022
+
 More to come...
 
 ## Acknowledgments

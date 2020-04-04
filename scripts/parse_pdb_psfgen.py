@@ -133,9 +133,12 @@ class loop:
           else:
              fp=0
           if ps==0:
-             ps=fm
-             ps.next=fp
-             ps=ps.next
+             if fm != 0:
+                ps=fm
+                ps.next=fp
+                ps=ps.next
+             else:
+                ps=fp
           else:
              ps.next=fm
              if fp!=0:
