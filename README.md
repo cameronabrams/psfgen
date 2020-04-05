@@ -113,6 +113,8 @@ cosolvent
 
 34. [6W41](http://www.rcsb.org/pdb/explore/explore/explore.do?structureID=6w41) -- Complex of SARS-CoV-2 S spike receptor binding domain and hAb CR3022
 
+35. [6WAQ](http://www.rcsb.org/pdb/explore/explore/explore.do?structureID=6waq) -- Complex of SARS-CoV-2 S spike receptor binding domain and nanobody VHH-72
+
 More to come...
 
 ## Acknowledgments
