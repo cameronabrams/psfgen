@@ -1,5 +1,5 @@
 # .vmdrc
-# cameron f abrams, 2018
+# cameron f abrams, 2020
 # cfa22@drexel.edu
 
 # draw an arrow from pt 'start' to point 'end'
@@ -684,6 +684,56 @@ proc aa_321 { aa3 } {
     return $aa1
 }
 
+# returns AXIAL if ligand at in_name is axial; EQUATORIAL otherwise
+proc axeq { ose_resid molid chain in_name } {
+    set resname [[atomselect $molid "resid $ose_resid and chain $chain and name C1"] get resname]
+    set nra_sel [atomselect $molid "resid $ose_resid and chain $chain and not name C1 C2 C3 C4 C5 O5"]
+    set nra_i [$nra_sel get index]
+    set nra_n [$nra_sel get name]
+    set nra_x [$nra_sel get x]
+    set nra_y [$nra_sel get y]
+    set nra_z [$nra_sel get z]
+    set ra_sel [atomselect $molid "resid $ose_resid and chain $chain and name C1 C2 C3 C4 C5 O5"]
+    set ra_i [$ra_sel get index]
+    set ra_n [$ra_sel get name]
+    set ra_x [$ra_sel get x]
+    set ra_y [$ra_sel get y]
+    set ra_z [$ra_sel get z]
+
+    foreach n $nra_i nn $nra_n nx $nra_x ny $nra_y nz $nra_z {
+       set pos($nn) [list $nx $ny $nz]
+    }
+    set i 0
+    foreach r $ra_i rn $ra_n rx $ra_x ry $ra_y rz $ra_z {
+       set pos($rn) [list $rx $ry $rz]
+       set forp($rn) [lindex $ra_n [expr ($i+2)%6]]
+       set bakp($rn) [lindex $ra_n [expr ($i-2)%6]]
+       foreach n $nra_i nn $nra_n nx $nra_x ny $nra_y nz $nra_z {
+	    set tb [measure bond [list $r $n]]
+	    if {$tb < 2.0} {
+		set ligand_by_name($rn) $nn
+		set ligand_by_index($r) $n
+            }
+       }
+       incr i
+    }
+    foreach {rn ln} [array get ligand_by_name] {
+	set forvec [vecsub $pos($rn) $pos($forp($rn))]
+	set bakvec [vecsub $pos($rn) $pos($bakp($rn))]
+	set pcross [veccross $forvec $bakvec]
+	set ligvec [vecsub $pos($rn) $pos($ln)]
+	set ligpdot [expr abs([vecdot $ligvec $pcross])]
+	if { $ligpdot > 5.5 } {
+	   set ligand_axeq($rn) "AXIAL"
+	   set ligand_axeq($ln) "AXIAL"
+	} else {
+           set ligand_axeq($rn) "EQUATORIAL"
+	   set liband_axeq($ln) "EQUATORIAL"
+	}
+    #    puts "ring atom $rn has forp $forp($rn) and bakp $bakp($rn) and ligand $ln bondlength [veclength $ligvec] ligpdot $ligpdot axeq $ligand_axeq($rn)"
+    }
+    return $ligand_axeq($in_name)
+}
 atomselect macro dppc_head "resname DPPC and name C1 HA HB C11 H11A H11B C12 H12A H12B C13 H13A H13B H13C C14 H14A H14B H14C C15 H15A H15B H15C P O11 O12 O13 O14 N"
 atomselect macro dppc_tail "resname DPPC and not name C1 HA HB C11 H11A H11B C12 H12A H12B C13 H13A H13B H13C C14 H14A H14B H14C C15 H15A H15B H15C P O11 O12 O13 O14 N"
 atomselect macro glycan "resname NAG MAN BMA FUC GAL BGNA AMAN BMAN AFUC BGAL" 
