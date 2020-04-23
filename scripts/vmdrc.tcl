@@ -684,10 +684,14 @@ proc aa_321 { aa3 } {
     return $aa1
 }
 
-# returns AXIAL if ligand at in_name is axial; EQUATORIAL otherwise
-proc axeq { ose_resid molid chain in_name } {
+# returns 'a' if ligand at in_name is axial; 'b' otherwise
+proc axeq { ose_resid molid chain in_name c1_resid } {
     set resname [[atomselect $molid "resid $ose_resid and chain $chain and name C1"] get resname]
-    set nra_sel [atomselect $molid "resid $ose_resid and chain $chain and not name C1 C2 C3 C4 C5 O5"]
+    if { $c1_resid != -1 } {
+      set nra_sel [atomselect $molid "(resid $ose_resid and chain $chain and not name C1 C2 C3 C4 C5 O5) or (resid $c1_resid and chain $chain and not name C1 C2 C3 C4 C5 O5)"]
+    } else {
+      set nra_sel [atomselect $molid "resid $ose_resid and chain $chain and not name C1 C2 C3 C4 C5 O5"]
+    }
     set nra_i [$nra_sel get index]
     set nra_n [$nra_sel get name]
     set nra_x [$nra_sel get x]
@@ -724,15 +728,20 @@ proc axeq { ose_resid molid chain in_name } {
 	set ligvec [vecsub $pos($rn) $pos($ln)]
 	set ligpdot [expr abs([vecdot $ligvec $pcross])]
 	if { $ligpdot > 5.5 } {
-	   set ligand_axeq($rn) "AXIAL"
-	   set ligand_axeq($ln) "AXIAL"
+	   set ligand_axeq($rn) "a"
+	   set ligand_axeq($ln) "a"
 	} else {
-           set ligand_axeq($rn) "EQUATORIAL"
-	   set liband_axeq($ln) "EQUATORIAL"
+           set ligand_axeq($rn) "b"
+	   set ligand_axeq($ln) "b"
 	}
     #    puts "ring atom $rn has forp $forp($rn) and bakp $bakp($rn) and ligand $ln bondlength [veclength $ligvec] ligpdot $ligpdot axeq $ligand_axeq($rn)"
     }
-    return $ligand_axeq($in_name)
+    if { [ info exists ligand_axeq($in_name) ] } {
+       return $ligand_axeq($in_name)
+    } else {
+       # just assume equatorial
+       return "b" 
+    }
 }
 atomselect macro dppc_head "resname DPPC and name C1 HA HB C11 H11A H11B C12 H12A H12B C13 H13A H13B H13C C14 H14A H14B H14C C15 H15A H15B H15C P O11 O12 O13 O14 N"
 atomselect macro dppc_tail "resname DPPC and not name C1 HA HB C11 H11A H11B C12 H12A H12B C13 H13A H13B H13C C14 H14A H14B H14C C15 H15A H15B H15C P O11 O12 O13 O14 N"

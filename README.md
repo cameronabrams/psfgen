@@ -115,6 +115,8 @@ cosolvent
 
 35. [6WAQ](http://www.rcsb.org/pdb/explore/explore/explore.do?structureID=6waq) -- Complex of SARS-CoV-1 S spike receptor binding domain and nanobody VHH-72
 
+36. [4BYH](http://www.rcsb.org/pdb/explore/explore/explore.do?structureID=4byh) -- Sialylated IgG Fc
+
 More to come...
 
 ## Acknowledgments

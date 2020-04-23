@@ -42,6 +42,11 @@ case $key in
     shift
     shift
     ;;
+    -opdb)
+    OPDB="$2"
+    shift
+    shift
+    ;;
     -sel)
     SEL="$2"
     shift
@@ -80,6 +85,14 @@ for { set i 0 } { \$i <= [molinfo top get numframes] } { incr i } {
     \$sel move [measure fit \$sel \$selref]
 }
 animate write dcd $OUTFILE sel \$sel waitfor all 0
+EOF
+if [ -v OPDB ]; then
+cat >> tmp.tcl << EOF
+\$sel frame 0
+\$sel writepdb $OPDB
+EOF
+fi
+cat >> tmp.tcl << EOF
 exit
 EOF
 $VMD -dispdev text -e tmp.tcl -args $DCDARGSTR
