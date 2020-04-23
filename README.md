@@ -117,6 +117,8 @@ cosolvent
 
 36. [4BYH](http://www.rcsb.org/pdb/explore/explore/explore.do?structureID=4byh) -- Sialylated IgG Fc
 
+37. [4B7I](http://www.rcsb.org/pdb/explore/explore/explore.do?structureID=4b7i) -- Human IgG Fc Bearing Hybrid-type Glycans
+
 More to come...
 
 ## Acknowledgments

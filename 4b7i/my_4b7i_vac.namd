@@ -1,0 +1,42 @@
+structure  my_4b7i.psf 
+coordinates my_4b7i.pdb
+set temperature 310
+temperature $temperature
+
+set outputname my_4b7i_vac
+firsttimestep 0
+
+paraTypeCharmm      on
+parameters $env(HOME)/charmm/toppar/par_all36_prot.prm
+parameters $env(HOME)/charmm/toppar/par_all36_carb.prm
+parameters $env(HOME)/charmm/toppar/stream/carb/toppar_all36_carb_glycopeptide.str
+parameters $env(HOME)/charmm/toppar/toppar_water_ions_namd_nonbfixes.str
+
+exclude             scaled1-4
+1-4scaling          1.0
+cutoff              10.
+switching           on
+switchdist          9.
+pairlistdist        11.5
+timestep            1.0  ;
+rigidbonds      none
+
+nonbondedFreq       1
+fullElectFrequency  2
+stepspercycle       4
+outputName          $outputname
+dielectric 80
+
+langevin                on
+langevinDamping         5
+langevinTemp            $temperature
+langevinHydrogen        yes
+seed 3463871
+
+outputEnergies      10
+dcdfreq             100
+restartfreq         100
+
+minimize 1000
+run 3000
+
