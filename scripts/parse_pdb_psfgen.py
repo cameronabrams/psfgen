@@ -109,6 +109,7 @@ class loop:
                self.resid.append(i)
                return self
            elif i>self.resid[-1]+1 or self.chain!=c or self.state!=s:
+#               print('add_res makes new loop {}'.format(c))
                newloop=loop(state=s)
                newloop.index=self.index+1
                newloop.chain=c
@@ -136,6 +137,7 @@ class loop:
                 me.next=0
                 return me,self
              p=p.next
+#       print('cond 2')
        return 0,self
    def copy(self):
        retval=loop(self.state)
@@ -156,7 +158,8 @@ class loop:
                 min_resid=p.resid[0]
           p=p.next
        if m==0:
-          return 0,self
+#           print('cond 1')
+           return 0,self
        return self.remove(m)
    def pop_first(self,state=_Missing_):
        p=self
@@ -395,6 +398,7 @@ with open(fn) as f:
             for i in range(3,len(k)):
                 chains.append(k[i].strip(',').strip(';'))
         if k[0]=='REMARK' and k[1]=='465':
+#            print(l)
             if len(k)==5:
                r=k[2]
                if r=='HIS':
@@ -418,6 +422,7 @@ with open(fn) as f:
                L=loop(_Present_)
                pl=L.add_res(tc,tr,ti,_Present_)
             else:
+#               print('adding {} {} {} present'.format(tc,tr,ti))
                pl=pl.add_res(tc,tr,ti,_Present_)
 
         if k[0]=='SSBOND':
@@ -491,22 +496,31 @@ for k,v in _AtNameDict_.items():
 
 chains=sorted(L.get_chains())
 cl=[0 for _ in range(len(chains))]
+#print(chains)
 i=0
 for c in chains:
-#   print(c)
+#   print('popping loops from chain',c)
    r,L=L.pop_next_from_chain(c)
+#   print('popped',r,'remaining',L)
+   if r!=0 and L==0:
+       if cl[i]==0:
+           cl[i]=r
+       else:
+           cl[i].add_loop(r)
    while r!=0 and L!=0:
-#      print(r)
       if cl[i]==0:
         cl[i]=r
       else:
         cl[i].add_loop(r)
+#      print('popping loops from chain',c)
       r,L=L.pop_next_from_chain(c)
+#      print('popped',r,'remaining',L)
    i+=1
 
 #exit
 #L.print_psfgen()
 #G=D.build_glycans()
+#print(cl)
 print(r'set segs  {',end='')
 for i,c in enumerate(cl):
    if i>0:

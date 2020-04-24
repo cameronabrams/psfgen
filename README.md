@@ -119,6 +119,8 @@ cosolvent
 
 37. [4B7I](http://www.rcsb.org/pdb/explore/explore/explore.do?structureID=4b7i) -- Human IgG Fc Bearing Hybrid-type Glycans
 
+38. [2WAH](http://www.rcsb.org/pdb/explore/explore/explore.do?structureID=2wah) -- An IgG1 Fc Glycoform (MAN9GLCNAC2)
+
 More to come...
 
 ## Acknowledgments
