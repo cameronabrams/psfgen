@@ -745,6 +745,6 @@ proc axeq { ose_resid molid chain in_name c1_resid } {
 }
 atomselect macro dppc_head "resname DPPC and name C1 HA HB C11 H11A H11B C12 H12A H12B C13 H13A H13B H13C C14 H14A H14B H14C C15 H15A H15B H15C P O11 O12 O13 O14 N"
 atomselect macro dppc_tail "resname DPPC and not name C1 HA HB C11 H11A H11B C12 H12A H12B C13 H13A H13B H13C C14 H14A H14B H14C C15 H15A H15B H15C P O11 O12 O13 O14 N"
-atomselect macro glycan "resname NAG MAN BMA FUC GAL BGNA AMAN BMAN AFUC BGAL" 
+atomselect macro glycan "resname NAG MAN BMA FUC GAL BGNA AMAN BMAN AFUC BGAL ANE5" 
 menu main on
 
