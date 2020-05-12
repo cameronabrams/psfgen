@@ -2,14 +2,8 @@ import sys
 import operator
 from datetime import date 
 
-''' Parses experimental PDB to 
-       1. Extract loops of missing structure from REMARK 465 lines in a PDB
-       2. Extract N-linked NAGs (more to come)
-       3. Extract disulfides
-
-    stdout can be redirected to a file that can be sourced by a mkpsf script
-    after PDB is read in but before the 'guesscoords' statement
-
+''' 
+    Parses experimental PDB to build input file for VMD/psfgen
     Cameron F Abrams
     cfa22@drexel.edu
 '''
@@ -25,29 +19,27 @@ _seg_class_.update({k:'ION' for k in _pdb_ions_})
 _seg_class_.update({k:'GLYCAN' for k in _pdb_glycans_})
 _seg_class_.update({k:'PROTEIN' for k in _PDBResName123_.values()})
 _seg_class_['HIS']='PROTEIN'
-_segname_suffix_character_={'PROTEIN':'','ION':'I','WATER':'WX','GLYCAN':'S'}
+_segname_suffix_character_={'PROTEIN':'','ION':'I','WATER':'W','GLYCAN':'G'}
 _PDBResNameDict_={'HIS':'HSE','ZN':'ZN2','HOH':'TIP3','CL':'CLA','NAG':'BGNA','MAN':'AMAN','BMA':'BMAN','FUC':'AFUC','GAL':'BGAL','SIA':'ANE5AC'}
 _PDBAtNameDict_={'CL':'CLA'}
 
-
-
 class Atom:
    def __init__(self,record_name,serial,name,altloc,resname,chainID,resseqnum,insertion,x,y,z,occ,beta,elem,charge):
-      self.record_name=record_name
+      self.record_name=record_name.strip()
       self.serial=serial
-      self.name=name
-      self.altloc=altloc
-      self.resname=resname
-      self.chainID=chainID
+      self.name=name.strip()
+      self.altloc=altloc.strip()
+      self.resname=resname.strip()
+      self.chainID=chainID.strip()
       self.resseqnum=resseqnum
-      self.insertion=insertion
+      self.insertion=insertion.strip()
       self.x=x
       self.y=y
       self.z=z
       self.occ=occ
       self.beta=beta
-      self.elem=elem
-      self.charge=charge
+      self.elem=elem.strip()
+      self.charge=charge.strip()
    def __str__(self):
       retstr='{}\n'+\
              '  serial    {:d}\n'+\
@@ -66,6 +58,15 @@ class Atom:
              '  charge    {:s}\n'
       return retstr.format(self.record_name,self.serial,self.name,self.altloc,self.resname,self.chainID,self.resseqnum,self.insertion,self.x,self.y,self.z,self.occ,self.beta,self.elem,self.charge)
 
+class LinkSet:
+    def __init__(self):
+       self.L=[]
+       self.C=[]
+    def add_link(self,l):
+       self.L.append(l)
+    def cluster(self,Residues):
+       for l in self.L:
+           pass
 class Link:
     def __init__(self,record_name,name1,altloc1,resname1,chainID1,resseq1,icode1,name2,altloc2,resname2,chainID2,resseq2,icode2,sym1,sym2,link_distance):
        self.record_name=record_name.strip()
@@ -104,18 +105,22 @@ class Link:
         return retstr.format(self.record_name,self.name1,self.altloc1,self.resname1,self.chainID1,self.resseq1,self.icode1,self.name2,self.altloc2,self.resname2,self.chainID2,self.resseq2,self.icode2,self.sym1,self.sym2,self.link_distance)
     def psfgen_patchline(self):
         if self.resname1=='ASN' and _seg_class_[self.resname2]=='GLYCAN':
-            return 'patch NGLB {}:{} {}S:{}'.format(self.chainID1,self.resseq1,self.chainID2,self.resseq2)
+            return 'patch NGLB {}:{} {}S:{}\n'.format(self.chainID1,self.resseq1,self.chainID2,self.resseq2)
         else:
-            # for a glycan-glycan patch, the C1 atom is always on the i-residue
+            # for a glycan-glycan patch, the C1 atom is always on the ji-residue
             if self.name2=='C1' and _seg_class_[self.resname1]=='GLYCAN':
-                cmdi='[axeq {} 0 {} {} {}]'.format(self.resseq2,self.chainID2,self.name2,self.resseq1)
-                cmdj='[axeq {} 0 {} {} {}]'.format(self.resseq1,self.chainID1,self.name1,-1)
-                
-                return 'patch 1{:1s}{}{} {}S:{} {}S:{}'.format(self.name1[1], cmdi,cmdj,self.chainID2,self.resseq2,self.chainID1,self.resseq1)
+                cmdj='[axeq {} 0 {} {} {}]'.format(self.resseq2,self.chainID2,self.name2,self.resseq1)
+                cmdi='[axeq {} 0 {} {} {}]'.format(self.resseq1,self.chainID1,self.name1,-1)
+                return 'patch 1{:1s}{}{} {}S:{} {}S:{}\n'.format(self.name1[1], cmdi,cmdj,self.chainID1,self.resseq1,self.chainID2,self.resseq2)
             elif self.name1=='C1' and _seg_class_[self.resname2]=='GLYCAN':
-                return 'patch 1{:1s}xx {}S:{} {}S:{}'.format(self.name2[1], self.chainID1,self.resseq1,self.chainID2,self.resseq2)
+                cmdi='[axeq {} 0 {} {} {}]'.format(self.resseq2,self.chainID2,self.name2,self.resseq1)
+                cmdj='[axeq {} 0 {} {} {}]'.format(self.resseq1,self.chainID1,self.name1,-1)           
+                return 'patch 1{:1s}{}{} {}S:{} {}S:{}\n'.format(self.name2[1], cmdi,cmdj,self.chainID2,self.resseq2,self.chainID1,self.resseq1)
+            elif self.name1=='O6' and self.name2=='C2':
+                return 'patch SA26E {}S:{} {}S:{}\n'.format(self.chainID1,self.resseq1,self.chainID2,self.resseq2)
+                pass
             else:
-                return 'patch unknown for '+str(self)
+                return '### patch unknown for '+str(self)+'\n'
 
 class SSBond:
     def __init__(self,record_name,resname1,chainID1,resseqnum1,icode1,resname2,chainID2,resseqnum2,icode2,sym1,sym2,length):
@@ -146,7 +151,7 @@ class SSBond:
                '  length      {:.3f}\n'
         return retstr.format(self.record_name,self.resname1,self.chainID1,self.resseqnum1,self.icode1,self.resname2,self.chainID2,self.resseqnum2,self.icode2,self.sym1,self.sym2,self.length)
     def psfgen_patchline(self):
-       return 'patch DISU {}:{} {}:{}'.format(self.chainID1,self.resseqnum1,self.chainID2,self.resseqnum2)
+       return 'patch DISU {}:{} {}:{}\n'.format(self.chainID1,self.resseqnum1,self.chainID2,self.resseqnum2)
 
 class Missing:
     def __init__(self,record_name,code,model,resname,chainID,resseqnum):
@@ -166,12 +171,12 @@ class Missing:
     def psfgen_residueline(self):
         return '     residue {} {} {}'.format(self.resname,self.resseqnum,self.chainID)
 
-def psfgen_write_pdb(st,c,l,r,p):
+def psfgen_write_pdb(st,source,c,l,r,p):
     if st=='PROTEIN':
-        retstr='[atomselect top "chain {} and resid {} to {}"] writepdb {}\n'.format(c,l,r,p)
+        retstr='[atomselect top "chain {} and resid {} to {}"] writepdb {}\n'.format(source,l,r,p)
     else:
         retstr='# Changing resnames and atom names in {}\n'.format(p)
-        retstr+='set myseg [atomselect top "chain {} and resid {} to {}"]\n'.format(c,l,r,p)
+        retstr+='set myseg [atomselect top "chain {} and resid {} to {}"]\n'.format(source,l,r,p)
         retstr+='set sav_nm [$myseg get resname]\n'
         retstr+='set new_nm [list]\n'
         retstr+=r'foreach r $sav_nm {'+'\n'
@@ -219,12 +224,15 @@ class Loop:
 class Segment:
     def __init__(self,r):
         self.segname=r.chainID+_segname_suffix_character_[_seg_class_[r.name]]
+        self.source_chainID=r.source_chainID # survives cleavages
         self.segtype=_seg_class_[r.name]
         self.residues=[r]
         self.mutations=[]
+    def __str__(self):
+        return '{}[{}] {} - {}'.format(self.segname,self.segtype,self.residues[0].resseqnum,self.residues[-1].resseqnum)
     def add_residue(self,r):
         self.residues.append(r)
-    def psfgen_segmentstanza(self):  # good job, now this only works for proteins!!
+    def psfgen_segmentstanza(self):
         pdbs=[]
         Loops=[]
         Runs=[]
@@ -234,11 +242,11 @@ class Segment:
         inloop=False
         last_resseqnum=-1
 #        for r in self.residues:
-#            print(r)
+#            fp.write(r)
         for r in self.residues:
             if len(r.atoms)>0:
                 if last_resseqnum==-1:
-#                    print('appending',r)
+#                    fp.write('appending',r)
                     Runs.append(Run(r.chainID,r.resseqnum,-1))
                 elif inloop:
                     if len(Loops)>0:
@@ -246,7 +254,7 @@ class Segment:
                     inloop=False
                     Runs.append(Run(r.chainID,r.resseqnum,-1))
                 else:
-#                    print('2passing',r)
+#                    fp.write('2passing',r)
                     pass
             elif len(r.atoms)==0:
                 if last_resseqnum==-1:
@@ -255,24 +263,24 @@ class Segment:
                     Runs[-1].resseqnum2=last_resseqnum
                     Loops.append(Loop(r.chainID,last_resseqnum,r))
                 else:
-#                    print(last_resseqnum)
+#                    fp.write(last_resseqnum)
                     if len(Loops)>0:
                         Loops[-1].add_residue(r)
                     else:
                         pass
                 inloop=True
             else:
-#                print('passing', r)
+#                fp.write('passing', r)
                 pass
             last_resseqnum=r.resseqnum
-#        print(self.segname,len(Runs))
+#        fp.write(self.segname,len(Runs))
         if len(Runs)==1:
             Runs[0].resseqnum2=last_resseqnum
-#            print('END OF LOOP: segname {} r.resseqnum {} {} last_resseqnum {}'.format(self.segname,r.resseqnum,r.name,last_resseqnum))
+#            fp.write('END OF LOOP: segname {} r.resseqnum {} {} last_resseqnum {}'.format(self.segname,r.resseqnum,r.name,last_resseqnum))
         if len(Loops)>0:
             for r,l in zip(Runs,Loops):
                 pdbs.append(r.pdb_str())
-                suppstr+=psfgen_write_pdb(self.segtype,r.chainID,r.resseqnum1,r.resseqnum2,pdbs[-1])
+                suppstr+=psfgen_write_pdb(self.segtype,self.source_chainID,r.chainID,r.resseqnum1,r.resseqnum2,pdbs[-1])
                 retstr+='   pdb {}\n'.format(pdbs[-1])
                 if l.terminated==True:
                     for rr in l.residues:
@@ -286,13 +294,13 @@ class Segment:
         else:
             r=Runs[0]
             pdbs.append(r.pdb_str())
-            suppstr+=psfgen_write_pdb(self.segtype,r.chainID,r.resseqnum1,r.resseqnum2,pdbs[-1])
+            suppstr+=psfgen_write_pdb(self.segtype,self.source_chainID,r.chainID,r.resseqnum1,r.resseqnum2,pdbs[-1])
             retstr+='   pdb {}\n'.format(pdbs[-1])
 
         retstr+='}'
         coordstr=''
         for p in pdbs:
-            coordstr+='coordpdb {} {}\n'.format(p,s.segname)
+            coordstr+='coordpdb {} {}\n'.format(p,self.segname)
         if len(Loops)>0:
             r0=self.residues[0]
             for l in Loops:
@@ -317,7 +325,7 @@ def read_atom(line):
     resseqnum=int(line[22:26])
 #27             AChar         iCode        Code for insertion of residues.
     insertion=line[26:27]
-#31 - 38        Real(8.3)     x            Orthogonal coordinates for X in Angstroms.
+#31 - 38       Real(8.3)     x            Orthogonal coordinates for X in Angstroms.
     x=float(line[30:38])
 #39 - 46        Real(8.3)     y            Orthogonal coordinates for Y in Angstroms.
     y=float(line[38:46])
@@ -405,12 +413,15 @@ def read_missing(line):
     model=line[13:14]
     resname=line[15:18]
     chainID=line[19:20]
-    resseqnum=int(line[22:26])
+    resseqnum=int(line[21:26])
+#    if (resseqnum<0):
+#       fp.write('# negative resid for missing residue: {} {} {}'.format(resname,chainID,resseqnum))
     return(Missing(record_name,code,model,resname,chainID,resseqnum))    
 class Chain:
     def __init__(self,r):
         self.chainID=r.chainID
         self.residues=[r]
+        self.source_chainID=r.chainID
     def add_residue(self,r):
         if self.chainID==r.chainID:
             self.residues.append(r)
@@ -422,6 +433,18 @@ class Chain:
         for r in self.residues:
             resid.append(r.resseqnum)
         return 'CHAIN {} {:d} - {:d}'.format(self.chainID,min(resid),max(resid))
+    def Cleave(self,Cleave):
+        C_index=-1
+        for i,r in enumerate(self.residues):
+            if r.resseqnum==Cleave.parent_Cterm_resseqnum:
+                C_index=i
+        dres=self.residues[C_index+1:]
+        self.residues=self.residues[0:C_index+1]
+        for r in dres:
+            r.set_chainID(Cleave.daughter_chainID)
+        Daughter=Chain(dres[0])
+        Daughter.residues.extend(dres[1:])
+        return Daughter
     def Segments(self,Mutations=0):
         S=[]
         for r in self.residues:
@@ -429,15 +452,15 @@ class Chain:
                 S.append(Segment(r))
             else:
                 for s in S:
-                    #print('looking {} {}'.format(s.segtype,_seg_class_[r.name]))
+                    #fp.write('looking {} {}'.format(s.segtype,_seg_class_[r.name]))
                     found=False
                     if s.segtype==_seg_class_[r.name]:
-                        #print('adding')
+                        #fp.write('adding')
                         s.add_residue(r)
                         found=True
                         break
                 if not found:
-                    #print('creating')
+                    #fp.write('creating')
                     S.append(Segment(r))
         if Mutations != 0:
             for m in Mutations:
@@ -485,19 +508,30 @@ class Residue:
             self.resseqnum=a.resseqnum
             self.name=a.resname
             self.chainID=a.chainID
+            self.source_chainID=a.chainID
             self.atoms=[a]
         else:
             if m!=0:
                 self.resseqnum=m.resseqnum
                 self.name=m.resname
                 self.chainID=m.chainID
+                self.source_chainID=m.chainID
                 self.atoms=[]
             else:
-                print('ERROR: bad residue construction')
+                fp.write('ERROR: bad residue construction')
 
     def add_atom(self,a):
         if self.resseqnum==a.resseqnum and self.name==a.resname and self.chainID==a.chainID:
             self.atoms.append(a)
+    def residue_shift(self,resseqnumshift):
+        self.resseqnum+=resseqnumshift
+        for a in self.Atoms:
+            a.resseqnum+=resseqnumshift
+        pass
+    def set_chainID(self,chainID):
+        self.chainID=chainID
+        for a in self.atoms:
+            a.chainID=chainID
     def __str__(self):
         if len(self.atoms)==0:
             atstr='MISSING'
@@ -548,32 +582,278 @@ def read_mutation_user(label):
     ri=int(label[3:-1])
     return Mutation(chainID,lr,ri,rr,label)
 
+class Cleavage:
+    def __init__(self,parent_chainID,parent_Cterm_resseqnum,daughter_chainID):
+        self.parent_chainID=parent_chainID
+        self.parent_Cterm_resseqnum=parent_Cterm_resseqnum
+        self.daughter_chainID=daughter_chainID
+    def __str__(self):
+        return '{}{}-x-{}'.format(self.parent_chainID,self.parent_Cterm_resseqnum,self.daughter_chainID)
+
+def read_cleavage_user(label):
+    if not label[0].isalpha() or not label[-1].isalpha():
+        print('Poorly formed cleavage spec: {}'.format(label))
+        return 0
+    parent_chainID=label[0]
+    parent_Cterm_resseqnum=int(label[1:-1])
+    daughter_chainID=label[-1]
+    return Cleavage(parent_chainID,parent_Cterm_resseqnum,daughter_chainID)
+
+class Molecule:
+    def __init__(self,index,pdb):
+        self.index=index
+        self.pdb=pdb
+        self.Atoms=[]
+        self.Links=LinkSet()
+        self.SSBonds=[]
+        self.MissingRes=[]
+        with open(pdb) as pdbfile:
+            for line in pdbfile:
+                if line[:4] == 'ATOM' or line[:6] == "HETATM":
+                    at=read_atom(line)
+                    self.Atoms.append(at)
+                elif line[:4] == 'LINK':
+                    ln=read_link(line)
+                    self.Links.add_link(ln)
+                elif line[:6] == 'SSBOND':
+                    ss=read_ssbond(line)
+                    self.SSBonds.append(ss)
+                elif line[:6] == 'REMARK':
+                    code=int(line[7:10])
+                    test_int=line[20:26].strip()
+                    if code==465 and (test_int.isdigit() or (len(test_int)>0 and  test_int[0]=='-')):
+                        mr=read_missing(line)
+                        self.MissingRes.append(mr)
+        self.Residues=make_residues(self.Atoms,self.MissingRes)
+        self.Chains=make_chains(self.Residues)
+        
+    def Cleave(self,Cleavages):
+        for clv in Cleavages:
+            clv_c=-1
+            daughter_chainID_ok=True
+            for c in self.Chains:
+                if c.chainID==clv.parent_chainID:
+                    clv_c=c
+                if c.chainID==clv.daughter_chainID:
+                    daugher_chainID_ok=False
+            if clv_c!=-1 and daughter_chainID_ok:
+                print('### before cleave:',clv_c)
+                daughter=clv_c.Cleave(clv)
+                self.Chains.append(daughter)
+                for s in self.SSBonds:
+                    if s.chainID1==clv_c.chainID and s.resseqnum1>clv.parent_Cterm_resseqnum:
+                        s.chainID1=daughter.chainID
+                    if s.chainID2==clv_c.chainID and s.resseqnum2>clv.parent_Cterm_resseqnum:
+                        s.chainID2=daughter.chainID
+                for l in self.Links:
+                    if l.chainID1==clv_c.chainID and l.resseq1>clv.parent_Cterm_resseqnum:
+                        l.chainID1=daughter.chainID
+                    if l.chainID2==clv_c.chainID and l.resseq2>clv.parent_Cterm_resseqnum:
+                        l.chainID2=daughter.chainID
+                # to do -- links!   
+                print('### after cleave:',clv_c,self.Chains[-1])
+            else:
+                print('### unable to cleave chain {} at position {} to generate {} {}'.format(clv_c.chainID,clv.parent_Cterm_resseqnum,clv.parent_chainID,clv.daughter_chainID))
+    def __str__(self):
+        return 'Molecule {} {}: {} chains, {} residues, {} atoms, {} links, {} ssbonds'.format(self.index,self.pdb,len(self.Chains),len(self.Residues),len(self.Atoms),len(self.Links),len(self.SSBonds)) 
+    def residue_shift(self,chainID,resseqnumshift):
+        found=False
+        for c in self.Chains:
+            if c.chainID==chainID:
+                 found=True
+                 break;
+        if not found:
+            print('### Could not apply shift to chain {}: no such chain in Molecule {}'.format(chainID,self.index))
+            return -1
+        for r in c.residues:
+            r.residue_shift(resseqnumshift)
+        for l in self.LinkSet.L:
+            if l.chainID1==chainID:
+                l.resseqnum1+=resseqnumshift
+            if l.chainID2==chainID:
+                l.resseqnum2+=resseqnumshift            
+        for ss in self.SSBonds:
+            if ss.chainID1==chainID:
+                ss.resseqnum1+=resseqnumshift
+            if ss.chainID2==chainID:
+                ss.resseqnum2+=resseqnumshift
+        return 0
+
+    def writepsfgeninput(self,fp,Mutations=[],topologies=[]):
+        fp.write('if {![info exists PSFGEN_BASEDIR]} {\n'+\
+              '    if {[info exists env(PSFGEN_BASEDIR]} {\n'+\
+              '        set PSFGEN_BASEDIR $env(PSFGEN_BASEDIR)\n'+\
+              '    } else {\n'+\
+              '        set PSFGEN_BASEDIR $env(HOME)/research/psfgen\n'+\
+              '    }\n'+\
+              '}\n')
+        fp.write('if {![info exists CHARMM_TOPPARDIR]} {\n'+\
+              '    if {[info exists env(CHARMM_TOPPARDIR]} {\n'+\
+              '        set TOPPARDIR $env(CHARMM_TOPPARDIR)\n'+\
+              '    } else {\n'+\
+              '        set TOPPARDIR $env(HOME)/charmm/toppar\n'+\
+              '    }\n'+\
+              '}\n')
+        fp.write('source ${PSFGEN_BASEDIR}/src/loopmc.tcl\n')
+        fp.write('source ${PSFGEN_BASEDIR}/scripts/vmdrc.tcl\n')
+        fp.write('package require psfgen\n')
+        for t in topologies:
+            fp.write('topology $TOPPARDIR/{}\n'.format(t))
+        fp.write('pdbalias residue HIS HSD\n')
+        fp.write('pdbalias atom ILE CD1 CD\n')
+        fp.write('pdbalias residue NAG BGNA\n')
+        fp.write('pdbalias atom BGNA C7 C\n')
+        fp.write('pdbalias atom BGNA O7 O\n')
+        fp.write('pdbalias atom BGNA C8 CT\n')
+        fp.write('pdbalias atom BGNA N2 N\n')
+        fp.write('pdbalias residue SIA ANE5\n')
+        fp.write('pdbalias atom ANE5 C10 C\n')
+        fp.write('pdbalias atom ANE5 C11 CT\n')
+        fp.write('pdbalias atom ANE5 N5 N\n')
+        fp.write('pdbalias atom ANE5 O1A O11\n')
+        fp.write('pdbalias atom ANE5 O1B O12\n')
+        fp.write('pdbalias atom ANE5 O10 O\n')
+
+        fp.write('mol new {}\n'.format(self.pdb))
+
+        for k,v in _PDBResNameDict_.items():
+            fp.write('set RESDICT({}) {}\n'.format(k,v))
+        for k,v in _PDBAtNameDict_.items():
+            fp.write('set ANAMEDICT({}) {}\n'.format(k,v))
+
+        fp.write('set logid -1\n')
+
+        Loops=[]
+        for c in self.Chains:
+            for s in c.Segments(Mutations=Mutations):
+                stan,supp,coor,caco,loops=s.psfgen_segmentstanza()
+                fp.write('### begin stanza for segment {}\n'.format(s.segname))
+                fp.write(supp)
+                fp.write(stan+'\n')
+                fp.write(coor)
+                fp.write(caco)
+                if len(loops)>0:
+                    Loops.extend(loops)
+                fp.write('### end stanza for segment {}\n'.format(s.segname))
+
+        for ss in self.SSBonds:
+            fp.write(ss.psfgen_patchline())
+
+        for l in self.LinkSet.L:
+            fp.write(l.psfgen_patchline())
+
+        fp.write('guesscoord\n')
+        fp.write('regenerate angles dihedrals\n')
+
+        prefix=self.pdb[:]
+        prefix=prefix.replace('.pdb','')
+        fp.write('writepsf my_{}.psf\n'.format(prefix))
+        fp.write('writepdb my_{}_raw.pdb\n'.format(prefix))
+        return Loops
+
+def WritePostMods(fp,pdb,center_protein,reorient_protein,reorselstr,do_loop_mc,Loops):
+    prefix=pdb[:]
+    prefix=prefix.replace('.pdb','')
+    fp.write('mol delete top\n')
+    fp.write('mol new my_{}.psf\n'.format(prefix))
+    fp.write('set molid [molinfo top get id]\n')
+    fp.write('mol addfile my_{}_raw.pdb\n'.format(prefix))
+    if center_protein:
+        fp.write('set a [atomselect top "all"]\n')
+        fp.write('set or [measure center $a weight mass]\n')
+        fp.write('$a moveby [vecscale -1 $or]\n')
+        if reorient_protein:
+            fp.write('set ca [measure center [atomselect top "protein and {}"] weight mass]\n'.format(reorselstr[0]))
+            fp.write('set cb [measure center [atomselect top "protein and {}"] weight mass]\n'.format(reorselstr[1]))
+            fp.write('set pi 3.415928\n')
+            fp.write('set dv [vecsub $ca $cb]\n')
+            fp.write('set d [veclength $dv]\n')
+            fp.write('set cp [expr [lindex $dv 0]/$d]\n')
+            fp.write('set sp [expr [lindex $dv 1]/$d]\n')
+            fp.write('set p [expr acos($cp)]\n')
+            fp.write('if {[expr $sp < 0.0]} {\n')
+            fp.write('  set p [expr 2*$pi-$p]\n')
+            fp.write('}\n')
+            fp.write('set ct [expr [lindex $dv 2]/$d]\n')
+            fp.write('set t [expr acos($ct)]\n')
+            fp.write('$a move [transaxis z [expr -1 * $p] rad]\n')
+            fp.write('$a move [transaxis y [expr -1 * $t] rad]\n')
+    if do_loop_mc:
+        fp.write('set loops {\n')
+        for l in Loops:
+            if l.terminated:
+                fp.write('{{ {} {} {} }}\n'.format(l.chainID,l.residues[0].resseqnum,l.residues[-1].resseqnum))
+        fp.write('           }\n')
+        # create loops list { { }, { }, ...}
+        fp.write('set nc 1000\n')
+        fp.write('set rcut 3.0\n')
+        fp.write('set r0 1.5\n')
+        fp.write('set temperature 3.0\n')
+        fp.write('set k 10.0\n')
+        fp.write('set bg [atomselect $molid "noh"]\n')
+        fp.write('set loopindex 0\n')
+        fp.write('set nloops [llength $loops]\n')
+        fp.write('foreach l $loops {\n')
+        fp.write('   set chain [lindex $l 0]\n')
+        fp.write('   puts "Relaxing loop $loopindex out of $nloops"\n')
+        fp.write('   set residueList [[atomselect $molid "chain $chain and resid [lindex $l 1] to [lindex $l 2] and name CA"] get residue]\n')
+        fp.write('   do_loop_mc $residueList $chain $molid $k $r0 $bg $rcut $nc $temperature [irand_dom 1000 9999] $logid\n')
+        fp.write('   set loopindex [expr $loopindex + 1]\n')
+        fp.write('}\n')
+
+    fp.write('$a writepdb my_{}.pdb\n'.format(prefix))
+
 if __name__=='__main__':
 
+    print('### cfapdbparser {}'.format(date.today()))
     i=1
-    pdb='null.pdb'
-    Mutations=[]
+    Molecules=[]
+    Mut=[]
+    Clv=[]
     do_loop_mc=False
     center_protein=True
     reorient_protein=False
     reorselstr=[]
-    topologies=['top_all36_prot.rtf','top_all36_carb_namd_cfa.rtf','stream/carb/toppar_all36_carb_glycopeptide.str','toppar_water_ions_namd_nonbfixes.str']
+    psfgen='mkpsf.tcl'
+    topo=['top_all36_prot.rtf','top_all36_carb_namd_cfa.rtf','stream/carb/toppar_all36_carb_glycopeptide.str','toppar_water_ions_namd_nonbfixes.str']
     while i<len(sys.argv):
         if sys.argv[i]=='-pdb':
             i+=1
-            pdb=sys.argv[i]
+            j=0
+            while i<len(sys.argv) and sys.argv[i][0]!='-':
+                m=Molecule(j,sys.argv[i])
+                if m!=0:
+                   print('###',m)
+                   Molecules.append(m)
+                   j+=1
+                i+=1
+            if i<len(sys.argv) and sys.argv[i][0]=='-':
+                i-=1
         elif sys.argv[i]=='-mut':
             i+=1
             while i<len(sys.argv) and sys.argv[i][0]!='-':
                 mut=read_mutation_user(sys.argv[i])
                 if mut!=0:
-                    Mutations.append(mut)
+                    Mut.append(mut)
                 i+=1
+            if i<len(sys.argv) and sys.argv[i][0]=='-':
+                i-=1
+        elif sys.argv[i]=='-cleave':
+            i+=1
+            while i<len(sys.argv) and sys.argv[i][0]!='-':
+                clv=read_cleavage_user(sys.argv[i])
+                if clv!=0:
+                    Clv.append(clv)
+                i+=1
+            if i<len(sys.argv) and sys.argv[i][0]=='-':
+                i-=1
         elif sys.argv[i]=='-top':
             i+=1
             while i<len(sys.argv) and sys.argv[i][0]!='-':
-                topologies.append(sys.argv[i])
+                topo.append(sys.argv[i])
                 i+=1
+            if i<len(sys.argv) and sys.argv[i][0]=='-':
+                i-=1
         elif sys.argv[i]=='-do_loop_mc':
             do_loop_mc=True
         elif sys.argv[i]=='-no_center':
@@ -584,7 +864,14 @@ if __name__=='__main__':
             while i<len(sys.argv) and sys.argv[i][0]!='-':
                 reorselstr.append(sys.argv[i])
                 i+=1
+            if sys.argv[i][0]=='-':
+                i-=1
+        elif sys.argv[i]=='-psfgen':
+            i+=1
+            psfgen=sys.argv[i]
         i+=1
+
+    print('### psfgen input to be created {}'.format(psfgen))
 
     if reorient_protein:
         center_protein=True
@@ -593,163 +880,28 @@ if __name__=='__main__':
             print('       disabling reorientation.')
             reorient_protein=False
 
-    Atoms=[]
-    Links=[]
-    SSBonds=[]
-    MissingRes=[]
-    with open(pdb) as pdbfile:
-        for line in pdbfile:
-            if line[:4] == 'ATOM' or line[:6] == "HETATM":
-                at=read_atom(line)
-#            print(at)
-                Atoms.append(at)
-            elif line[:4] == 'LINK':
-                ln=read_link(line)
-#            print(ln.psfgen_patchline())
-                Links.append(ln)
-            elif line[:6] == 'SSBOND':
-                ss=read_ssbond(line)
-#            print(ss.psfgen_patchline())
-                SSBonds.append(ss)
-            elif line[:6] == 'REMARK':
-                code=int(line[7:10])
-                test_int=line[20:26].strip()
-            #print(code,test_int)
-                if code==465 and test_int.isdigit():
-                    mr=read_missing(line)
-#                print(mr.psfgen_residueline())
-                    MissingRes.append(mr)
+    Base=Molecules[0]
+    
+    # do stuff to Base molecule using stuff from others
+    if len(Clv)>0:
+        Base.Cleave(Clv)
+        print('### after cleavages:')
+        for c in Base.Chains:
+            print(c)
 
-    Residues=make_residues(Atoms,MissingRes)
-#    for r in Residues:
-#       print(r)
-    Chains=make_chains(Residues)
-
-    # psfgen input begins here
-    print('### cfapdbparser {}'.format(pdb))
-    print('### {}'.format(date.today()))
-    print('if {![info exists PSFGEN_BASEDIR]} {\n'+\
-          '    if {[info exists env(PSFGEN_BASEDIR]} {\n'+\
-          '        set PSFGEN_BASEDIR $env(PSFGEN_BASEDIR)\n'+\
-          '    } else {\n'+\
-          '        set PSFGEN_BASEDIR $env(HOME)/research/psfgen\n'+\
-          '    }\n'+\
-          '}\n')
-    print('if {![info exists CHARMM_TOPPARDIR]} {\n'+\
-          '    if {[info exists env(CHARMM_TOPPARDIR]} {\n'+\
-          '        set TOPPARDIR $env(CHARMM_TOPPARDIR)\n'+\
-          '    } else {\n'+\
-          '        set TOPPARDIR $env(HOME)/charmm/toppar\n'+\
-          '    }\n'+\
-          '}\n')
-    print(r'source ${PSFGEN_BASEDIR}/src/loopmc.tcl')
-    print(r'source ${PSFGEN_BASEDIR}/scripts/vmdrc.tcl')
-    print('package require psfgen')
-    for t in topologies:
-        print('topology $TOPPARDIR/{}'.format(t))
-
-
-    print('pdbalias residue HIS HSD')
-    print('pdbalias atom ILE CD1 CD')
-    print('pdbalias residue NAG BGNA')
-    print('pdbalias atom BGNA C7 C')
-    print('pdbalias atom BGNA O7 O')
-    print('pdbalias atom BGNA C8 CT')
-    print('pdbalias atom BGNA N2 N')
-    print('pdbalias residue SIA ANE5')
-    print('pdbalias atom ANE5 C10 C')
-    print('pdbalias atom ANE5 C11 CT')
-    print('pdbalias atom ANE5 N5 N')
-    print('pdbalias atom ANE5 O1A O11')
-    print('pdbalias atom ANE5 O1B O12')
-    print('pdbalias atom ANE5 O10 O')
-
-    print('mol new {}'.format(pdb))
-
-    for k,v in _PDBResNameDict_.items():
-        print('set RESDICT({}) {}'.format(k,v))
-    for k,v in _PDBAtNameDict_.items():
-        print('set ANAMEDICT({}) {}'.format(k,v))
-
-    print('set logid -1')
-
-    Loops=[]
-    for c in Chains:
-        for s in c.Segments(Mutations=Mutations):
-            stan,supp,coor,caco,loops=s.psfgen_segmentstanza()
-            print('### begin stanza for segment {}'.format(s.segname))
-            print(supp,end='')
-            print(stan)
-            print(coor,end='')
-            print(caco,end='')
-            if len(loops)>0:
-                Loops.extend(loops)
-            print('### end stanza for segment {}'.format(s.segname))
-
-    for ss in SSBonds:
-        print(ss.psfgen_patchline())
-
-    for l in Links:
-        print(l.psfgen_patchline())
-
-    print('guesscoord')
-    print('regenerate angles dihedrals')
-
-    prefix=pdb[:]
-    prefix=prefix.replace('.pdb','')
-    print('writepsf my_{}.psf'.format(prefix))
-    print('writepdb my_{}_raw.pdb'.format(prefix))
-    print('mol delete top')
-    print('mol new my_{}.psf'.format(prefix))
-    print('set molid [molinfo top get id]')
-    print('mol addfile my_{}_raw.pdb'.format(prefix))
-    if center_protein:
-        print('set a [atomselect top "all"]')
-        print('set or [measure center $a weight mass]')
-        print('$a moveby [vecscale -1 $or]')
-        if reorient_protein:
-            print('set ca [measure center [atomselect top "protein and {}"] weight mass]'.format(reorselstr[0]))
-            print('set cb [measure center [atomselect top "protein and {}"] weight mass]'.format(reorselstr[1]))
-            print('set pi 3.415928')
-            print('set dv [vecsub $ca $cb]')
-            print('set d [veclength $dv]')
-            print('set cp [expr [lindex $dv 0]/$d]')
-            print('set sp [expr [lindex $dv 1]/$d]')
-            print('set p [expr acos($cp)]')
-            print('if {[expr $sp < 0.0]} {')
-            print('  set p [expr 2*$pi-$p]')
-            print('}')
-            print('set ct [expr [lindex $dv 2]/$d]')
-            print('set t [expr acos($ct)]')
-            print('$a move [transaxis z [expr -1 * $p] rad]')
-            print('$a move [transaxis y [expr -1 * $t] rad]')
-    if do_loop_mc:
-        print('set loops {')
-        for l in Loops:
-            if l.terminated:
-                print('{{ {} {} {} }}'.format(l.chainID,l.residues[0].resseqnum,l.residues[-1].resseqnum))
-        print('           }')
-        # create loops list { { }, { }, ...}
-        print('set nc 1000')
-        print('set rcut 3.0')
-        print('set r0 1.5')
-        print('set temperature 3.0')
-        print('set k 10.0')
-        print('set bg [atomselect $molid "noh"]')
-        print('set loopindex 0')
-        print('set nloops [llength $loops]')
-        print('foreach l $loops {')
-        print('   set chain [lindex $l 0]')
-        print('   puts "Relaxing loop $loopindex out of $nloops"')
-        print('   set residueList [[atomselect $molid "chain $chain and resid [lindex $l 1] to [lindex $l 2] and name CA"] get residue]')
-        print('   do_loop_mc $residueList $chain $molid $k $r0 $bg $rcut $nc $temperature [irand_dom 1000 9999] $logid')
-        print('   set loopindex [expr $loopindex + 1]')
-        print('}')
-
-    print('writepdb my_{}.pdb'.format(prefix))
-
-    print('# {} links read.'.format(len(Links)))
-    print('# {} ssbonds read.'.format(len(SSBonds)))
-    print('# {} atoms read.'.format(len(Atoms)))
-    print('# {} missing residues read.'.format(len(MissingRes)))
-    print('# {} user-specfied mutations provided.'.format(len(Mutations)))
+    psfgen_fp=open(psfgen,'w')
+    psfgen_fp.write('### This is an automatically generated psfgen input file\n')
+    psfgen_fp.write('### created using cfapdbparser.py on {}\n'.format(date.today()))
+    psfgen_fp.write('### as part of the psfgen repository\n')
+    psfgen_fp.write('### github.com/cameronabrams/psgen\n')
+    psfgen_fp.write('### questions to cfa22@drexel.edu\n')
+    psfgen_fp.write('### command: python3 ')
+    for a in sys.argv:
+        psfgen_fp.write('{} '.format(a))
+    psfgen_fp.write('\n')
+    Loops=Base.writepsfgeninput(psfgen_fp,Mut,topo)
+    WritePostMods(psfgen_fp,Base.pdb,center_protein,reorient_protein,reorselstr,do_loop_mc,Loops)
+    psfgen_fp.write('exit\n')
+    psfgen_fp.write('### thank you for using cfapdbparser!\n')
+    print('### next: vmd -dispdev text -e {}'.format(psfgen))
+    
