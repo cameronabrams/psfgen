@@ -1,62 +1,15 @@
 import sys
 import operator
 from datetime import date 
-
+from atom import Atom,_PDBAtomNameDict_
+from residue import Residue, _PDBResName123_, _pdb_glycans_, _pdb_ions_,_PDBResNameDict_
+from chain import Chain
+from segment import Segment, _seg_class_
 ''' 
     Parses experimental PDB to build input file for VMD/psfgen
     Cameron F Abrams
     cfa22@drexel.edu
 '''
-_pdb_ions_=['LIT','SOD','MG','POT','CAL','RUB','CES','BAR','ZN','CAD','CL']
-_pdb_glycans_=['BMA','FUC','GAL','MAN','NAG','SIA']
-
-_PDBResName123_={'A':'ALA','R':'ARG','N':'ASN','D':'ASP','C':'CYS','Q':'GLN','E':'GLU','G':'GLY',
-               'H':'HSE','I':'ILE','L':'LEU','K':'LYS','M':'MET','F':'PHE','P':'PRO','S':'SER',
-               'T':'THR','W':'TRP','Y':'TYR','V':'VAL'}
-
-_seg_class_={'HOH':'WATER'}
-_seg_class_.update({k:'ION' for k in _pdb_ions_})
-_seg_class_.update({k:'GLYCAN' for k in _pdb_glycans_})
-_seg_class_.update({k:'PROTEIN' for k in _PDBResName123_.values()})
-_seg_class_['HIS']='PROTEIN'
-_segname_suffix_character_={'PROTEIN':'','ION':'I','WATER':'W','GLYCAN':'G'}
-_PDBResNameDict_={'HIS':'HSE','ZN':'ZN2','HOH':'TIP3','CL':'CLA','NAG':'BGNA','MAN':'AMAN','BMA':'BMAN','FUC':'AFUC','GAL':'BGAL','SIA':'ANE5AC'}
-_PDBAtNameDict_={'CL':'CLA'}
-
-class Atom:
-   def __init__(self,record_name,serial,name,altloc,resname,chainID,resseqnum,insertion,x,y,z,occ,beta,elem,charge):
-      self.record_name=record_name.strip()
-      self.serial=serial
-      self.name=name.strip()
-      self.altloc=altloc.strip()
-      self.resname=resname.strip()
-      self.chainID=chainID.strip()
-      self.resseqnum=resseqnum
-      self.insertion=insertion.strip()
-      self.x=x
-      self.y=y
-      self.z=z
-      self.occ=occ
-      self.beta=beta
-      self.elem=elem.strip()
-      self.charge=charge.strip()
-   def __str__(self):
-      retstr='{}\n'+\
-             '  serial    {:d}\n'+\
-             '  name      {:s}\n'+\
-             '  altloc    {:s}\n'+\
-             '  resname   {:s}\n'+\
-             '  chainID   {:s}\n'+\
-             '  resseqnum {:d}\n'+\
-             '  insertion {:s}\n'+\
-             '  x         {:.3f}\n'+\
-             '  y         {:.3f}\n'+\
-             '  z         {:.3f}\n'+\
-             '  occ       {:.2f}\n'+\
-             '  beta      {:.2f}\n'+\
-             '  elem      {:s}\n'+\
-             '  charge    {:s}\n'
-      return retstr.format(self.record_name,self.serial,self.name,self.altloc,self.resname,self.chainID,self.resseqnum,self.insertion,self.x,self.y,self.z,self.occ,self.beta,self.elem,self.charge)
 
 class LinkSet:
     def __init__(self):
@@ -171,143 +124,6 @@ class Missing:
     def psfgen_residueline(self):
         return '     residue {} {} {}'.format(self.resname,self.resseqnum,self.chainID)
 
-def psfgen_write_pdb(st,source,c,l,r,p):
-    if st=='PROTEIN':
-        retstr='[atomselect top "chain {} and resid {} to {}"] writepdb {}\n'.format(source,l,r,p)
-    else:
-        retstr='# Changing resnames and atom names in {}\n'.format(p)
-        retstr+='set myseg [atomselect top "chain {} and resid {} to {}"]\n'.format(source,l,r,p)
-        retstr+='set sav_nm [$myseg get resname]\n'
-        retstr+='set new_nm [list]\n'
-        retstr+=r'foreach r $sav_nm {'+'\n'
-        retstr+='   lappend new_nm $RESDICT($r)\n'
-        retstr+='}\n'
-        retstr+='$myseg set resname $new_nm\n'
-        retstr+='set new_nm [list]\n'
-        retstr+='set sav_nm [$myseg get name]\n'
-        retstr+=r'foreach r $sav_nm {'+'\n'
-        retstr+=r'   if { [ info exists ANAMEDICT($r) ] } {'+'\n'
-        retstr+='      lappend new_nm $ANAMEDICT($r)\n'
-        retstr+=r'   } else {'+'\n'
-        retstr+='      lappend new_nm $r\n'
-        retstr+='   }\n'
-        retstr+='}\n'
-        retstr+='$myseg set name $new_nm\n'
-        if st=='WATER':
-            retstr+='$myseg set name OH2\n'
-        retstr+='$myseg writepdb {}\n'.format(p)
-
-    return retstr
-
-class Run:
-    def __init__(self,chainID,resseqnum1,resseqnum2):
-        self.chainID=chainID
-        self.resseqnum1=resseqnum1
-        self.resseqnum2=resseqnum2
-    def pdb_str(self):
-        return '{}_{}_to_{}.pdb'.format(self.chainID,self.resseqnum1,self.resseqnum2)
-    def __str__(self):
-        return 'RUN: {} {} to {}'.format(self.chainID,self.resseqnum1,self.resseqnum2)
-class Loop:
-    def __init__(self,chainID,resseqnum0,r):
-        self.chainID=chainID
-        self.resseqnum0=resseqnum0
-        self.residues=[r]
-        self.terminated=False
-    def add_residue(self,r):
-        self.residues.append(r)
-    def __str__(self):
-        return 'LOOP chainID {} r0 {} r1 {} to r2 {}'.format(self.chainID,self.resseqnum0,self.residues[0].resseqnum,self.residues[-1].resseqnum)
-    def caco_str(self):
-        return 'coord {} {} N [cacoIn_nOut {} {} 0]\n'.format(self.chainID,self.residues[0].resseqnum,self.resseqnum0,self.chainID)
-
-class Segment:
-    def __init__(self,r):
-        self.segname=r.chainID+_segname_suffix_character_[_seg_class_[r.name]]
-        self.source_chainID=r.source_chainID # survives cleavages
-        self.segtype=_seg_class_[r.name]
-        self.residues=[r]
-        self.mutations=[]
-    def __str__(self):
-        return '{}[{}] {} - {}'.format(self.segname,self.segtype,self.residues[0].resseqnum,self.residues[-1].resseqnum)
-    def add_residue(self,r):
-        self.residues.append(r)
-    def psfgen_segmentstanza(self):
-        pdbs=[]
-        Loops=[]
-        Runs=[]
-        cacostr=''
-        suppstr=''
-        retstr='segment {} {{\n'.format(self.segname)
-        inloop=False
-        last_resseqnum=-1
-#        for r in self.residues:
-#            fp.write(r)
-        for r in self.residues:
-            if len(r.atoms)>0:
-                if last_resseqnum==-1:
-#                    fp.write('appending',r)
-                    Runs.append(Run(r.chainID,r.resseqnum,-1))
-                elif inloop:
-                    if len(Loops)>0:
-                        Loops[-1].terminated=True
-                    inloop=False
-                    Runs.append(Run(r.chainID,r.resseqnum,-1))
-                else:
-#                    fp.write('2passing',r)
-                    pass
-            elif len(r.atoms)==0:
-                if last_resseqnum==-1:
-                    pass # Loops.append(Loop(r.chainID,-1,r))                    
-                elif not inloop:
-                    Runs[-1].resseqnum2=last_resseqnum
-                    Loops.append(Loop(r.chainID,last_resseqnum,r))
-                else:
-#                    fp.write(last_resseqnum)
-                    if len(Loops)>0:
-                        Loops[-1].add_residue(r)
-                    else:
-                        pass
-                inloop=True
-            else:
-#                fp.write('passing', r)
-                pass
-            last_resseqnum=r.resseqnum
-#        fp.write(self.segname,len(Runs))
-        if len(Runs)==1:
-            Runs[0].resseqnum2=last_resseqnum
-#            fp.write('END OF LOOP: segname {} r.resseqnum {} {} last_resseqnum {}'.format(self.segname,r.resseqnum,r.name,last_resseqnum))
-        if len(Loops)>0:
-            for r,l in zip(Runs,Loops):
-                pdbs.append(r.pdb_str())
-                suppstr+=psfgen_write_pdb(self.segtype,self.source_chainID,r.chainID,r.resseqnum1,r.resseqnum2,pdbs[-1])
-                retstr+='   pdb {}\n'.format(pdbs[-1])
-                if l.terminated==True:
-                    for rr in l.residues:
-                        if rr.name in _PDBResNameDict_:
-                            nm=_PDBResNameDict_[rr.name]
-                        else:
-                            nm=rr.name
-                        retstr+='   residue {} {} {}\n'.format(rr.resseqnum,nm,rr.chainID)
-            for m in self.mutations:
-                retstr+=m.psfgen_segment_str()
-        else:
-            r=Runs[0]
-            pdbs.append(r.pdb_str())
-            suppstr+=psfgen_write_pdb(self.segtype,self.source_chainID,r.chainID,r.resseqnum1,r.resseqnum2,pdbs[-1])
-            retstr+='   pdb {}\n'.format(pdbs[-1])
-
-        retstr+='}'
-        coordstr=''
-        for p in pdbs:
-            coordstr+='coordpdb {} {}\n'.format(p,self.segname)
-        if len(Loops)>0:
-            r0=self.residues[0]
-            for l in Loops:
-                if l.terminated:
-                    cacostr+=l.caco_str()
-        return retstr,suppstr,coordstr,cacostr,Loops
-
 def read_atom(line):
 # 1 -  6        Record name   "ATOM  "
     record_name=line[0:6]
@@ -417,73 +233,6 @@ def read_missing(line):
 #    if (resseqnum<0):
 #       fp.write('# negative resid for missing residue: {} {} {}'.format(resname,chainID,resseqnum))
     return(Missing(record_name,code,model,resname,chainID,resseqnum))    
-class Chain:
-    def __init__(self,r):
-        self.chainID=r.chainID
-        self.residues=[r]
-        self.source_chainID=r.chainID
-    def add_residue(self,r):
-        if self.chainID==r.chainID:
-            self.residues.append(r)
-    def sort_residues(self):
-        sorted_residues=sorted(self.residues,key=operator.attrgetter('resseqnum'))
-        self.residues=sorted_residues
-    def __str__(self):
-        resid=[]
-        for r in self.residues:
-            resid.append(r.resseqnum)
-        return 'CHAIN {} {:d} - {:d}'.format(self.chainID,min(resid),max(resid))
-    def Cleave(self,Cleave):
-        C_index=-1
-        for i,r in enumerate(self.residues):
-            if r.resseqnum==Cleave.parent_Cterm_resseqnum:
-                C_index=i
-        dres=self.residues[C_index+1:]
-        self.residues=self.residues[0:C_index+1]
-        for r in dres:
-            r.set_chainID(Cleave.daughter_chainID)
-        Daughter=Chain(dres[0])
-        Daughter.residues.extend(dres[1:])
-        return Daughter
-    def Segments(self,Mutations=0):
-        S=[]
-        for r in self.residues:
-            if S==[]:
-                S.append(Segment(r))
-            else:
-                for s in S:
-                    #fp.write('looking {} {}'.format(s.segtype,_seg_class_[r.name]))
-                    found=False
-                    if s.segtype==_seg_class_[r.name]:
-                        #fp.write('adding')
-                        s.add_residue(r)
-                        found=True
-                        break
-                if not found:
-                    #fp.write('creating')
-                    S.append(Segment(r))
-        if Mutations != 0:
-            for m in Mutations:
-                found=False
-                if m.chainID==self.chainID:
-                    for s in S:
-                        if s.segtype=='PROTEIN':
-                            for r in s.residues:
-                                if r.resseqnum==m.resseqnum:
-                                    found=True
-                                    s.mutations.append(m)
-                                    break
-                                else:
-                                    pass
-                        else:
-                            pass
-                else:
-                    pass
-        else:
-            pass
-
-        return S
-
 def make_chains(Residues):
     C=[]
     for r in Residues:
@@ -501,47 +250,6 @@ def make_chains(Residues):
     for c in C:
         c.sort_residues()
     return C
-
-class Residue:
-    def __init__(self,a=-1,m=0):
-        if a!=-1:
-            self.resseqnum=a.resseqnum
-            self.name=a.resname
-            self.chainID=a.chainID
-            self.source_chainID=a.chainID
-            self.atoms=[a]
-        else:
-            if m!=0:
-                self.resseqnum=m.resseqnum
-                self.name=m.resname
-                self.chainID=m.chainID
-                self.source_chainID=m.chainID
-                self.atoms=[]
-            else:
-                fp.write('ERROR: bad residue construction')
-
-    def add_atom(self,a):
-        if self.resseqnum==a.resseqnum and self.name==a.resname and self.chainID==a.chainID:
-            self.atoms.append(a)
-    def residue_shift(self,resseqnumshift):
-        self.resseqnum+=resseqnumshift
-        for a in self.Atoms:
-            a.resseqnum+=resseqnumshift
-        pass
-    def set_chainID(self,chainID):
-        self.chainID=chainID
-        for a in self.atoms:
-            a.chainID=chainID
-    def __str__(self):
-        if len(self.atoms)==0:
-            atstr='MISSING'
-        else:
-            atser=[]
-            for a in self.atoms:
-                atser.append(a.serial)
-            atstr='{:d} - {:d}'.format(min(atser),max(atser))
-        return 'RESIDUE {} {} {:d} {}'.format(self.chainID,self.name,self.resseqnum,atstr)
-
 def make_residues(Atoms,Missing):
     R=[]
     r=0
@@ -655,7 +363,7 @@ class Molecule:
             else:
                 print('### unable to cleave chain {} at position {} to generate {} {}'.format(clv_c.chainID,clv.parent_Cterm_resseqnum,clv.parent_chainID,clv.daughter_chainID))
     def __str__(self):
-        return 'Molecule {} {}: {} chains, {} residues, {} atoms, {} links, {} ssbonds'.format(self.index,self.pdb,len(self.Chains),len(self.Residues),len(self.Atoms),len(self.Links),len(self.SSBonds)) 
+        return 'Molecule {} {}: {} chains, {} residues, {} atoms, {} links, {} ssbonds'.format(self.index,self.pdb,len(self.Chains),len(self.Residues),len(self.Atoms),len(self.Links.L),len(self.SSBonds)) 
     def residue_shift(self,chainID,resseqnumshift):
         found=False
         for c in self.Chains:
@@ -667,7 +375,7 @@ class Molecule:
             return -1
         for r in c.residues:
             r.residue_shift(resseqnumshift)
-        for l in self.LinkSet.L:
+        for l in self.Links.L:
             if l.chainID1==chainID:
                 l.resseqnum1+=resseqnumshift
             if l.chainID2==chainID:
@@ -718,7 +426,7 @@ class Molecule:
 
         for k,v in _PDBResNameDict_.items():
             fp.write('set RESDICT({}) {}\n'.format(k,v))
-        for k,v in _PDBAtNameDict_.items():
+        for k,v in _PDBAtomNameDict_.items():
             fp.write('set ANAMEDICT({}) {}\n'.format(k,v))
 
         fp.write('set logid -1\n')
@@ -739,7 +447,7 @@ class Molecule:
         for ss in self.SSBonds:
             fp.write(ss.psfgen_patchline())
 
-        for l in self.LinkSet.L:
+        for l in self.Links.L:
             fp.write(l.psfgen_patchline())
 
         fp.write('guesscoord\n')
