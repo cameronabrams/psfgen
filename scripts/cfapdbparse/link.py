@@ -10,8 +10,8 @@ class Link:
             self.name1=pdbrecord[12:16].strip()
 #17              Character      altLoc1         Alternate location indicator.
             self.altloc1=pdbrecord[16:17]
-#18 - 20         Residue name   resName1        Residue  name.
-            self.resname1=pdbrecord[17:20].strip()
+#18 - 20         Residue name   resName1        Residue  name. MODIFIED for 4-char resnames
+            self.resname1=pdbrecord[17:21].strip()
 #    22              Character      chainID1        Chain identifier.
             self.chainID1=pdbrecord[21:22]
 #23 - 26         Integer        resSeq1         Residue sequence number.
@@ -22,8 +22,8 @@ class Link:
             self.name2=pdbrecord[42:46].strip()
 #47              Character      altLoc2         Alternate location indicator.
             self.altloc2=pdbrecord[46:47]
-#48 - 50         Residue name   resName2        Residue name.
-            self.resname2=pdbrecord[47:50].strip()
+#48 - 50         Residue name   resName2        Residue name.  MODIFIED for 4-char resnames
+            self.resname2=pdbrecord[47:51].strip()
 #52              Character      chainID2        Chain identifier.
             self.chainID2=pdbrecord[51:52]
 #53 - 56         Integer        resSeq2         Residue sequence number.

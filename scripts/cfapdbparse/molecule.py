@@ -62,7 +62,7 @@ class Molecule:
         self.ShowMasterRecord()
         self.ShowModelType()
         self.ShowDBRef()
-        self.ShowSeqRes()
+        #self.ShowSeqRes()
         if 'CHARMM' in self.keywords:
             self.format=='CHARMM'
             print('### THIS IS A CHARMM-FORMAT PDB FILE')
@@ -76,13 +76,26 @@ class Molecule:
                 self.MissingRes.append(Missing(pdbrecord))
     def ParseTitle(self,pdbrecord):
         self.title.append(pdbrecord[10:80].strip())
+    def ShowTitle(self):
+        if len(self.title)>0:
+            print('### TITLE records:')
+            for i,l in enumerate(self.title):
+                print('-> {:1s} {}'.format(' ' if i==0 else str(i),self.title[i]))
+        else:
+            print('### {} contains no TITLE record'.format(self.pdb))
+    def TitleRecord(self):
+        retstr=''
+        if len(self.title)>0:
+           for i,l in enumerate(self.title):
+               retstr+='TITLE   {}'.format(' ' if i==0 else str(i))+' {}\n'.format(l)
+        return retstr
     def ParseKeywords(self,pdbrecord):
         ctok=pdbrecord[9:10]
         kwdlist=pdbrecord[10:80].split(',')
         for i,k in enumerate(kwdlist):
             if i==0 and ctok.isdigit():
                 pk=self.keywords[-1]
-                nk=pk+k.strip()
+                nk=pk+' '+k.strip()
                 self.keywords[-1]=nk
             else:
                 self.keywords.append(k.strip())
@@ -90,6 +103,29 @@ class Molecule:
         print('### Keywords:')
         for k in self.keywords:
             print('->   {}'.format(k))
+    def KeywordsRecord(self):
+        retstr=''
+        if len(self.keywords)>0:
+           cpst=', '.join(self.keywords)+' '
+           i=0
+           sp=[]
+           lnlim=69
+           while i<len(cpst):
+               if cpst[i]==' ':
+                   sp.append(i)
+               i = i + 1
+           nln=len(cpst)//lnlim+1
+           beg=0
+           for j in range(nln):
+               end=-1
+               # find rightmost ' ' such that length < lnlim
+               for i in range(len(sp)-1,-1,-1):
+                   if sp[i]-beg<69:
+                      end=sp[i]
+                      break
+               retstr+='KEYWDS  {:>2s} {}\n'.format(' ' if j==0 else str(j+1),cpst[beg:end])
+               beg=end+1
+        return retstr
     def ParseModelType(self,pdbrecord):
         ctok=pdbrecord[9:10]
         mdllist=pdbrecord[10:80].split(',')
@@ -101,15 +137,12 @@ class Molecule:
             else:
                 self.modtyp.append(m.strip())
     def ShowModelType(self):
-        print('### ModelType:')
-        for m in self.modtyp:
-            print('->   {}'.format(m))
-    def ShowTitle(self):
-        if len(self.title)>0:
-            for i,l in enumerate(self.title):
-                print('TITLE  {:1s} {}'.format(' ' if i==0 else str(i),self.title[i]))
+        if len(self.modtyp)>0:
+            print('### ModelType:')
+            for m in self.modtyp:
+                print('->   {}'.format(m))
         else:
-            print('### {} contains no TITLE record'.format(self.pdb))
+           print('### {} contains no MODTYP records'.format(self.pdb))
     def ParseMasterRecord(self,pdbrecord):
         self.MRec['numRemark']=int(pdbrecord[10:15])
         self.MRec['numHet']=int(pdbrecord[20:25])
@@ -137,6 +170,8 @@ class Molecule:
             print('### HEADER record:')
             for k,v in self.Header.items():
                 print('->   {}: {}'.format(k,v))
+        else:
+            print('### {} contains no HEADER record'.format(self.pdb))
     def ParseDBRef(self,pdbrecord):
         if len(pdbrecord)>0:
             chainid=pdbrecord[12:13]
@@ -154,31 +189,40 @@ class Molecule:
             self.DBRef[chainid]['dbseqEnd']=int(pdbrecord[62:67])
             self.DBRef[chainid]['dbinsEnd']=pdbrecord[67:69]
     def ShowDBRef(self):
-        for ok,ov in self.DBRef.items():
-            print('### DBREF {:s}'.format(ok))
-            for k,v in ov.items():
-                print('->   {}: {}'.format(k,v))
+        if len(self.DBRef)>0:
+            for ok,ov in self.DBRef.items():
+                print('### DBREF {:s}'.format(ok))
+                for k,v in ov.items():
+                    print('->   {}: {}'.format(k,v))
+        else:
+            print('### {} contains no DBREF records'.format(self.pdb))
     def ParseSeqRes(self,pdbrecord):
         if len(pdbrecord)>0:
-            serial=int(pdbrecord[7:10])
-            chainid=pdbrecord[11:12]
-            if chainid in self.SeqRes:
-                rsn0=serial*13+self.DBRef[chainid]['seqBegin']
+            if len(self.DBRef)>0:
+                serial=int(pdbrecord[7:10])
+                chainid=pdbrecord[11:12]
+                if chainid in self.SeqRes:
+                    rsn0=serial*13+self.DBRef[chainid]['seqBegin']
+                else:
+                    self.SeqRes[chainid]={}
+                    rsn0=self.DBRef[chainid]['seqBegin']
+                rsn=rsn0
+                i0=19
+                for k in range(13):
+                    tok=pdbrecord[i0+k*4:i0+k*4+3].strip()
+                    if len(tok)>0:
+                        self.SeqRes[chainid][rsn]=tok
+                        rsn = rsn + 1
             else:
-                self.SeqRes[chainid]={}
-                rsn0=self.DBRef[chainid]['seqBegin']
-            rsn=rsn0
-            i0=19
-            for k in range(13):
-                tok=pdbrecord[i0+k*4:i0+k*4+3].strip()
-                if len(tok)>0:
-                    self.SeqRes[chainid][rsn]=tok
-                    rsn = rsn + 1
+                print('### Error: {} apparently contains SEQRES records but no DBREF records.'.format(self.pdb))
     def ShowSeqRes(self):
-        for ok,ov in self.SeqRes.items():
-            print('### SeqRes for chain {:s}:'.format(ok))
-            for k,v in ov.items():
-                print('->   {:d} {:s}'.format(k,v))
+        if len(self.SeqRes)>0:
+            for ok,ov in self.SeqRes.items():
+                print('### SeqRes for chain {:s}:'.format(ok))
+                for k,v in ov.items():
+                    print('->   {:d} {:s}'.format(k,v))
+        else:
+            print('### {} contains no SEQRES records'.format(self.pdb))
     def MakeResidues(self):
         self.Residues=[]
         r=0
@@ -252,7 +296,6 @@ class Molecule:
                         l.chainID1=daughter.chainID
                     if l.chainID2==clv_c.chainID and daughter.has_resseqnum(l.resseqnum2):
                         l.chainID2=daughter.chainID
-                # to do -- links!   
                 print('### after cleave:',clv_c,self.Chains[-1])
             else:
                 print('### unable to cleave chain {} at position {} to generate {} {}'.format(clv_c.chainID,clv.parent_Cterm_resseqnum,clv.parent_chainID,clv.daughter_chainID))
@@ -330,18 +373,20 @@ class Molecule:
             c.MakeSegments(self.Links,Mutations=Mutations)
             for s in c.Segments:
                 stan,supp,coor,caco,loops=s.psfgen_segmentstanza()
-                fp.write('### begin stanza for segment {}\n'.format(s.segname))
+                fp.write('\n### begin stanza for segment {}\n'.format(s.segname))
                 fp.write(supp)
                 fp.write(stan+'\n')
                 fp.write(coor)
                 fp.write(caco)
                 if len(loops)>0:
                    Loops.extend(loops)
-                fp.write('### end stanza for segment {}\n'.format(s.segname))
+                fp.write('### end stanza for segment {}\n\n'.format(s.segname))
 
+        fp.write('### SSBONDS:\n')
         for ss in self.SSBonds:
             fp.write(ss.psfgen_patchline())
 
+        fp.write('### LINKS:\n')
         for l in self.Links:
             l.updateSegnames(self.Residues)
             fp.write(l.psfgen_patchline())
@@ -362,6 +407,9 @@ class Molecule:
     def Tcl_PrependHeaderToPDB(self,newpdb,psfgen_script):
         hdr='tmp_header.pdb'
         fp=open(hdr,'w')
+        fp.write(self.TitleRecord())
+        self.keywords.append('CHARMM')
+        fp.write(self.KeywordsRecord())
         #write ssbonds and links
         for ss in self.SSBonds:
             fp.write(ss.pdb_line()+'\n')

@@ -1,6 +1,6 @@
 _PDBAtomNameDict_={'CL':'CLA'}
 class Atom:
-    def __init__(self,pdbrecord=[]):
+    def __init__(self,pdbrecord=''):
         self.pdbrecord=pdbrecord
         if len(pdbrecord)>0:
 # 1 -  6        Record name   "ATOM  "
@@ -8,11 +8,11 @@ class Atom:
 # 7 - 11        Integer       serial       Atom  serial number.
             self.serial=int(pdbrecord[6:11])
 #13 - 16        Atom          name         Atom name.
-            self.name=pdbrecord[12:16].strip()
+            self.name=pdbrecord[12:16].strip() # modified for 4-char atom names
 #17             Character     altLoc       Alternate location indicator.
             self.altloc=pdbrecord[16:17]
 #18 - 20        Residue name  resName      Residue name.
-            self.resname=pdbrecord[17:21].strip()
+            self.resname=pdbrecord[17:21].strip() # modified for 4-char resnames
 #22             Character     chainID      Chain identifier.
             self.chainID=pdbrecord[21:22]
 #23 - 26        Integer       resSeq       Residue sequence number.
@@ -35,6 +35,7 @@ class Atom:
             self.charge=pdbrecord[78:80].strip()
             self.segname=self.chainID
             self.empty=False
+            self.link='None'
         else:
             self.empty=True 
     def pdb_line(self):

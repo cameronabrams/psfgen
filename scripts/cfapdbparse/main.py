@@ -156,6 +156,8 @@ if __name__=='__main__':
     psfgen_fp.write('\n')
     
     Base=Molecules[0]
+    if len(Clv)>0:
+        Base.CleaveChains(Clv)
     Loops=Base.writepsfgeninput(psfgen_fp,Mut,topo)
     
     post_pdb=WritePostMods(psfgen_fp,Base.psf_outfile,Base.pdb_outfile,PostMod,Loops)
