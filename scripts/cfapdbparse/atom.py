@@ -1,55 +1,58 @@
 _PDBAtomNameDict_={'CL':'CLA'}
 class Atom:
-    def __init__(self,line=[]):
-        if len(line)>0:
+    def __init__(self,pdbrecord=[]):
+        self.pdbrecord=pdbrecord
+        if len(pdbrecord)>0:
 # 1 -  6        Record name   "ATOM  "
-            record_name=line[0:6]
+            self.record_name=pdbrecord[0:6].strip()
 # 7 - 11        Integer       serial       Atom  serial number.
-            serial=int(line[6:11])
+            self.serial=int(pdbrecord[6:11])
 #13 - 16        Atom          name         Atom name.
-            name=line[12:16]
+            self.name=pdbrecord[12:16].strip()
 #17             Character     altLoc       Alternate location indicator.
-            altloc=line[16:17]
+            self.altloc=pdbrecord[16:17]
 #18 - 20        Residue name  resName      Residue name.
-            resname=line[17:20]
+            self.resname=pdbrecord[17:21].strip()
 #22             Character     chainID      Chain identifier.
-            chainID=line[21:22]
+            self.chainID=pdbrecord[21:22]
 #23 - 26        Integer       resSeq       Residue sequence number.
-            resseqnum=int(line[22:26])
+            self.resseqnum=int(pdbrecord[22:26])
 #27             AChar         iCode        Code for insertion of residues.
-            insertion=line[26:27]
+            self.insertion=pdbrecord[26:27]
 #31 - 38       Real(8.3)     x            Orthogonal coordinates for X in Angstroms.
-            x=float(line[30:38])
+            self.x=float(pdbrecord[30:38])
 #39 - 46        Real(8.3)     y            Orthogonal coordinates for Y in Angstroms.
-            y=float(line[38:46])
+            self.y=float(pdbrecord[38:46])
 #47 - 54        Real(8.3)     z            Orthogonal coordinates for Z in Angstroms.
-            z=float(line[46:54])
+            self.z=float(pdbrecord[46:54])
 #55 - 60        Real(6.2)     occupancy    Occupancy.
-            occ=float(line[54:60])
+            self.occ=float(pdbrecord[54:60])
 #61 - 66       Real(6.2)     tempFactor   Temperature  factor.
-            beta=float(line[60:66])
+            self.beta=float(pdbrecord[60:66])
 #77 - 78        LString(2)    element      Element symbol, right-justified.
-            elem=line[76:78]
+            self.elem=pdbrecord[76:78].strip()
 #79 - 80        LString(2)    charge       Charge  on the atom.
-            charge=line[78:80]
-            self.record_name=record_name.strip()
-            self.serial=serial
-            self.name=name.strip()
-            self.altloc=altloc.strip()
-            self.resname=resname.strip()
-            self.chainID=chainID.strip()
-            self.resseqnum=resseqnum
-            self.insertion=insertion.strip()
-            self.x=x
-            self.y=y
-            self.z=z
-            self.occ=occ
-            self.beta=beta
-            self.elem=elem.strip()
-            self.charge=charge.strip()
+            self.charge=pdbrecord[78:80].strip()
+            self.segname=self.chainID
             self.empty=False
         else:
             self.empty=True 
+    def pdb_line(self):
+        pdbline='{:<6s}'.format(self.record_name)+\
+                '{:5d}'.format(self.serial)+' '+\
+                '{:<4s}'.format(' '+self.name if len(self.name)<4 else self.name)+\
+                '{:1s}'.format(self.altloc)+\
+                '{:<4s}'.format(self.resname)+\
+                '{:1s}'.format(self.chainID)+\
+                '{:4d}'.format(self.resseqnum)+\
+                '{:1s}'.format(self.insertion)+'   '+\
+                '{:8.3f}'.format(self.x)+\
+                '{:8.3f}'.format(self.y)+\
+                '{:8.3f}'.format(self.z)+\
+                '{:6.2f}'.format(self.occ)+\
+                '{:6.2f}'.format(self.beta)+\
+                10*' '+'{:>2s}'.format(self.elem)+'{:2s}'.format(self.charge)
+        return pdbline
     def __str__(self):
         retstr='{}\n'+\
                '  serial    {:d}\n'+\

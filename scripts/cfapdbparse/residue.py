@@ -4,7 +4,8 @@ _pdb_glycans_=['BMA','FUC','GAL','MAN','NAG','SIA']
 _PDBResName123_={'A':'ALA','R':'ARG','N':'ASN','D':'ASP','C':'CYS','Q':'GLN','E':'GLU','G':'GLY',
                'H':'HSE','I':'ILE','L':'LEU','K':'LYS','M':'MET','F':'PHE','P':'PRO','S':'SER',
                'T':'THR','W':'TRP','Y':'TYR','V':'VAL'}
-_PDBResNameDict_={'HIS':'HSE','ZN':'ZN2','HOH':'TIP3','CL':'CLA','NAG':'BGNA','MAN':'AMAN','BMA':'BMAN','FUC':'AFUC','GAL':'BGAL','SIA':'ANE5AC'}
+_ResNameDict_PDB_to_CHARMM_={'HIS':'HSE','ZN':'ZN2','HOH':'TIP3','CL':'CLA','NAG':'BGNA','MAN':'AMAN','BMA':'BMAN','FUC':'AFUC','GAL':'BGAL','SIA':'ANE5AC'}
+_ResNameDict_CHARMM_to_PDB_={v:k  for k,v in _ResNameDict_PDB_to_CHARMM_.items()}
 
 class Residue:
     def __init__(self,a=-1,m=0):
@@ -14,6 +15,8 @@ class Residue:
             self.chainID=a.chainID
             self.source_chainID=a.chainID
             self.atoms=[a]
+            self.up=[]
+            self.down=[]
         else:
             if m!=0:
                 self.resseqnum=m.resseqnum
@@ -21,6 +24,8 @@ class Residue:
                 self.chainID=m.chainID
                 self.source_chainID=m.chainID
                 self.atoms=[]
+                self.up=[]
+                self.down=[]
             else:
                 fp.write('ERROR: bad residue construction')
 
@@ -36,6 +41,8 @@ class Residue:
         self.chainID=chainID
         for a in self.atoms:
             a.chainID=chainID
+    def set_connections(self):
+        pass
     def __str__(self):
         if len(self.atoms)==0:
             atstr='MISSING'
@@ -46,4 +53,28 @@ class Residue:
             atstr='{:d} - {:d}'.format(min(atser),max(atser))
         return 'RESIDUE {} {} {:d} {}'.format(self.chainID,self.name,self.resseqnum,atstr)
 
+    def get_down_group(self):
+        res=[]
+        for d in self.down:
+            res.append(d)
+            res.extend(d.get_down_group())
+        return res
+
+def get_residue(R,chainID,resseqnum):
+    for r in R:
+        if r.chainID==chainID and r.resseqnum==resseqnum:
+            return r
+    return '' 
+
+def get_atom(R,chainID,resseqnum,atname):
+#    print('get_atom() searching for {} in resid {} chain {}'.format(atname,resseqnum,chainID))
+    for r in R:
+        if r.chainID==chainID and r.resseqnum==resseqnum:
+            for a in r.atoms:
+                if a.name==atname:
+#                    print('returning',a)
+                    return a
+#            print('Error: no atom named {} found in {}{} of chain {}'.format(at.name,r.resseqnum,r.name,r.chainID))
+#    print('Error: resid {} not found in chain {}'.format(resseqnum,chainID))
+    return ''
 

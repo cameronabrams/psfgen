@@ -1,9 +1,12 @@
-from residue import  _PDBResName123_, _pdb_glycans_, _pdb_ions_, _PDBResNameDict_
+from residue import  _PDBResName123_, _pdb_glycans_, _pdb_ions_, _ResNameDict_PDB_to_CHARMM_, _ResNameDict_CHARMM_to_PDB_
 _seg_class_={'HOH':'WATER'}
 _seg_class_.update({k:'ION' for k in _pdb_ions_})
 _seg_class_.update({k:'GLYCAN' for k in _pdb_glycans_})
+_seg_class_.update({_ResNameDict_PDB_to_CHARMM_[k]:'GLYCAN' for k in _pdb_glycans_})
 _seg_class_.update({k:'PROTEIN' for k in _PDBResName123_.values()})
 _seg_class_['HIS']='PROTEIN'
+_seg_class_['HSE']='PROTEIN'
+_seg_class_['HSD']='PROTEIN'
 _segname_second_character_={'PROTEIN':'','ION':'I','WATER':'W','GLYCAN':'G','OTHER':'O'}
 
 class Run:
@@ -30,16 +33,22 @@ class Loop:
         return 'coord {} {} N [cacoIn_nOut {} {} 0]\n'.format(self.chainID,self.residues[0].resseqnum,self.resseqnum0,self.chainID)
 
 class Segment:
-    def __init__(self,r):
-        self.segname=r.chainID+_segname_second_character_[_seg_class_[r.name]]
+    def __init__(self,r,subcounter=''):
+        self.segname=r.chainID+_segname_second_character_[_seg_class_[r.name]]+subcounter
         self.source_chainID=r.source_chainID # survives cleavages
         self.segtype=_seg_class_[r.name]
         self.residues=[r]
         self.mutations=[]
+        r.segname=self.segname
+        for a in r.atoms:
+            a.segname=self.segname
     def __str__(self):
         return '{}[{}] {} - {}'.format(self.segname,self.segtype,self.residues[0].resseqnum,self.residues[-1].resseqnum)
     def add_residue(self,r):
         self.residues.append(r)
+        r.segname=self.segname
+        for a in r.atoms:
+            a.segname=self.segname
     def psfgen_segmentstanza(self):
         pdbs=[]
         Loops=[]
@@ -92,8 +101,8 @@ class Segment:
                 retstr+='   pdb {}\n'.format(pdbs[-1])
                 if l.terminated==True:
                     for rr in l.residues:
-                        if rr.name in _PDBResNameDict_:
-                            nm=_PDBResNameDict_[rr.name]
+                        if rr.name in _ResNameDict_PDB_to_CHARMM_:
+                            nm=_ResNameDict_PDB_to_CHARMM_[rr.name]
                         else:
                             nm=rr.name
                         retstr+='   residue {} {} {}\n'.format(rr.resseqnum,nm,rr.chainID)
@@ -125,7 +134,11 @@ def psfgen_write_pdb(st,source,c,l,r,p):
         retstr+='set sav_nm [$myseg get resname]\n'
         retstr+='set new_nm [list]\n'
         retstr+=r'foreach r $sav_nm {'+'\n'
-        retstr+='   lappend new_nm $RESDICT($r)\n'
+        retstr+=r'   if { [ info exists RESDICT($r) ] } {'+'\n'
+        retstr+='      lappend new_nm $RESDICT($r)\n'
+        retstr+=r'   } else {'+'\n'
+        retstr+='      lappend new_nm $r\n'
+        retstr+='   }\n'
         retstr+='}\n'
         retstr+='$myseg set resname $new_nm\n'
         retstr+='set new_nm [list]\n'

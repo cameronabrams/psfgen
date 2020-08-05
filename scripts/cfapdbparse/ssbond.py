@@ -1,44 +1,48 @@
 class SSBond:
-    def __init__(self,pdbrecord=[]):
+    def __init__(self,pdbrecord):
+        self.pdbrecord=pdbrecord
 # 1 -  6        Record name    "SSBOND"
-        record_name=pdbrecord[0:6]
+        self.record_name=pdbrecord[0:6].strip()
 # 8 - 10        Integer        serNum           Serial number.
-        serial_number=int(pdbrecord[7:10])
+        self.serial_number=int(pdbrecord[7:10])
 # 12 - 14        LString(3)     "CYS"            Residue name.
-        resname1=pdbrecord[11:14]
+        self.resname1=pdbrecord[11:14].strip()
 # 16             Character      chainID1         Chain identifier.
-        chainID1=pdbrecord[15:16]
+        self.chainID1=pdbrecord[15:16].strip()
 # 18 - 21        Integer        seqNum1          Residue sequence number.
-        resseqnum1=int(pdbrecord[17:21])
+        self.resseqnum1=int(pdbrecord[17:21])
 # 22             AChar          icode1           Insertion code.
-        icode1=pdbrecord[21:22]
+        self.icode1=pdbrecord[21:22].strip()
 # 26 - 28        LString(3)     "CYS"            Residue name.
-        resname2=pdbrecord[25:28]
+        self.resname2=pdbrecord[25:28].strip()
 # 30             Character      chainID2         Chain identifier.
-        chainID2=pdbrecord[29:30]
+        self.chainID2=pdbrecord[29:30].strip()
 # 32 - 35        Integer        seqNum2          Residue sequence number.
-        resseqnum2=int(pdbrecord[31:35])
+        self.resseqnum2=int(pdbrecord[31:35])
 # 36             AChar          icode2           Insertion code.
-        icode2=pdbrecord[35:36]
+        self.icode2=pdbrecord[35:36].strip()
 # 60 - 65        SymOP          sym1             Symmetry operator for residue 1.
-        sym1=pdbrecord[59:65]
+        self.sym1=pdbrecord[59:65].strip()
 # 67 - 72        SymOP          sym2             Symmetry operator for residue 2.
-        sym2=pdbrecord[66:72]
+        self.sym2=pdbrecord[66:72].strip()
 # 74 – 78        Real(5.2)      Length           Disulfide bond distance
-        length=float(pdbrecord[73:78])
-
-        self.record_name=record_name.strip()
-        self.resname1=resname1.strip()
-        self.chainID1=chainID1.strip()
-        self.resseqnum1=resseqnum1
-        self.icode1=icode1.strip()
-        self.resname2=resname2.strip()
-        self.chainID2=chainID2.strip()
-        self.resseqnum2=resseqnum2
-        self.icode2=icode2.strip()
-        self.sym1=sym1.strip()
-        self.sym2=sym2.strip()
-        self.length=length
+        self.length=float(pdbrecord[73:78])
+    def pdb_line(self):
+        pdbline='{:6s}'.format(self.record_name)+\
+                '{:4d}'.format(self.serial_number)+\
+                '{:>4s}'.format(self.resname1)+\
+                '{:>2s}'.format(self.chainID1)+\
+                '{:5d}'.format(self.resseqnum1)+\
+                '{:1s}'.format(self.icode1)+\
+                '{:>6s}'.format(self.resname2)+\
+                '{:>2s}'.format(self.chainID2)+\
+                '{:5d}'.format(self.resseqnum2)+\
+                '{:1s}'.format(self.icode2)+\
+                ' '*23+\
+                '{:>6s}'.format(self.sym1)+\
+                '{:>7s}'.format(self.sym2)+\
+                '{:6.2f}'.format(self.length)
+        return pdbline
     def __str__(self):
         retstr='{}\n'+\
                '  resname1    {:s}\n'+\
