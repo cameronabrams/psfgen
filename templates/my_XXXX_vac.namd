@@ -1,0 +1,42 @@
+set PDB             %PDB%
+structure           my_${PDB}.psf 
+coordinates         my_${PDB}_mod.pdb
+set outputname      my_${PDB}_vac
+
+paraTypeCharmm      on
+set toppardir       $env(HOME)/charmm/toppar
+parameters          ${toppardir}/par_all36_prot.prm
+parameters          ${toppardir}/par_all36_carb.prm
+parameters          ${toppardir}/stream/carb/toppar_all36_carb_glycopeptide.str
+
+exclude             scaled1-4
+1-4scaling          1.0
+cutoff              10.
+switching           on
+switchdist          9.
+pairlistdist        11.5
+timestep            1.0
+rigidbonds          none
+
+nonbondedFreq       1
+fullElectFrequency  2
+stepspercycle       4
+outputName          $outputname
+dielectric          80
+
+set temperature     310
+temperature         $temperature
+langevin            on
+langevinDamping     5
+langevinTemp        $temperature
+langevinHydrogen    yes
+seed                $SEED
+
+outputEnergies      10
+dcdfreq             100
+restartfreq         100
+
+firsttimestep       0
+minimize            1000
+run                 3000
+

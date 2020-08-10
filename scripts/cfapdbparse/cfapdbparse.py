@@ -154,7 +154,7 @@ if __name__=='__main__':
     for a in sys.argv:
         psfgen_fp.write('{} '.format(a))
     psfgen_fp.write('\n')
-    
+     
     Base=Molecules[0]
     if len(Clv)>0:
         Base.CleaveChains(Clv)
