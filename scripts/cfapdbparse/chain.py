@@ -18,6 +18,8 @@ class Chain:
         self.residues=sorted_residues
         mn=99999
         mx=-99999
+        mnr=''
+        mxr=''
         self.Nterm=''
         self.Cterm=''
         for r in self.residues:
@@ -28,6 +30,8 @@ class Chain:
                 if r.resseqnum>mx:
                     mx=r.resseqnum
                     mxr=r
+        if mnr=='' or mxr=='':
+            print('Note, no protein residues found chain {}'.format(self.chainID))
         self.Nterm=mnr
         self.Cterm=mxr
     def group_residues(self):
@@ -73,7 +77,7 @@ class Chain:
         self.sort_residues()
         Daughter.sort_residues()
         return Daughter
-    def MakeSegments(self,Links,Mutations=0):
+    def MakeSegments(self,Links,Mutations=[]):
         self.Segments=[]
         for r in self.residues:
             if self.Segments==[]:
@@ -108,7 +112,7 @@ class Chain:
                     else:
                        s=Segment(r)
                     self.Segments.append(s)
-        if Mutations != 0:
+        if len(Mutations)>0:
             for m in Mutations:
                 found=False
                 if m.chainID==self.chainID:

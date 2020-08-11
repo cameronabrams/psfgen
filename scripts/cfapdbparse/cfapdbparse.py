@@ -4,6 +4,7 @@ from datetime import date
 from molecule import Molecule
 from cleavage import Cleavage
 from mutation import Mutation
+import argparse
 ''' 
     Parses experimental PDB to build input file for VMD/psfgen
     Cameron F Abrams
@@ -80,67 +81,49 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops):
     return new_pdb_out
 
 if __name__=='__main__':
-
+    parser=argparse.ArgumentParser()
     print('### cfapdbparser {}'.format(date.today()))
     i=1
     Molecules=[]
     Mut=[]
     Clv=[]
     psfgen='mkpsf.tcl'
-    topo=['top_all36_prot.rtf','top_all36_carb_namd_cfa.rtf','stream/carb/toppar_all36_carb_glycopeptide.str','toppar_water_ions_namd_nonbfixes.str']
+    Topo=['top_all36_prot.rtf','top_all36_carb_namd_cfa.rtf','stream/carb/toppar_all36_carb_glycopeptide.str','toppar_water_ions_namd_nonbfixes.str']
     PostMod={}
     PostMod['center_protein']=True
-    while i<len(sys.argv):
-        if sys.argv[i]=='-pdb':
-            i+=1
-            j=0
-            while i<len(sys.argv) and sys.argv[i][0]!='-':
-                m=Molecule(j,sys.argv[i])
-                if m!=0:
-                   print('###',m)
-                   Molecules.append(m)
-                   j+=1
-                i+=1
-            if i<len(sys.argv) and sys.argv[i][0]=='-':
-                i-=1
-        elif sys.argv[i]=='-mut':
-            i+=1
-            while i<len(sys.argv) and sys.argv[i][0]!='-':
-                Mut.append(Mutation(sys.argv[i]))
-                i+=1
-            if i<len(sys.argv) and sys.argv[i][0]=='-':
-                i-=1
-        elif sys.argv[i]=='-cleave':
-            i+=1
-            while i<len(sys.argv) and sys.argv[i][0]!='-':
-                Clv.append(Cleavage(sys.argv[i]))
-                i+=1
-            if i<len(sys.argv) and sys.argv[i][0]=='-':
-                i-=1
-        elif sys.argv[i]=='-top':
-            i+=1
-            while i<len(sys.argv) and sys.argv[i][0]!='-':
-                topo.append(sys.argv[i])
-                i+=1
-            if i<len(sys.argv) and sys.argv[i][0]=='-':
-                i-=1
-        elif sys.argv[i]=='-do_loop_mc':
-            PostMod['do_loop_mc']=True
-        elif sys.argv[i]=='-no_center':
-            PostMod['center_protein']=False
-        elif sys.argv[i]=='-reorient_protein':
-            PostMod['reorient_protein']=True
-            PostMod['reorselstr']=[]
-            i+=1
-            while i<len(sys.argv) and sys.argv[i][0]!='-':
-                PostMod['reorselstr'].append(sys.argv[i])
-                i+=1
-            if sys.argv[i][0]=='-':
-                i-=1
-        elif sys.argv[i]=='-psfgen':
-            i+=1
-            psfgen=sys.argv[i]
-        i+=1
+    prefix='x01_'
+    fixConflicts=True
+
+
+    parser.add_argument('pdb',nargs='+',metavar='<?.pdb>',type=Molecule,help='name(s) of pdb file to parse; first is treated as the base molecule')
+    parser.add_argument('-topo',metavar='<name>',action='append',default=[],help='additional CHARMM topology files')
+    parser.add_argument('-prefix',metavar='<str>',default='x01_',help='output PDB/PSF prefix; each file name will have the format <prefix><pdbcode>.pdb/psf, where <pdbcode> is the 4-letter PDB code of the base molecule.')
+    parser.add_argument('-psfgen',metavar='<name>',default='mkpsf.tcl',help='name of TcL script generated as input to VMD/psfgen')
+    parser.add_argument('-mut',metavar='X_Y###Z',action='append',default=[],type=Mutation,help='specify mutation.  Format: X is chainID, Y is one-letter residue code to mutate FROM, ### is sequence number (can be any number of digits), and Z is one-letter residue code to mutate TO.  Multiple -mut\'s can be specified.')
+    parser.add_argument('-clv',metavar='X###Y',action='append',default=[],type=Cleavage,help='specify cleavage site.  Format: X is parent chain ID, ### is residue number immediately N-terminal to the cleavage site, and Y is the daughter chain ID that will begin immediately C-terminal to cleavage site. Multiple -clv\'s can be specified, each with its own -clv key.')
+    parser.add_argument('-gra',metavar='<str>',action='append',default=[],type=str,help='Grafts are not yet implemented.  A graft is defined as adding the entire contents of one molecule to the base molecule by overlapping a predfined set of atoms the two have in common.')
+    # booleans
+    parser.add_argument('-rmi',action='store_true',help='asks psfgen to use the loopMC module to relax modeled-in loops of residues missing from PDB')
+    parser.add_argument('-kc',action='store_true',help='ignores SEQADV records indicating conflicts; if unset, residues in conflict are mutated to their proper identities')
+    parser.add_argument('-noc',action='store_true',help='do not center the protein at the origin of the coordinate system')
+    parser.add_argument('-ror',default='None,None',metavar='<atomselect string>,<atomselect string>',help='two comma-separated, single-quoted atomselect strings to define two groups of atoms whose centers of mass are aligned against the global z-axis')
+
+    args=parser.parse_args()
+
+    Molecules=args.pdb
+    Mut=args.mut
+    if len(args.topo)>0:
+        Topo.extend(args.topo)
+    Clv=args.clv
+    prefix=args.prefix
+    do_loop_mc=args.rmi
+    fixConflicts=~(args.kc)
+    psfgen=args.psfgen
+    PostMod['center_protein']=~(args.noc)
+    if args.ror!='None,None':
+        PostMod['reorient_protein']=True
+        PostMod['center_protein']=True
+        PostMod['reorselstr']=args.ror.split(',')
 
     print('### this will generate the following psfgen script: {}'.format(psfgen))
 
@@ -158,7 +141,7 @@ if __name__=='__main__':
     Base=Molecules[0]
     if len(Clv)>0:
         Base.CleaveChains(Clv)
-    Loops=Base.writepsfgeninput(psfgen_fp,Mut,topo)
+    Loops=Base.writepsfgeninput(psfgen_fp,topologies=Topo,userMutations=Mut,fixConflicts=fixConflicts,prefix=prefix)
     
     post_pdb=WritePostMods(psfgen_fp,Base.psf_outfile,Base.pdb_outfile,PostMod,Loops)
 

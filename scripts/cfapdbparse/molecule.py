@@ -4,10 +4,11 @@ from missing import Missing
 from link import Link
 from segment import Segment, _seg_class_
 from chain import Chain
+from seqadv import Seqadv
+from mutation import Mutation
 from residue import Residue, _PDBResName123_, _pdb_glycans_, _pdb_ions_, _ResNameDict_PDB_to_CHARMM_, _ResNameDict_CHARMM_to_PDB_, get_residue
 class Molecule:
-    def __init__(self,index,pdb,savepdb=''):
-        self.index=index
+    def __init__(self,pdb):
         self.format='PDB' # default assume this is an actual PDB file from the PDB
         self.RawPDB=[]
         self.keywords=[]
@@ -18,6 +19,7 @@ class Molecule:
         self.Links=[]
         self.SSBonds=[]
         self.MissingRes=[]
+        self.Seqadv=[]
         self.MRec={}
         self.Header={}
         self.DBRef={} # outer dictionary referenced by chainID
@@ -37,6 +39,8 @@ class Molecule:
                     #print('i: ',line,end='')
                     #l=self.SSBonds[-1]
                     #print('o: ',l.pdb_line())
+                elif line[:6] == 'SEQADV':
+                    self.Seqadv.append(Seqadv(line))
                 elif line[:6] == 'REMARK':
                     self.ParseRemark(line)
                 elif line[:5] == 'TITLE':
@@ -62,6 +66,7 @@ class Molecule:
         self.ShowMasterRecord()
         self.ShowModelType()
         self.ShowDBRef()
+        self.ShowSeqadv(brief=True)
         #self.ShowSeqRes()
         if 'CHARMM' in self.keywords:
             self.format=='CHARMM'
@@ -223,6 +228,17 @@ class Molecule:
                     print('->   {:d} {:s}'.format(k,v))
         else:
             print('### {} contains no SEQRES records'.format(self.pdb))
+    def ShowSeqadv(self,brief=False):
+        if len(self.Seqadv)>0:
+            if not brief:
+                for sa in self.Seqadv:
+                    print('### SEQADV:',sa)
+            else:
+                nc=0
+                for sa in self.Seqadv:
+                    if sa.conflict=='CONFLICT':
+                        nc = nc + 1
+                print('#### {} contains {:d} SEQADV records including {:d} conflicts'.format(self.pdb,len(self.Seqadv),nc))
     def MakeResidues(self):
         self.Residues=[]
         r=0
@@ -300,7 +316,7 @@ class Molecule:
             else:
                 print('### unable to cleave chain {} at position {} to generate {} {}'.format(clv_c.chainID,clv.parent_Cterm_resseqnum,clv.parent_chainID,clv.daughter_chainID))
     def __str__(self):
-        return 'Molecule {} {}: {} chains, {} residues, {} atoms, {} links, {} ssbonds'.format(self.index,self.pdb,len(self.Chains),len(self.Residues),len(self.Atoms),len(self.Links),len(self.SSBonds)) 
+        return 'Molecule {}: {} chains, {} residues, {} atoms, {} links, {} ssbonds'.format(self.pdb,len(self.Chains),len(self.Residues),len(self.Atoms),len(self.Links),len(self.SSBonds)) 
     def residue_shift(self,chainID,resseqnumshift):
         found=False
         for c in self.Chains:
@@ -308,7 +324,7 @@ class Molecule:
                  found=True
                  break;
         if not found:
-            print('### Could not apply shift to chain {}: no such chain in Molecule {}'.format(chainID,self.index))
+            print('### Could not apply shift to chain {}: no such chain in Molecule {}'.format(chainID,self.pdb))
             return -1
         for r in c.residues:
             r.residue_shift(resseqnumshift)
@@ -324,7 +340,7 @@ class Molecule:
                 ss.resseqnum2+=resseqnumshift
         return 0
 
-    def writepsfgeninput(self,fp,Mutations=[],topologies=[]):
+    def writepsfgeninput(self,fp,userMutations=[],topologies=[],prefix='my_',fixConflicts=False):
         fp.write('if {![info exists PSFGEN_BASEDIR]} {\n'+\
               '    if {[info exists env(PSFGEN_BASEDIR]} {\n'+\
               '        set PSFGEN_BASEDIR $env(PSFGEN_BASEDIR)\n'+\
@@ -370,7 +386,12 @@ class Molecule:
         fp.write('mol new {}\n'.format(self.pdb))
         Loops=[]
         for c in self.Chains:
-            c.MakeSegments(self.Links,Mutations=Mutations)
+            if fixConflicts==True:
+                for sa in self.Seqadv:
+                    if sa.chainID==c.chainID:
+                        if sa.conflict=='CONFLICT':
+                            userMutations.append(Mutation(seqadv=sa))
+            c.MakeSegments(self.Links,Mutations=userMutations)
             for s in c.Segments:
                 stan,supp,coor,caco,loops=s.psfgen_segmentstanza()
                 fp.write('\n### begin stanza for segment {}\n'.format(s.segname))
@@ -394,10 +415,10 @@ class Molecule:
         fp.write('guesscoord\n')
         fp.write('regenerate angles dihedrals\n')
 
-        prefix=self.pdb[:]
-        prefix=prefix.replace('.pdb','')
-        self.psf_outfile='my_{}.psf'.format(prefix)
-        self.pdb_outfile='my_{}.pdb'.format(prefix)
+        code=self.pdb[:]
+        code=code.replace('.pdb','')
+        self.psf_outfile='{}{}.psf'.format(prefix,code)
+        self.pdb_outfile='{}{}.pdb'.format(prefix,code)
         fp.write('writepsf {}\n'.format(self.psf_outfile))
         fp.write('writepdb {}\n'.format(self.pdb_outfile))
         
