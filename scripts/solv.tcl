@@ -6,20 +6,35 @@
 # chemical and biological engineering
 
 set pad 10; # pad in angstroms
+set pdb "empty.pdb"
+set psf "empty.psf"
+set outpre "ionized"
 
-set inputname my_%PDB%
-set PSF ${inputname}.psf
-set outputname1 ${inputname}_wb
-set outputname2 ${inputname}_i
+for { set i 0 } { $i < [llength $argv] } { incr i } {
+    if { [lindex $argv $i] == "-pad" } {
+       incr i
+       set pad [lindex $argv $i]
+    }
+    if { [lindex $argv $i] == "-pdb"} {
+       incr i
+       set pdb [lindex $argv $i]
+    }
+    if { [lindex $argv $i] == "-psf"} {
+       incr i
+       set psf [lindex $argv $i]
+    }
+    if { [lindex $argv $i] == "-outpre"} {
+       incr i
+       set outpre [lindex $argv $i]
+    }
+}
 
-mol new $PSF
-mol addfile ${inputname}_vac.coor
+set outputname1 ${outpre}_wb
+
+mol new $psf
+mol addfile $pdb
 
 set a [atomselect top all]
-
-set c [measure center $a]
-
-$a moveby [vecscale $c -1.0]
 
 set box { { ? ? ? } { ? ? ? } }
 set basisvec { ? ? ? }
@@ -34,13 +49,11 @@ foreach d {0 1 2} {
   lset origin $d [expr 0.5*([lindex $box 1 $d ] + [lindex $box 0 $d])] 
 }
 
-$a writepdb ${inputname}.pdb
-
 package require solvate
 package require autoionize
 
-solvate $PSF ${inputname}.pdb -minmax $box -o ${outputname1}
-autoionize -psf ${outputname1}.psf -pdb ${outputname1}.pdb -neutralize -o ${outputname2}
+solvate $psf $pdb -minmax $box -o ${outputname1}
+autoionize -psf ${outputname1}.psf -pdb ${outputname1}.pdb -neutralize -o ${outpre}
 
 # generate an input file for the first solvated MD simulation
 # namd config file
