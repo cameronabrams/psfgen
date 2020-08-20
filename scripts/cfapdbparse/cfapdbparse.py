@@ -56,7 +56,7 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops):
     if dlmc:
         fp.write('set loops {\n')
         for l in Loops:
-            if l.terminated:
+            if l.terminated and len(l.residues)>1:
                 fp.write('{{ {} {} {} }}\n'.format(l.chainID,l.residues[0].resseqnum,l.residues[-1].resseqnum))
         fp.write('           }\n')
         # create loops list { { }, { }, ...}
@@ -93,7 +93,7 @@ if __name__=='__main__':
     PostMod['center_protein']=True
     prefix='x01_'
     fixConflicts=True
-
+    PostMod['do_loop_mc']=False
 
     parser.add_argument('pdb',nargs='+',metavar='<?.pdb>',type=Molecule,help='name(s) of pdb file to parse; first is treated as the base molecule')
     parser.add_argument('-topo',metavar='<name>',action='append',default=[],help='additional CHARMM topology files')
@@ -107,16 +107,20 @@ if __name__=='__main__':
     parser.add_argument('-kc',action='store_true',help='ignores SEQADV records indicating conflicts; if unset, residues in conflict are mutated to their proper identities')
     parser.add_argument('-noc',action='store_true',help='do not center the protein at the origin of the coordinate system')
     parser.add_argument('-ror',default='None,None',metavar='<atomselect string>,<atomselect string>',help='two comma-separated, single-quoted atomselect strings to define two groups of atoms whose centers of mass are aligned against the global z-axis')
+    parser.add_argument('-v',action='store_true',help='print verbose output during parsing')
 
     args=parser.parse_args()
 
     Molecules=args.pdb
+    if args.v:
+        for m in Molecules:
+            m.show()
     Mut=args.mut
     if len(args.topo)>0:
         Topo.extend(args.topo)
     Clv=args.clv
     prefix=args.prefix
-    do_loop_mc=args.rmi
+    PostMod['do_loop_mc']=args.rmi
     fixConflicts=~(args.kc)
     psfgen=args.psfgen
     PostMod['center_protein']=~(args.noc)

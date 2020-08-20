@@ -60,6 +60,12 @@ class Molecule:
         self.MakeResidues()
         self.MakeChains()
         self.MakeLinks()
+       #self.ShowSeqRes()
+        if 'CHARMM' in self.keywords:
+            self.format=='CHARMM'
+            print('### THIS IS A CHARMM-FORMAT PDB FILE')
+        print('### Read {:d} pdbrecords from {:s}'.format(len(self.RawPDB),pdb))
+    def show(self):
         self.ShowTitle()
         self.ShowHeader()
         self.ShowKeywords()
@@ -67,11 +73,6 @@ class Molecule:
         self.ShowModelType()
         self.ShowDBRef()
         self.ShowSeqadv(brief=True)
-        #self.ShowSeqRes()
-        if 'CHARMM' in self.keywords:
-            self.format=='CHARMM'
-            print('### THIS IS A CHARMM-FORMAT PDB FILE')
-        print('### Read {:d} pdbrecords from {:s}'.format(len(self.RawPDB),pdb))
     def ParseRemark(self,pdbrecord):
         token=pdbrecord[7:10]
         if token.isdigit():
@@ -425,8 +426,8 @@ class Molecule:
         # return the list of loops for the post-mod routine to handle
         return Loops
 
-    def Tcl_PrependHeaderToPDB(self,newpdb,psfgen_script):
-        hdr='tmp_header.pdb'
+    def Tcl_PrependHeaderToPDB(self,newpdb,psfgen_script,hdr='charmm_header.pdb'):
+        _tmpfile_='_tmpfile_'
         fp=open(hdr,'w')
         fp.write(self.TitleRecord())
         self.keywords.append('CHARMM')
@@ -437,7 +438,8 @@ class Molecule:
         for l in self.Links:
             fp.write(l.pdb_line()+'\n')
         fp.close()
-        # write tcl commands to combine the two files
-        psfgen_script.write('exec cat {} >> {}\n'.format(newpdb,hdr))
-        psfgen_script.write('exec mv {} {}\n'.format(hdr,newpdb))
+        # write tcl commands to combine the two files, preserving the header for other uses
+        psfgen_script.write('exec cat {} {} > {}\n'.format(hdr,newpdb,_tmpfile_))
+        psfgen_script.write('exec mv {} {}\n'.format(_tmpfile_,newpdb))
+        psfgen_script.write('exec rm -f {}\n'.format(_tmpfile_))
 
