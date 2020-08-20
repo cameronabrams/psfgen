@@ -273,22 +273,30 @@ class Molecule:
             c.sort_residues()
     def MakeLinks(self):
         for l in self.Links:
+            #print(l)
             r1=get_residue(self.Residues,l.chainID1,l.resseqnum1)
             r2=get_residue(self.Residues,l.chainID2,l.resseqnum2)
-            if r1.resseqnum>r2.resseqnum:
+            #print('setting pointers: ',end='')
+            # if their chains differ, earlier letters are upstream of later letters
+            if r1.chainID>r2.chainID:
                 r1.up.append(r2)
                 r2.down.append(r1)
-            elif r1.resseqnum<r2.resseqnum:
+                #print(r2,'->',r1)
+            elif r1.chainID<r2.chainID:
                 r1.down.append(r2)
                 r2.up.append(r1)
-            else:
-                if r1.chainID>r2.chainID:
-                    r1.up.append(r2)
-                    r2.down.append(r1)
-                else:
-                    r1.down.append(r2)
-                    r2.up.append(r1)
+                #print(r1,'->',r2)
+            else: # they have the same chainID
+               if r1.resseqnum>r2.resseqnum:
+                   r1.up.append(r2)
+                   r2.down.append(r1)
+                   #print(r2,'->',r1)
+               elif r1.resseqnum<r2.resseqnum:
+                   r1.down.append(r2)
+                   r2.up.append(r1)
+                   #print(r1,'->',r2)
         for c in self.Chains:
+            #print('calling group_residues on chain {}'.format(c.chainID))
             c.group_residues() 
     def CleaveChains(self,Cleavages):
         for clv in Cleavages:
@@ -341,7 +349,7 @@ class Molecule:
                 ss.resseqnum2+=resseqnumshift
         return 0
 
-    def writepsfgeninput(self,fp,userMutations=[],topologies=[],prefix='my_',fixConflicts=False):
+    def writepsfgeninput(self,fp,userMutations=[],topologies=[],prefix='my_',fixConflicts=False,userGrafts=[]):
         fp.write('if {![info exists PSFGEN_BASEDIR]} {\n'+\
               '    if {[info exists env(PSFGEN_BASEDIR]} {\n'+\
               '        set PSFGEN_BASEDIR $env(PSFGEN_BASEDIR)\n'+\
@@ -385,6 +393,12 @@ class Molecule:
         fp.write('set logid -1\n')
 
         fp.write('mol new {}\n'.format(self.pdb))
+       
+        if len(userGrafts)>0:
+            for i,g in enumerate(userGrafts):
+                g.load(fp,i)
+        
+        fp.write('molinfo 0 set top\n')
         Loops=[]
         for c in self.Chains:
             if fixConflicts==True:
@@ -392,14 +406,12 @@ class Molecule:
                     if sa.chainID==c.chainID:
                         if sa.conflict=='CONFLICT':
                             userMutations.append(Mutation(seqadv=sa))
-            c.MakeSegments(self.Links,Mutations=userMutations)
+            c.MakeSegments(self.Links,Mutations=userMutations,Grafts=userGrafts)
             for s in c.Segments:
-                stan,supp,coor,caco,loops=s.psfgen_segmentstanza()
+                print(s)
+                stanza,loops=s.psfgen_segmentstanza()
                 fp.write('\n### begin stanza for segment {}\n'.format(s.segname))
-                fp.write(supp)
-                fp.write(stan+'\n')
-                fp.write(coor)
-                fp.write(caco)
+                fp.write(stanza)
                 if len(loops)>0:
                    Loops.extend(loops)
                 fp.write('### end stanza for segment {}\n\n'.format(s.segname))

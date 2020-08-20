@@ -44,6 +44,8 @@ class Residue:
     def set_connections(self):
         pass
     def __str__(self):
+        return '{}-{}{}'.format(self.chainID,self.name,self.resseqnum)
+    def str_full(self):
         if len(self.atoms)==0:
             atstr='MISSING'
         else:

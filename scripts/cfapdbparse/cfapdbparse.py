@@ -4,6 +4,7 @@ from datetime import date
 from molecule import Molecule
 from cleavage import Cleavage
 from mutation import Mutation
+from graft import Graft
 import argparse
 ''' 
     Parses experimental PDB to build input file for VMD/psfgen
@@ -95,13 +96,13 @@ if __name__=='__main__':
     fixConflicts=True
     PostMod['do_loop_mc']=False
 
-    parser.add_argument('pdb',nargs='+',metavar='<?.pdb>',type=Molecule,help='name(s) of pdb file to parse; first is treated as the base molecule')
+    parser.add_argument('pdb',nargs='+',metavar='<?.pdb>',type=Molecule,help='name(s) of pdb file to parse; first is treated as the base molecule; others are ')
     parser.add_argument('-topo',metavar='<name>',action='append',default=[],help='additional CHARMM topology files')
     parser.add_argument('-prefix',metavar='<str>',default='x01_',help='output PDB/PSF prefix; each file name will have the format <prefix><pdbcode>.pdb/psf, where <pdbcode> is the 4-letter PDB code of the base molecule.')
     parser.add_argument('-psfgen',metavar='<name>',default='mkpsf.tcl',help='name of TcL script generated as input to VMD/psfgen')
     parser.add_argument('-mut',metavar='X_Y###Z',action='append',default=[],type=Mutation,help='specify mutation.  Format: X is chainID, Y is one-letter residue code to mutate FROM, ### is sequence number (can be any number of digits), and Z is one-letter residue code to mutate TO.  Multiple -mut\'s can be specified.')
     parser.add_argument('-clv',metavar='X###Y',action='append',default=[],type=Cleavage,help='specify cleavage site.  Format: X is parent chain ID, ### is residue number immediately N-terminal to the cleavage site, and Y is the daughter chain ID that will begin immediately C-terminal to cleavage site. Multiple -clv\'s can be specified, each with its own -clv key.')
-    parser.add_argument('-gra',metavar='<str>',action='append',default=[],type=str,help='Grafts are not yet implemented.  A graft is defined as adding the entire contents of one molecule to the base molecule by overlapping a predfined set of atoms the two have in common.')
+    parser.add_argument('-gra',metavar='<str>,A:XXX-YYY,ZZZ,C:BBB',action='append',default=[],type=Graft,help='graft resids XXX-YYY of chain A in pdb <str> to chain C of base molecule by overlapping resid ZZZ of chain A of graft and resid BBB of chain C of base')
     # booleans
     parser.add_argument('-rmi',action='store_true',help='asks psfgen to use the loopMC module to relax modeled-in loops of residues missing from PDB')
     parser.add_argument('-kc',action='store_true',help='ignores SEQADV records indicating conflicts; if unset, residues in conflict are mutated to their proper identities')
@@ -119,6 +120,7 @@ if __name__=='__main__':
     if len(args.topo)>0:
         Topo.extend(args.topo)
     Clv=args.clv
+    Gra=args.gra
     prefix=args.prefix
     PostMod['do_loop_mc']=args.rmi
     fixConflicts=~(args.kc)
@@ -145,7 +147,7 @@ if __name__=='__main__':
     Base=Molecules[0]
     if len(Clv)>0:
         Base.CleaveChains(Clv)
-    Loops=Base.writepsfgeninput(psfgen_fp,topologies=Topo,userMutations=Mut,fixConflicts=fixConflicts,prefix=prefix)
+    Loops=Base.writepsfgeninput(psfgen_fp,topologies=Topo,userMutations=Mut,fixConflicts=fixConflicts,prefix=prefix,userGrafts=Gra)
     
     post_pdb=WritePostMods(psfgen_fp,Base.psf_outfile,Base.pdb_outfile,PostMod,Loops)
 

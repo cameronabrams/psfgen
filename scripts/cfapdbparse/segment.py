@@ -39,11 +39,21 @@ class Segment:
         self.segtype=_seg_class_[r.name]
         self.residues=[r]
         self.mutations=[]
+        self.graft=''
+        self.rootres=''
+        if _seg_class_[r.name]=='GLYCAN':
+            self.rootres=r.up[0]
         r.segname=self.segname
         for a in r.atoms:
             a.segname=self.segname
     def __str__(self):
-        return '{}[{}] {} - {}'.format(self.segname,self.segtype,self.residues[0].resseqnum,self.residues[-1].resseqnum)
+        retbase='{}[{}] {} - {}'.format(self.segname,self.segtype,self.residues[0].resseqnum,self.residues[-1].resseqnum)
+        if self.rootres!='':
+            r=self.rootres
+            retbase='('+str(r)+')->'+retbase
+        if self.graft!='':
+            retbase+='::'+self.graft.source_pdb+':'+str(self.graft.source_segment)
+        return retbase
     def add_residue(self,r):
         self.residues.append(r)
         r.segname=self.segname
@@ -123,7 +133,8 @@ class Segment:
             for l in Loops:
                 if l.terminated:
                     cacostr+=l.caco_str()
-        return retstr,suppstr,coordstr,cacostr,Loops
+        stanza=suppstr+retstr+'\n'+coordstr+cacostr
+        return stanza,Loops
 
 def psfgen_write_pdb(st,source,c,l,r,p):
     if st=='PROTEIN':

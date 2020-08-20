@@ -30,8 +30,8 @@ class Chain:
                 if r.resseqnum>mx:
                     mx=r.resseqnum
                     mxr=r
-        if mnr=='' or mxr=='':
-            print('Note, no protein residues found chain {}'.format(self.chainID))
+#        if mnr=='' or mxr=='':
+#            print('Note, no protein residues found chain {}'.format(self.chainID))
         self.Nterm=mnr
         self.Cterm=mxr
     def group_residues(self):
@@ -42,12 +42,14 @@ class Chain:
                 owners.append([r,i])
         for oi in owners:
             o,i=oi
+            #print(o)
             #print('{}{}-{}{}->'.format(i,o.chainID,o.name,o.resseqnum))
             for dd in o.get_down_group():
+                if dd.chainID==o.chainID:
                 #print('    {}-{}{}'.format(dd.chainID,dd.name,dd.resseqnum))
-                self.residues.remove(dd)
-                self.residues.insert(i+1,dd)
-                i+=1
+                    self.residues.remove(dd)
+                    self.residues.insert(i+1,dd)
+                    i+=1
     def __str__(self):
         protein_resid=[]
         other_resid=[]
@@ -77,11 +79,15 @@ class Chain:
         self.sort_residues()
         Daughter.sort_residues()
         return Daughter
-    def MakeSegments(self,Links,Mutations=[]):
+    def MakeSegments(self,Links,Mutations=[],Grafts=[]):
         self.Segments=[]
         for r in self.residues:
             if self.Segments==[]:
-                self.Segments.append(Segment(r))
+                if _seg_class_[r.name]=='GLYCAN':
+                   s=Segment(r,self.nextSubCounter('GLYCAN'))
+                else:
+                   s=Segment(r)
+                self.Segments.append(s)
             else:
                 for s in self.Segments:
                     #fp.write('looking {} {}'.format(s.segtype,_seg_class_[r.name]))
@@ -127,6 +133,34 @@ class Chain:
                                     pass
                         else:
                             pass
+                else:
+                    pass
+        else:
+            pass
+        if len(Grafts)>0:
+            for g in Grafts:
+                g.target_segment=''
+                found=False
+                if g.target_chain==self.chainID:
+                    for s in self.Segments:
+                        for r in s.residues:
+                            if r.resseqnum==g.target_res:
+                                found=True
+                                g.target_segment=s
+                                s.graft=g
+                                #print('#### Graft {}'.format(g.graftstr))
+                                #print('     SOURCE segment: '+str(g.source_segment))
+                                #print('     TARGET segment: '+str(g.target_segment))
+                                # identify graft root on segment -> rootres
+                                # identify refrootres on graft -> refrootres
+                                # issue change chain,segment,resids in graft
+                                # issue molecular transformation on graft
+                                # copy source segment onto this segment to overwrite it
+                                # delete original LINKS for this segment
+                                # inset new LINKS from grafts
+                                break
+                            else:
+                                pass
                 else:
                     pass
         else:
