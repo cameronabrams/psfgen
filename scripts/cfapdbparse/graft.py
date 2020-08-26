@@ -46,6 +46,7 @@ class Graft:
                 self.molecule=Molecule(self.source_pdb)
                 m=self.molecule
                 for c in m.Chains:
+                    c.sort_residues()
                     c.MakeSegments(m.Links)
                     if c.chainID==self.source_chain:
                         for s in c.Segments:

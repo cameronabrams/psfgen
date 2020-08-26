@@ -422,9 +422,10 @@ class Molecule:
         for ss in self.SSBonds:
             fp.write(ss.psfgen_patchline())
 
-        fp.write('### LINKS:\n')
         if len(userGrafts)>0:
-            self.importGrafts()
+            print('### Importing {} grafts'.format(len(userGrafts)))
+            self.importGrafts(userGrafts)
+        fp.write('### LINKS:\n')
         for l in self.Links:
             ''' The generation of new segments for glycans and/or cleavage necessitates
                 updating segment names in the LINK records read from the original PDB.
@@ -446,39 +447,80 @@ class Molecule:
         # return the list of loops for the post-mod routine to handle
         return Loops
 
-    def importGrafts(self):
+    def importGrafts(self,userGrafts):
         ''' this is a STUB '''
         linksToImport=[]
-        for c in self.Chains:
-            for s in c.Segments:
-                if s.graft!='':
-                    g=s.graft
-                    print('#### importing the following graft into Base as chain {} seg {}'.format(g.ingraft_chainID,g.ingraft_segname,str(g)))
-                    m=g.molecule
-                    for l in m.Links:
-                        l.updateSegnames(m.Residues)
-                    sseg=g.source_segment
-                    for r in sseg.residues:
-                        for l in m.Links:
-                            if l.isInLink(r.chainID,r.resseqnum):
+        linksToEdit=[]
+        linksToRemove=[]
+        for g in userGrafts:
+            print('#### importing the following graft into Base as chain {} seg {}'.format(g.ingraft_chainID,g.ingraft_segname,str(g)))
+            m=g.molecule
+            for l in m.Links:
+                l.updateSegnames(m.Residues)
+            sseg=g.source_segment
+            for r in sseg.residues:
+                r.segname=g.ingraft_segname
+                for a in r.atoms:
+                    a.chainID=g.ingraft_chainID
+                    a.segname=g.ingraft_segname
+                for l in m.Links:
+                    if l.isInLink(r.chainID,r.resseqnum):
+                        if l.resseqnum1 in g.resid_dict and l.resseqnum2 in g.resid_dict:
+                            l.chainID1=g.ingraft_chainID
+                            l.chainID2=g.ingraft_chainID
+                            l.resseqnum1=g.resid_dict[l.resseqnum1]
+                            l.resseqnum2=g.resid_dict[l.resseqnum2]
+                            l.segname1=g.ingraft_segname
+                            l.segname2=g.ingraft_segname
+                            print('point of import {} {} {} {}'.format(l.segname1,l.resseqnum1,l.segname2,l.resseqnum2))
+                            if l not in linksToImport:
                                 linksToImport.append(l)
-                        r.segname=g.ingraft_segname
-                        r.chainID=g.ingraft_chainID
-                        r.resseqnum=g.resid_dict[r.resseqnum]
-                        print('#### importing graft residue {}'.format(str(r)))
-                        self.Residues.append(r)
-                    # tag links that are grafted over
-                    graft_overs=[]
-                    r=get_residue(self.Residues,g.target_chain,g.target_res)
-                    graft_overs.append(r)
-                    for rr in r.get_down_group():
-                        graft_overs.append(rr)
-                    for r in graft_overs:
-                        print('#### graft will remove links involving residue {} in seg {}'.format(str(r),r.segname))
+                        else:
+                            print('#### this graft link is not imported:')
+                            print(l.pdb_line())
+                r.chainID=g.ingraft_chainID
+                r.resseqnum=g.resid_dict[r.resseqnum]
+                print('#### importing graft residue {} into chain {} segment {}'.format(str(r),r.chainID,r.segname))
+                self.Residues.append(r)
+            # identify Base residues that are grafted over
+            graft_overs=[]
+            r=get_residue(self.Residues,g.target_chain,g.target_res)
+            graft_overs.append(r)
+            for rr in r.get_down_group():
+                graft_overs.append(rr)
+            print('#### grafting over {:d} base residues rooted at {} in seg {}'.format(len(graft_overs),str(graft_overs[0]),r.segname))
+            # find the Base link that joins the target residue to the molecule; target residue is assumed to be the second residue in the link
+            for l in self.Links:
+                if l.isInLink(graft_overs[0].chainID,graft_overs[0].resseqnum,pos=2):
+                    l.chainID2=g.ingraft_chainID
+                    l.segname2=g.ingraft_segname
+                    l.resseqnum2=g.resid_dict[g.source_res1]
+                    linksToEdit.append(l)
+            for i,r in enumerate(graft_overs):
+                print('#### graft will remove links involving defunct residue {} in seg {}'.format(str(r),r.segname))
+                for l in self.Links:
+                    pos=1 if i==0 else ''
+                    if l.isInLink(r.chainID,r.resseqnum,pos=pos):
+                        if l not in linksToRemove:
+                            linksToRemove.append(l)
         if len(linksToImport)>0:
-            print('#### The following graft links will be imported:')
+            print('#### The following graft links were imported:')
             for l in linksToImport:
                 print(l.pdb_line())
+                print(l.psfgen_patchline())
+                self.Links.append(l)
+                print('point of report {} {} {} {}'.format(l.segname1,l.resseqnum1,l.segname2,l.resseqnum2))
+            print('#### The following Base links were edited in-situ')
+            for l in linksToEdit:
+                print(l.pdb_line())
+                print(l.psfgen_patchline())
+                if l not in self.Links:
+                    print('ERRROR: In-situ link is not in-situ!')
+            print('#### The following Base links were removed:')
+            for l in linksToRemove:
+                print(l.pdb_line())
+                print(l.psfgen_patchline())
+                self.Links.remove(l)
     def Tcl_PrependHeaderToPDB(self,newpdb,psfgen_script,hdr='charmm_header.pdb'):
         _tmpfile_='_tmpfile_'
         fp=open(hdr,'w')

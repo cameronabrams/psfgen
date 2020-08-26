@@ -193,7 +193,7 @@ class Segment:
                 retstr+='set gra_orig_x [$myseg get x]\n'
                 retstr+='set gra_orig_y [$myseg get y]\n'
                 retstr+='set gra_orig_z [$myseg get z]\n'
-                retstr+='$myseg move $tr\n'
+                retstr+='$myseg move $tm\n'
                 g.resid_dict={}
                 for r in g.source_segment.residues:
                     g.resid_dict[r.resseqnum]=r.resseqnum+g.desired_offset
@@ -202,6 +202,7 @@ class Segment:
                 retstr+=r'foreach oldresid [$myseg get resid] {'+'\n'
                 retstr+='     lappend newresid [expr $oldresid + {:d}]\n'.format(g.desired_offset)
                 retstr+='}\n'
+                retstr+='$myseg set resid $newresid\n'
                 print('resid_dict:',g.resid_dict)
                 p='{}_{}_to_{}-GRAFT.pdb'.format(g.source_chain,g.source_res1+g.desired_offset,g.source_res2+g.desired_offset)
             else:
