@@ -10,19 +10,33 @@ class Graft:
     def __init__(self,graftstr=''):
         # pdb,c:#-#,#,c:#
         self.graftstr=graftstr
+        self.source_pdb=''
+        self.source_chain=''
+        self.source_res1=''
+        self.source_ins1=''    
+        self.source_res2=''
+        self.source_ins2=''
+        self.target_chain=''
+        self.target_res=''
+        self.molecule=''
+        self.molid=''
+        self.index=''
+        self.source_segment=''
+        self.desired_offset=''
         if len(graftstr)>0:
             dat=graftstr.split(',')
-            if len(dat)==4:
+            if len(dat)==5:
                 self.source_pdb=dat[0]
                 source_chain_res=dat[1].split(':')
                 self.source_rootres,self.source_rootins=get_ra(dat[2])
                 target_chain_res=dat[3].split(':')
+                self.desired_offset=int(dat[4])
                 if len(source_chain_res)==2:
                     self.source_chain=source_chain_res[0]
                     resrng=source_chain_res[1].split('-')
                     if len(resrng)==2:
-                        for r in resrng:
-                            self.source_res1,self.source_ins1=get_ra(r)
+                        self.source_res1,self.source_ins1=get_ra(resrng[0])
+                        self.source_res2,self.source_ins2=get_ra(resrng[1])
                     else:
                         print('ERROR: Malformed graft source resrange subsubargument: {}'.format(resrange))
                 else:
@@ -47,10 +61,11 @@ class Graft:
             else:
                print('ERROR: Malformed graft argument: {}'.format(graftstr))
     def __str__(self):
-        retstr='Graft from {:s}, chain {:s}, {:d}{} to {:d}{}, using {:d}{} as root, onto base chain {:s} {:d}{}'.format(self.source_pdb,self.source_chain,self.source_res1,self.source_ins1,self.source_res2,self.source_ins2,self.source_rootres,self.source_rootins,self.target_chain,self.target_res,self.target_ins)
+        retstr='Graft from {:s}, chain {:s}, {:d}{} to {:d}{}, using {:d}{} as root, onto base chain {:s} {:d}{} with resid offset {:d}'.format(self.source_pdb,self.source_chain,self.source_res1,self.source_ins1,self.source_res2,self.source_ins2,self.source_rootres,self.source_rootins,self.target_chain,self.target_res,self.target_ins,self.desired_offset)
         return retstr
     def load(self,fp,index):
         fp.write('mol new {}\n'.format(self.source_pdb))
         fp.write('set g{:d} [molinfo top get id]\n'.format(index))
+        self.molid='$g{:d}'.format(index)
         self.index=index
-
+   

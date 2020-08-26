@@ -84,9 +84,9 @@ class Chain:
         for r in self.residues:
             if self.Segments==[]:
                 if _seg_class_[r.name]=='GLYCAN':
-                   s=Segment(r,self.nextSubCounter('GLYCAN'))
+                   s=Segment(r,self.nextSubCounter('GLYCAN'),chain=self)
                 else:
-                   s=Segment(r)
+                   s=Segment(r,chain=self)
                 self.Segments.append(s)
             else:
                 for s in self.Segments:
@@ -114,9 +114,9 @@ class Chain:
                     # if this is a water, segname is AW
                     # if this is a glycan, segname is AGnn, where nn is the next avail. glycan number
                     if _seg_class_[r.name]=='GLYCAN':
-                       s=Segment(r,self.nextSubCounter('GLYCAN'))
+                       s=Segment(r,self.nextSubCounter('GLYCAN'),chain=self)
                     else:
-                       s=Segment(r)
+                       s=Segment(r,chain=self)
                     self.Segments.append(s)
         if len(Mutations)>0:
             for m in Mutations:
@@ -147,17 +147,7 @@ class Chain:
                             if r.resseqnum==g.target_res:
                                 found=True
                                 g.target_segment=s
-                                s.graft=g
-                                #print('#### Graft {}'.format(g.graftstr))
-                                #print('     SOURCE segment: '+str(g.source_segment))
-                                #print('     TARGET segment: '+str(g.target_segment))
-                                # identify graft root on segment -> rootres
-                                # identify refrootres on graft -> refrootres
-                                # issue change chain,segment,resids in graft
-                                # issue molecular transformation on graft
-                                # copy source segment onto this segment to overwrite it
-                                # delete original LINKS for this segment
-                                # inset new LINKS from grafts
+                                s.apply_graft(g)
                                 break
                             else:
                                 pass

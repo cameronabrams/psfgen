@@ -393,12 +393,14 @@ class Molecule:
         fp.write('set logid -1\n')
 
         fp.write('mol new {}\n'.format(self.pdb))
-       
+      
+        # if grafts are specified, load each parent PDB into a separate
+        # molecule 
         if len(userGrafts)>0:
             for i,g in enumerate(userGrafts):
                 g.load(fp,i)
         
-        fp.write('molinfo 0 set top\n')
+        fp.write('mol top 0\n')
         Loops=[]
         for c in self.Chains:
             if fixConflicts==True:
@@ -408,7 +410,7 @@ class Molecule:
                             userMutations.append(Mutation(seqadv=sa))
             c.MakeSegments(self.Links,Mutations=userMutations,Grafts=userGrafts)
             for s in c.Segments:
-                print(s)
+                print('### SEGMENT: ',str(s))
                 stanza,loops=s.psfgen_segmentstanza()
                 fp.write('\n### begin stanza for segment {}\n'.format(s.segname))
                 fp.write(stanza)
