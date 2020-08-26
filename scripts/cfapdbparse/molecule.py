@@ -423,7 +423,13 @@ class Molecule:
             fp.write(ss.psfgen_patchline())
 
         fp.write('### LINKS:\n')
+        if len(userGrafts)>0:
+            self.importGrafts()
         for l in self.Links:
+            ''' The generation of new segments for glycans and/or cleavage necessitates
+                updating segment names in the LINK records read from the original PDB.
+                updateSegnames() reassigns residue1/2, atom1/2, and segname1/2 
+                attributes of each link instance. '''
             l.updateSegnames(self.Residues)
             fp.write(l.psfgen_patchline())
 
@@ -440,6 +446,39 @@ class Molecule:
         # return the list of loops for the post-mod routine to handle
         return Loops
 
+    def importGrafts(self):
+        ''' this is a STUB '''
+        linksToImport=[]
+        for c in self.Chains:
+            for s in c.Segments:
+                if s.graft!='':
+                    g=s.graft
+                    print('#### importing the following graft into Base as chain {} seg {}'.format(g.ingraft_chainID,g.ingraft_segname,str(g)))
+                    m=g.molecule
+                    for l in m.Links:
+                        l.updateSegnames(m.Residues)
+                    sseg=g.source_segment
+                    for r in sseg.residues:
+                        for l in m.Links:
+                            if l.isInLink(r.chainID,r.resseqnum):
+                                linksToImport.append(l)
+                        r.segname=g.ingraft_segname
+                        r.chainID=g.ingraft_chainID
+                        r.resseqnum=g.resid_dict[r.resseqnum]
+                        print('#### importing graft residue {}'.format(str(r)))
+                        self.Residues.append(r)
+                    # tag links that are grafted over
+                    graft_overs=[]
+                    r=get_residue(self.Residues,g.target_chain,g.target_res)
+                    graft_overs.append(r)
+                    for rr in r.get_down_group():
+                        graft_overs.append(rr)
+                    for r in graft_overs:
+                        print('#### graft will remove links involving residue {} in seg {}'.format(str(r),r.segname))
+        if len(linksToImport)>0:
+            print('#### The following graft links will be imported:')
+            for l in linksToImport:
+                print(l.pdb_line())
     def Tcl_PrependHeaderToPDB(self,newpdb,psfgen_script,hdr='charmm_header.pdb'):
         _tmpfile_='_tmpfile_'
         fp=open(hdr,'w')

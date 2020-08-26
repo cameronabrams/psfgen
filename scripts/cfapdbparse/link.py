@@ -55,6 +55,11 @@ class Link:
         self.atom2=get_atom(R,self.chainID2[0],self.resseqnum2,self.name2)
         self.segname1=self.atom1.segname
         self.segname2=self.atom2.segname
+    def isInLink(self,chain,resid):
+        if (self.chainID1==chain and self.resseqnum1==resid) or (self.chainID2==chain and self.resseqnum2==resid):
+           return True
+        else:
+           return False
     def __str__(self):
         retstr='{}\n'+\
                 '   name1         {:s}\n'+\

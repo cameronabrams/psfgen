@@ -178,6 +178,8 @@ class Segment:
             retstr+='[atomselect {} "chain {} and resid {} to {}"] writepdb {}\n'.format(molid,chainID,l,r,p)
         else:  # correct for any naming disagreements between PDB and CHARMM
             if g!='':
+                g.ingraft_segname=self.segname
+                g.ingraft_chainID=self.source_chainID
                 retstr+='set ref [atomselect {} "chain {} and resid {} and noh"]\n'.format(molid,g.target_chain,g.target_res)
                 retstr+='set gra [atomselect {} "chain {} and resid {} and noh"]\n'.format(g.molid,g.source_chain,g.source_res1)
                 retstr+='set refnum [$ref num]\n'
