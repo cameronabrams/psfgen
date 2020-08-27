@@ -21,7 +21,7 @@ pyparser_args=()
 while [ $i -le $ARGC ] ; do
   if [ "${!i}" = "-pdb" ]; then
     i=$((i+1))
-    PDBi+=("${!i}")
+    PDB+=("${!i}")
   fi
   if [ "${!i}" = "-namd2" ]; then
     i=$((i+1))
@@ -80,7 +80,7 @@ done
 TASK=-1
 for p in `seq 0 $((npdb-1))`; do
     pdb=${PDB[$p]}
-    if [ ! -e ${PDB}.pdb ]; then
+    if [ ! -e ${pdb}.pdb ]; then
         TASK=$((TASK+1))
         echo "TASK $TASK: Retrieving ${pdb}.pdb..."
         wget -q http://www.rcsb.org/pdb/files/${pdb}.pdb
@@ -93,7 +93,7 @@ for pi in `seq 0 $((nparse-1))`; do
    TASK=$((TASK+1))
    CURRPSFGEN=psfgen${TASK}.tcl
    CURRPSFLOG=`echo $CURRPSFGEN | sed s/tcl/log/`
-   $PYTHON3 $PSFGEN_BASEDIR/scripts/cfapdbparse/cfapdbparse.py ${parser_args[$pi]} -psfgen ${CURRPSFGEN} ${CURRPDB}
+   $PYTHON3 $PSFGEN_BASEDIR/scripts/cfapdbparse/cfapdbparse.py ${pyparser_args[$pi]} -psfgen ${CURRPSFGEN} ${CURRPDB}
    CURRPSF=`grep ^writepsf ${CURRPSFGEN} | tail -1 | awk '{print $2}'`
    CURRPDB=`grep writepdb ${CURRPSFGEN} | tail -1 | awk '{print $NF}'`
    echo "TASK $TASK: Generating vacuum system ${CURRPSF} + ${CURRPDB}..."

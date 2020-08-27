@@ -103,6 +103,7 @@ if __name__=='__main__':
     parser.add_argument('-mut',metavar='X_Y###Z',action='append',default=[],type=Mutation,help='specify mutation.  Format: X is chainID, Y is one-letter residue code to mutate FROM, ### is sequence number (can be any number of digits), and Z is one-letter residue code to mutate TO.  Multiple -mut\'s can be specified.')
     parser.add_argument('-clv',metavar='X###Y',action='append',default=[],type=Cleavage,help='specify cleavage site.  Format: X is parent chain ID, ### is residue number immediately N-terminal to the cleavage site, and Y is the daughter chain ID that will begin immediately C-terminal to cleavage site. Multiple -clv\'s can be specified, each with its own -clv key.')
     parser.add_argument('-gra',metavar='<str>,A:XXX-YYY,ZZZ,C:BBB',action='append',default=[],type=Graft,help='graft resids XXX-YYY of chain A in pdb <str> to chain C of base molecule by overlapping resid ZZZ of chain A of graft and resid BBB of chain C of base')
+    parser.add_argument('-graftfile',metavar='<name>',default='',help='input file listing all grafts (as an alternative to issuing multiple -gra arguments)')
     # booleans
     parser.add_argument('-rmi',action='store_true',help='asks psfgen to use the loopMC module to relax modeled-in loops of residues missing from PDB')
     parser.add_argument('-kc',action='store_true',help='ignores SEQADV records indicating conflicts; if unset, residues in conflict are mutated to their proper identities')
@@ -121,6 +122,11 @@ if __name__=='__main__':
         Topo.extend(args.topo)
     Clv=args.clv
     Gra=args.gra
+    if args.graftfile!='':
+        with open(args.graftfile,'r') as f:
+           for l in f:
+               if l[0]!='#':
+                   Gra.append(Graft(l))
     prefix=args.prefix
     PostMod['do_loop_mc']=args.rmi
     fixConflicts=~(args.kc)

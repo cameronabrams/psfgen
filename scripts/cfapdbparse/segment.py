@@ -180,8 +180,9 @@ class Segment:
             if g!='':
                 g.ingraft_segname=self.segname
                 g.ingraft_chainID=self.source_chainID
-                retstr+='set ref [atomselect {} "chain {} and resid {} and noh"]\n'.format(molid,g.target_chain,g.target_res)
-                retstr+='set gra [atomselect {} "chain {} and resid {} and noh"]\n'.format(g.molid,g.source_chain,g.source_res1)
+                retstr+='[atomselect {} "chain {} and resid {} to {}"] writepdb {}\n'.format(molid,chainID,l,r,'GRAFTOVER'+p)
+                retstr+='set ref [atomselect {} "chain {} and resid {} and name C1 C2 O5 N2"]\n'.format(molid,g.target_chain,g.target_res)
+                retstr+='set gra [atomselect {} "chain {} and resid {} and name C1 C2 O5 N2"]\n'.format(g.molid,g.source_chain,g.source_res1)
                 retstr+='set refnum [$ref num]\n'
                 retstr+='set granum [$gra num]\n'
                 retstr+=r'if { $refnum != $granum } {'+'\n'
@@ -203,7 +204,7 @@ class Segment:
                 retstr+='     lappend newresid [expr $oldresid + {:d}]\n'.format(g.desired_offset)
                 retstr+='}\n'
                 retstr+='$myseg set resid $newresid\n'
-                print('resid_dict:',g.resid_dict)
+                #print('resid_dict:',g.resid_dict)
                 p='{}_{}_to_{}-GRAFT.pdb'.format(g.source_chain,g.source_res1+g.desired_offset,g.source_res2+g.desired_offset)
             else:
                 retstr+='set myseg [atomselect {} "chain {} and resid {} to {}"]\n'.format(molid,chainID,l,r)

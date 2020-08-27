@@ -425,7 +425,7 @@ class Molecule:
         if len(userGrafts)>0:
             print('### Importing {} grafts'.format(len(userGrafts)))
             self.importGrafts(userGrafts)
-        fp.write('### LINKS:\n')
+        fp.write('### {} LINKS:\n'.format(len(self.Links)))
         for l in self.Links:
             ''' The generation of new segments for glycans and/or cleavage necessitates
                 updating segment names in the LINK records read from the original PDB.
@@ -448,12 +448,11 @@ class Molecule:
         return Loops
 
     def importGrafts(self,userGrafts):
-        ''' this is a STUB '''
         linksToImport=[]
         linksToEdit=[]
         linksToRemove=[]
         for g in userGrafts:
-            print('#### importing the following graft into Base as chain {} seg {}'.format(g.ingraft_chainID,g.ingraft_segname,str(g)))
+            #print('#### importing the following graft into Base as chain {} seg {}'.format(g.ingraft_chainID,g.ingraft_segname,str(g)))
             m=g.molecule
             for l in m.Links:
                 l.updateSegnames(m.Residues)
@@ -472,15 +471,16 @@ class Molecule:
                             l.resseqnum2=g.resid_dict[l.resseqnum2]
                             l.segname1=g.ingraft_segname
                             l.segname2=g.ingraft_segname
-                            print('point of import {} {} {} {}'.format(l.segname1,l.resseqnum1,l.segname2,l.resseqnum2))
+                            #print('LINK point of import {} {} {} {}'.format(l.segname1,l.resseqnum1,l.segname2,l.resseqnum2))
                             if l not in linksToImport:
                                 linksToImport.append(l)
-                        else:
-                            print('#### this graft link is not imported:')
-                            print(l.pdb_line())
+                        #else:
+                         #   print('#### this graft link is not imported:')
+                          #  print(l.pdb_line())
+                         
                 r.chainID=g.ingraft_chainID
                 r.resseqnum=g.resid_dict[r.resseqnum]
-                print('#### importing graft residue {} into chain {} segment {}'.format(str(r),r.chainID,r.segname))
+               # print('#### importing graft residue {} into chain {} segment {}'.format(str(r),r.chainID,r.segname))
                 self.Residues.append(r)
             # identify Base residues that are grafted over
             graft_overs=[]
@@ -488,7 +488,7 @@ class Molecule:
             graft_overs.append(r)
             for rr in r.get_down_group():
                 graft_overs.append(rr)
-            print('#### grafting over {:d} base residues rooted at {} in seg {}'.format(len(graft_overs),str(graft_overs[0]),r.segname))
+            #print('#### grafting over {:d} base residues rooted at {} in seg {}'.format(len(graft_overs),str(graft_overs[0]),r.segname))
             # find the Base link that joins the target residue to the molecule; target residue is assumed to be the second residue in the link
             for l in self.Links:
                 if l.isInLink(graft_overs[0].chainID,graft_overs[0].resseqnum,pos=2):
@@ -497,29 +497,31 @@ class Molecule:
                     l.resseqnum2=g.resid_dict[g.source_res1]
                     linksToEdit.append(l)
             for i,r in enumerate(graft_overs):
-                print('#### graft will remove links involving defunct residue {} in seg {}'.format(str(r),r.segname))
+               # print('#### graft will remove links involving defunct residue {} in seg {}'.format(str(r),r.segname))
                 for l in self.Links:
                     pos=1 if i==0 else ''
                     if l.isInLink(r.chainID,r.resseqnum,pos=pos):
                         if l not in linksToRemove:
                             linksToRemove.append(l)
         if len(linksToImport)>0:
-            print('#### The following graft links were imported:')
+            #print('#### Before import, base has {} links.'.format(len(self.Links)))
+            #print('#### The following {} graft links were imported:'.format(len(linksToImport)))
             for l in linksToImport:
-                print(l.pdb_line())
-                print(l.psfgen_patchline())
+                #print(l.pdb_line())
+                #print(l.psfgen_patchline())
                 self.Links.append(l)
-                print('point of report {} {} {} {}'.format(l.segname1,l.resseqnum1,l.segname2,l.resseqnum2))
-            print('#### The following Base links were edited in-situ')
+                #print('point of report {} {} {} {}'.format(l.segname1,l.resseqnum1,l.segname2,l.resseqnum2))
+            #print('#### Base now has {} links.'.format(len(self.Links)))
+            #print('#### The following Base links were edited in-situ')
             for l in linksToEdit:
-                print(l.pdb_line())
-                print(l.psfgen_patchline())
+                #print(l.pdb_line())
+                #print(l.psfgen_patchline())
                 if l not in self.Links:
                     print('ERRROR: In-situ link is not in-situ!')
-            print('#### The following Base links were removed:')
+            #print('#### The following Base links were removed:')
             for l in linksToRemove:
-                print(l.pdb_line())
-                print(l.psfgen_patchline())
+                #print(l.pdb_line())
+                #print(l.psfgen_patchline())
                 self.Links.remove(l)
     def Tcl_PrependHeaderToPDB(self,newpdb,psfgen_script,hdr='charmm_header.pdb'):
         _tmpfile_='_tmpfile_'
