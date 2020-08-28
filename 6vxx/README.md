@@ -1,25 +1,21 @@
 # 6VXX -- Soluble, stabilized SARS-Cov-2 S trimeric spike, closed
 
-## Files
+[View PDB Entry](http://www.rcsb.org/structure/6VXX)
 
-This directory contains five files:
-1. mkpsf_6vxx.tcl -- VMD/psfgen script that creates the first vacuum psf/pdb pair.  It uses a monte-carlo-based loop model-builder to build in the missing residues.
-2. my_6vxx_vac.namd -- NAMD configuration file used to relax the "guessed" coordinates resulting from step 1.
-3. my_6vxx_solv.tcl -- VMD script that uses solvate and autoionize to generate a neutralized, solvated MD system using the coordinates from step 2 as input.
-4. my_6vxx_solv.namd -- NAMD configuration file that performs a minimization and short MD of the raw solvated system 
-5. my_6vxx_solv_stageN.namd -- NAMD configuration file template for perform ing a minimization and series of short MD simulations of the raw solvated system.  This file is used if the `-stage` flag is set, as described below, to run the final solvated MD simulation in stages to avoid patch-grid errors.
+[Read the source paper](http://dx.doi.org/10.1016/j.cell.2020.02.058)
 
 ## Instructions
 
-Make sure PSFGEN_BASEDIR resolves to the root directory of your local copy of this repository (mine is ${HOME}/research/psfgen).  It is also assumed below that CHARMRUN resolves to your local charmrun executable and NAMD2 resolves to your local NAMD2 executable.  For me, these are /home/cfa/namd/NAMD_2.12_Source/Linux-x86_64-g++/charmrun and /home/cfa/namd/NAMD_2.12_Source/Linux-x86_64-g++/namd2.
+This workflow for generating a solvated, cleaved, fully glycosylated spike ectodomain trimer uses the new `cfapdbparser.py` package and the general driver `do_py.sh`.   A working python distribution is assumed.  Make sure your environment variable PSFGEN_BASEDIR resolves to the root directory of your local copy of this repository (mine is ${HOME}/research/psfgen).  It is also assumed below that CHARMRUN resolves to your local charmrun executable and NAMD2 resolves to your local NAMD2 executable.  (For me, these are /home/cfa/namd/NAMD_2.13_Source/Linux-x86_64-g++/charmrun and /home/cfa/namd/NAMD_2.13_Source/Linux-x86_64-g++/namd2.
 
 ```
 $ mkdir 6vxx
 $ cd 6vxx
-$ $PSFGEN_BASEDIR/scripts/do_test.sh -pdb 6vxx [-stage] [-npe #] [-psfgen_args [-seed #] WT CLEAVE]
+$ $PSFGEN_BASEDIR/scripts/do_py.sh -pyparser-args '-graftfile $PSFGEN_BASEDIR/6vxx/grafts.in -rmi' -pyparser-args '-clv A685S -clv B685T -clv C685U' -solv-stage-steps 100,200,400,800,20000 -temperature 310 -pdb 6vxx -pdb 2wah -pdb 4byh -pdb 4b7i
 ```
 
-The optional `-stage` flag, if present, instructs the script to perform the solvated MD simulations in stages to avoid patch-grid errors arising from box shrinkage during volume equilibration.  The `-npe` flag allows the user to specify the number of processing cores to use in the solvated MD simulation; 8 is the default.  The optional `-psfgen_args` flag passes subsequent arguments to the mkpsf script.  The optional `-seed` flag allows the user the specify the seed for the random-number generator.
-The WT flag reverts the prolines at 986 and 987 back to lysine and valine, respectively.  The CLEAVE flag restores the furin cleavage site and cleaves it.
+This tells the driver to run two parser instances in series.  The first will add missing loops and graft on glycans, and the second executes the cleavage at the furin site.  Five stages of solvate equilibration are requested (which helps with patch-grid errors as the box size equilibrates.  The 2wah, 4yh, and 4b7i PDB entries contain large glycans that are grafted according to the graft records in `grafts.in`.
+
+The glycans are assigned according to [Watanabe et al.](https://science.sciencemag.org/content/369/6501/330).
 
 2017-2020, Cameron F Abrams
