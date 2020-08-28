@@ -685,6 +685,7 @@ proc aa_321 { aa3 } {
 }
 
 # returns 'a' if ligand at in_name is axial; 'b' otherwise
+# if in_name is C6, can only return 'b' (not yet implemented)
 proc axeq { ose_resid molid chain in_name c1_resid } {
     set resname [[atomselect $molid "resid $ose_resid and chain $chain and name C1"] get resname]
     if { $c1_resid != -1 } {
@@ -736,7 +737,7 @@ proc axeq { ose_resid molid chain in_name c1_resid } {
 	}
     #    puts "ring atom $rn has forp $forp($rn) and bakp $bakp($rn) and ligand $ln bondlength [veclength $ligvec] ligpdot $ligpdot axeq $ligand_axeq($rn)"
     }
-    if { [ info exists ligand_axeq($in_name) ] } {
+    if { [ info exists ligand_axeq($in_name) ] && $in_name != "C6" } {
        return $ligand_axeq($in_name)
     } else {
        # just assume equatorial

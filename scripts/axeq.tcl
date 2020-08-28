@@ -1,3 +1,4 @@
+# can only be equatorial at C6
 proc axeq { ose_resid molid chain in_name c1_resid } {
     set resname [[atomselect $molid "resid $ose_resid and chain $chain and name C1"] get resname]
     if { $c1_resid != -1 } {
@@ -47,7 +48,7 @@ proc axeq { ose_resid molid chain in_name c1_resid } {
            set ligand_axeq($rn) "b"
 	   set liband_axeq($ln) "b"
 	}
-    #    puts "ring atom $rn has forp $forp($rn) and bakp $bakp($rn) and ligand $ln bondlength [veclength $ligvec] ligpdot $ligpdot axeq $ligand_axeq($rn)"
+        puts "ring atom $rn has forp $forp($rn) and bakp $bakp($rn) and ligand $ln bondlength [veclength $ligvec] ligpdot $ligpdot axeq $ligand_axeq($rn)"
     }
     return $ligand_axeq($in_name)
 }

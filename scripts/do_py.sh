@@ -108,7 +108,7 @@ for pi in `seq 0 $((nparse-1))`; do
    $CHARMRUN +p${NPE} $NAMD2 run${TASK}.namd > run${TASK}.log
    $VMD -dispdev text -e $PSFGEN_BASEDIR/scripts/namdbin2pdb.tcl -args ${CURRPSF} config${TASK}.coor tmp.pdb
    cat charmm_header.pdb tmp.pdb > config${TASK}.pdb
-  CURRPDB=stage${TASK}.pdb
+  CURRPDB=config${TASK}.pdb
 done
 
 # solvate
@@ -129,7 +129,7 @@ for s in `seq 0 $ls`; do
     echo "          -> Running namd2 (stage $s) on solvated system..."
     cat namd_header.${TASK}-$s $PSFGEN_BASEDIR/templates/solv.namd | \
         sed s/%STAGE%/${s}/g | \
-        sed s/%OUT%/run${TASK}_stage${s}/g | \
+        sed s/%OUT%/config${TASK}_stage${s}/g | \
         sed s/%NUMSTEPS%/${numsteps[$s]}/g | \
         sed s/%SEED%/${seed}/g | \
         sed s/%TEMPERATURE%/${temperature}/g | \

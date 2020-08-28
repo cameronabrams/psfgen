@@ -5,7 +5,7 @@ class Chain:
     def __init__(self,r):
         self.chainID=r.chainID
         self.residues=[r]
-        self.source_chainID=r.chainID
+        self.source_chainID=''
         self.Segments=[]
         self.subCounter={}
         self.subCounter['GLYCAN']=0
@@ -78,6 +78,7 @@ class Chain:
         Daughter.residues.extend(dres[1:])
         self.sort_residues()
         Daughter.sort_residues()
+        Daughter.source_chainID=self.chainID
         return Daughter
     def MakeSegments(self,Links,Mutations=[],Grafts=[]):
         self.Segments=[]

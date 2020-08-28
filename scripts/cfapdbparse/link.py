@@ -95,12 +95,12 @@ class Link:
         else:
             # for a glycan-glycan patch, the C1 atom is always on the ji-residue
             if self.name2=='C1' and _seg_class_[self.resname1]=='GLYCAN':
-                cmdj='[axeq {} 0 {} {} {}]'.format(self.resseqnum2,self.chainID2,self.name2,self.resseqnum1)
-                cmdi='[axeq {} 0 {} {} {}]'.format(self.resseqnum1,self.chainID1,self.name1,-1)
+                cmdi='[axeq {} 0 {} {} {}]'.format(self.resseqnum2,self.chainID2,self.name2,self.resseqnum1)
+                cmdj='[axeq {} 0 {} {} {}]'.format(self.resseqnum1,self.chainID1,self.name1,-1)
                 return 'patch 1{:1s}{}{} {}:{} {}:{}\n'.format(self.name1[1], cmdi,cmdj,self.segname1,self.resseqnum1,self.segname2,self.resseqnum2)
             elif self.name1=='C1' and _seg_class_[self.resname2]=='GLYCAN':
-                cmdi='[axeq {} 0 {} {} {}]'.format(self.resseqnum2,self.chainID2,self.name2,self.resseqnum1)
-                cmdj='[axeq {} 0 {} {} {}]'.format(self.resseqnum1,self.chainID1,self.name1,-1)           
+                cmdj='[axeq {} 0 {} {} {}]'.format(self.resseqnum2,self.chainID2,self.name2,self.resseqnum1)
+                cmdi='[axeq {} 0 {} {} {}]'.format(self.resseqnum1,self.chainID1,self.name1,-1)           
                 return 'patch 1{:1s}{}{} {}:{} {}:{}\n'.format(self.name2[1], cmdi,cmdj,self.segname2,self.resseqnum2,self.segname1,self.resseqnum1)
             elif self.name1=='O6' and self.name2=='C2':
                 return 'patch SA26E {}:{} {}:{}\n'.format(self.segname1,self.resseqnum1,self.segname2,self.resseqnum2)
