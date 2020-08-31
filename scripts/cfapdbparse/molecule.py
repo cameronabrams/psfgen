@@ -292,6 +292,7 @@ class Molecule:
         for d in chainIDs_detected:
             biomt.add_chain_replica(d,d)
             self.biomt_chain_dict[d]=biomt
+            print('#### base molecule chain {} gets base biomt'.format(d))
         for bi in range(1,len(self.BiomT)):
             biomt=self.BiomT[bi]
             for d in chainIDs_detected:

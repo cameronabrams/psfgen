@@ -80,6 +80,7 @@ class Chain:
         self.sort_residues()
         Daughter.sort_residues()
         Daughter.source_chainID=self.chainID
+        Daughter.biomt=self.biomt
         return Daughter
     def MakeSegments(self,Links,Mutations=[],Grafts=[]):
         self.Segments=[]
