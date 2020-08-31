@@ -1,5 +1,6 @@
 from segment import _seg_class_
 from residue import get_residue,get_atom
+
 class Link:
     def __init__(self,pdbrecord=[]):
         self.pdbrecord=pdbrecord
@@ -42,6 +43,7 @@ class Link:
             self.residue2=''
             self.atom1=''
             self.atom2=''
+            self.biomt=0
             self.empty=False
         else:
             self.empty=True

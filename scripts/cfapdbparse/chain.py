@@ -1,14 +1,15 @@
 import operator
 from segment import Segment,_seg_class_
-
 class Chain:
     def __init__(self,r):
         self.chainID=r.chainID
         self.residues=[r]
-        self.source_chainID=''
+        self.source_chainID='' # has a value if C-term-product of cleavage
         self.Segments=[]
         self.subCounter={}
         self.subCounter['GLYCAN']=0
+        self.parent_molecule='NULL'
+
     def add_residue(self,r):
         if self.chainID==r.chainID:
             self.residues.append(r)
@@ -85,9 +86,9 @@ class Chain:
         for r in self.residues:
             if self.Segments==[]:
                 if _seg_class_[r.name]=='GLYCAN':
-                   s=Segment(r,self.nextSubCounter('GLYCAN'),chain=self)
+                   s=Segment(r,self.nextSubCounter('GLYCAN'))
                 else:
-                   s=Segment(r,chain=self)
+                   s=Segment(r)
                 self.Segments.append(s)
             else:
                 for s in self.Segments:
@@ -115,10 +116,14 @@ class Chain:
                     # if this is a water, segname is AW
                     # if this is a glycan, segname is AGnn, where nn is the next avail. glycan number
                     if _seg_class_[r.name]=='GLYCAN':
-                       s=Segment(r,self.nextSubCounter('GLYCAN'),chain=self)
+                       s=Segment(r,self.nextSubCounter('GLYCAN'))
                     else:
-                       s=Segment(r,chain=self)
+                       s=Segment(r)
                     self.Segments.append(s)
+        # set the parent_chain attribute of every segment in this chain
+        for s in self.Segments:
+            s.parent_chain=self
+        # scan any mutations to attach to this segment
         if len(Mutations)>0:
             for m in Mutations:
                 found=False
@@ -138,6 +143,7 @@ class Chain:
                     pass
         else:
             pass
+        # scan for any grafts to attach to this segment
         if len(Grafts)>0:
             for g in Grafts:
                 g.target_segment=''

@@ -35,7 +35,7 @@ class Loop:
     def add_residue(self,r):
         self.residues.append(r)
     def __str__(self):
-        return 'LOOP chainID {} r0 {} r1 {} to r2 {}'.format(self.chainID,self.resseqnum0,self.residues[0].resseqnum,self.residues[-1].resseqnum)
+        return 'LOOP: {} ({})-[{} to {}]'.format(self.chainID,self.resseqnum0,self.residues[0].resseqnum,self.residues[-1].resseqnum)
     def caco_str(self):
         return 'coord {} {} N [cacoIn_nOut {} {} 0]\n'.format(self.chainID,self.residues[0].resseqnum,self.resseqnum0,self.chainID)
 
@@ -43,7 +43,7 @@ class Segment:
     def __init__(self,r,subcounter='',chain='',molid='top'):
         self.segname=r.chainID+_segname_second_character_[_seg_class_[r.name]]+subcounter
         self.source_chainID=r.source_chainID # survives cleavages
-        self.source_chain=chain
+        self.parent_chain=chain
         self.segtype=_seg_class_[r.name]
         self.residues=[r]
         self.mutations=[]
@@ -51,12 +51,13 @@ class Segment:
         self.rootres=''
         self.molid=molid
         if _seg_class_[r.name]=='GLYCAN':
+            #print(self.segname,r.name,r.resseqnum)
             self.rootres=r.up[0]
         r.segname=self.segname
         for a in r.atoms:
             a.segname=self.segname
     def __str__(self):
-        retbase='({}){}[{}] {} - {}'.format(self.source_chain.chainID,self.segname,self.segtype,self.residues[0].resseqnum,self.residues[-1].resseqnum)
+        retbase='({}){}[{}] {} - {}'.format(self.parent_chain.chainID,self.segname,self.segtype,self.residues[0].resseqnum,self.residues[-1].resseqnum)
         if self.rootres!='':
             r=self.rootres
             retbase='('+str(r)+')->'+retbase
@@ -84,6 +85,7 @@ class Segment:
             inloop=False
             last_resseqnum=-1
             for r in self.residues:
+                #print(r)
                 if len(r.atoms)>0: # if this is not a missing resid
                     if last_resseqnum==-1: # initiate the list of runs with a new run
                         Runs.append(Run(r.chainID,r.resseqnum,-1))
@@ -103,8 +105,10 @@ class Segment:
                             Loops[-1].add_residue(r)
                     inloop=True
                 last_resseqnum=r.resseqnum # ratchet up the tail resseqnum
-            if len(Runs)==1: # if there is only one run
-                Runs[0].resseqnum2=last_resseqnum
+            Runs[-1].resseqnum2=last_resseqnum
+            #for r in Runs:
+            #    print(r)
+            #if len(Runs)==1: # if there is only one run
             # note, if we run out of residues while in a loop, the latest loop's 
             # 'terminated' flag is not set.  Later, we use this to prevent 
             # adding 'residue' statements to the psfgen segment stanza for
@@ -112,18 +116,28 @@ class Segment:
             # create stanza, mode 1: there ARE loops.  Generate pdb/residue statements for
             # each run/loop pair; but do nothing for the loop that is not terminated
             if len(Loops)>0:
-                for r,l in zip(Runs,Loops):
-                    thispdbstr,thispdb=self.psfgen_generate_input_pdb(r.resseqnum1,r.resseqnum2,r.pdb_str())
-                    makepdbstr+=thispdbstr
-                    pdbs.append(thispdb)
-                    stanzastr+='   pdb {}\n'.format(thispdb)
-                    if l.terminated==True:
+                #print('### {} runs, {} loops'.format(len(Runs),len(Loops)))
+                lim=max(len(Runs),len(Loops))
+                for i in range(lim):
+                    r='NULL'
+                    l='NULL'
+                    if i<len(Runs):
+                       r=Runs[i]
+                    if i<len(Loops):
+                       l=Loops[i]
+                    #print(r,l)
+                    if r!='NULL':
+                        thispdbstr,thispdb=self.psfgen_generate_input_pdb(r.resseqnum1,r.resseqnum2,r.pdb_str())
+                        makepdbstr+=thispdbstr
+                        pdbs.append(thispdb)
+                        stanzastr+='   pdb {}\n'.format(thispdb)
+                    if l!='NULL' and l.terminated==True:
                         for rr in l.residues:
                             if rr.name in _ResNameDict_PDB_to_CHARMM_:
                                 nm=_ResNameDict_PDB_to_CHARMM_[rr.name]
                             else:
                                 nm=rr.name
-                            stanzastr+='   residue {} {} {}\n'.format(rr.resseqnum,nm,rr.chainID)
+                            stanzastr+='   residue {}{} {} {}\n'.format(rr.resseqnum,rr.insertion,nm,rr.chainID)
             else: # this segment is a single run of residues that are all present in the pdb
                 r=Runs[0]
                 thispdbstr,thispdb=self.psfgen_generate_input_pdb(r.resseqnum1,r.resseqnum2,r.pdb_str())
@@ -148,7 +162,7 @@ class Segment:
             return stanza,Loops
 
         elif self.segtype=='GLYCAN':
-            r=Run(self.source_chainID,self.residues[0].resseqnum,self.residues[-1].resseqnum)
+            r=Run(self.parent_chain.chainID,self.residues[0].resseqnum,self.residues[-1].resseqnum)
             pdb=r.pdb_str()
             makepdbstr,thispdb=self.psfgen_generate_input_pdb(r.resseqnum1,r.resseqnum2,pdb)
             stanzastr+='    pdb {}\n'.format(thispdb)
@@ -158,7 +172,7 @@ class Segment:
             stanza=makepdbstr+stanzastr+loadcoordstr
             return stanza,[]
         else:
-            r=Run(self.source_chainID,self.residues[0],self.residues[-1])
+            r=Run(self.parent_chain.chainID,self.residues[0],self.residues[-1])
             pdb=r.pdb_str()
             makepdbstr,thispdb=self.psfgen_generate_input_pdb(r.resseqnum1,r.resseqnum2,pdb)
             stanzastr+='    pdb {}\n'.format(thispdb)
@@ -169,19 +183,20 @@ class Segment:
             return stanza,[]
     def psfgen_generate_input_pdb(self,l,r,pdb_to_create):
         st=self.segtype
-        molid=self.molid
-        chainID=self.source_chainID
+        molid=self.parent_chain.biomt.molid
+        chainID=self.parent_chain.chainID
         g=self.graft
         p=pdb_to_create
         retstr=''
         if st=='PROTEIN':
-            retstr+='[atomselect {} "chain {} and resid {} to {}"] writepdb {}\n'.format(molid,chainID,l,r,p)
+            retstr+='set mysel [atomselect ${} "chain {} and resid {} to {}"]\n'.format(molid,chainID,l,r)
+            retstr+='$mysel writepdb {}\n'.format(p)
         else:  # correct for any naming disagreements between PDB and CHARMM
             if g!='':
                 g.ingraft_segname=self.segname
-                g.ingraft_chainID=self.source_chainID
-                retstr+='[atomselect {} "chain {} and resid {} to {}"] writepdb {}\n'.format(molid,chainID,l,r,'GRAFTOVER'+p)
-                retstr+='set ref [atomselect {} "chain {} and resid {} and name C1 C2 O5 N2"]\n'.format(molid,g.target_chain,g.target_res)
+                g.ingraft_chainID=chainID
+                retstr+='[atomselect ${} "chain {} and resid {} to {}"] writepdb {}\n'.format(molid,chainID,l,r,'GRAFTOVER'+p)
+                retstr+='set ref [atomselect ${} "chain {} and resid {} and name C1 C2 O5 N2"]\n'.format(molid,g.target_chain,g.target_res)
                 retstr+='set gra [atomselect {} "chain {} and resid {} and name C1 C2 O5 N2"]\n'.format(g.molid,g.source_chain,g.source_res1)
                 retstr+='set refnum [$ref num]\n'
                 retstr+='set granum [$gra num]\n'
@@ -207,7 +222,7 @@ class Segment:
                 #print('resid_dict:',g.resid_dict)
                 p='{}_{}_to_{}-GRAFT.pdb'.format(g.source_chain,g.source_res1+g.desired_offset,g.source_res2+g.desired_offset)
             else:
-                retstr+='set myseg [atomselect {} "chain {} and resid {} to {}"]\n'.format(molid,chainID,l,r)
+                retstr+='set myseg [atomselect ${} "chain {} and resid {} to {}"]\n'.format(molid,chainID,l,r)
             retstr+='set sav_resname [$myseg get resname]\n'
             retstr+='set new_resname [list]\n'
             retstr+=r'foreach r $sav_resname {'+'\n'

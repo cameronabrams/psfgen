@@ -36,6 +36,7 @@ class Atom:
             self.segname=self.chainID
             self.empty=False
             self.link='None'
+            self.biomt=0
         else:
             self.empty=True 
     def pdb_line(self):

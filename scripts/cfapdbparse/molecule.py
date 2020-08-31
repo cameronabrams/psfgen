@@ -2,6 +2,7 @@ from atom import Atom, _PDBAtomNameDict_
 from ssbond import SSBond
 from missing import Missing
 from link import Link
+from biomt import BiomT_row, BiomT
 from segment import Segment, _seg_class_
 from chain import Chain
 from seqadv import Seqadv
@@ -20,6 +21,9 @@ class Molecule:
         self.SSBonds=[]
         self.MissingRes=[]
         self.Seqadv=[]
+        self.BiomT_row=[]
+        self.BiomT=[]
+        self.biomt_chain_dict={}
         self.MRec={}
         self.Header={}
         self.DBRef={} # outer dictionary referenced by chainID
@@ -57,10 +61,15 @@ class Molecule:
                     self.ParseDBRef(line)
                 elif line[:6] == 'SEQRES':
                     self.ParseSeqRes(line)
+        self.MakeBiomT()
+        self.MakeAtoms()
         self.MakeResidues()
         self.MakeChains()
         self.MakeLinks()
-       #self.ShowSeqRes()
+        self.MakeSSBonds()
+        #for m in self.MissingRes:
+         #   print(m)
+        #self.ShowSeqRes()
         if 'CHARMM' in self.keywords:
             self.format=='CHARMM'
             print('### THIS IS A CHARMM-FORMAT PDB FILE')
@@ -73,13 +82,27 @@ class Molecule:
         self.ShowModelType()
         self.ShowDBRef()
         self.ShowSeqadv(brief=True)
+        self.ShowBiomT()
     def ParseRemark(self,pdbrecord):
         token=pdbrecord[7:10]
         if token.isdigit():
             code=int(pdbrecord[7:10])
-            test_int=pdbrecord[20:26].strip()
-            if code==465 and (test_int.isdigit() or (len(test_int)>0 and  test_int[0]=='-')):
-                self.MissingRes.append(Missing(pdbrecord))
+            if code==465:
+                test_int=pdbrecord[20:26].strip()
+                if test_int.isdigit() or (len(test_int)>0 and test_int[0]=='-'):
+                    self.MissingRes.append(Missing(pdbrecord))
+            elif code==350:
+                #print(pdbrecord)
+                tag=pdbrecord[13:19]
+                #print(tag,tag[0:5])
+                if tag[0:5]=='BIOMT':
+                    ax=int(tag[5:6])
+                    rep=int(pdbrecord[21:23].strip())
+                    a=float(pdbrecord[24:33])
+                    b=float(pdbrecord[34:43])
+                    c=float(pdbrecord[44:53])
+                    d=float(pdbrecord[58:68])
+                    self.BiomT_row.append(BiomT_row(ax,rep,a,b,c,d))
     def ParseTitle(self,pdbrecord):
         self.title.append(pdbrecord[10:80].strip())
     def ShowTitle(self):
@@ -202,6 +225,10 @@ class Molecule:
                     print('->   {}: {}'.format(k,v))
         else:
             print('### {} contains no DBREF records'.format(self.pdb))
+    def ShowBiomT(self):
+        print('#### {} BIOMT transformation matrices:\n'.format(len(self.BiomT)))
+        for b in self.BiomT:
+            print(b)
     def ParseSeqRes(self,pdbrecord):
         if len(pdbrecord)>0:
             if len(self.DBRef)>0:
@@ -240,6 +267,57 @@ class Molecule:
                     if sa.conflict=='CONFLICT':
                         nc = nc + 1
                 print('#### {} contains {:d} SEQADV records including {:d} conflicts'.format(self.pdb,len(self.Seqadv),nc))
+
+    def MakeBiomT(self):
+        if len(self.BiomT_row)>0:
+           if len(self.BiomT_row)%3==0:
+               nrep=len(self.BiomT_row)//3
+               for i in range(nrep):
+                   rows=[self.BiomT_row[i*3],self.BiomT_row[i*3+1],self.BiomT_row[i*3+2]]
+                   self.BiomT.append(BiomT(rows=rows)) 
+           else:
+               print('ERROR: improper number of BIOMT records: {}'.format(len(self.BiomT_row)))
+        else:
+            print('WARNING: no BIOMT detected; assuming single identity')
+            self.BiomT.append(BiomT())
+        self.chainIDs_allowed=set(['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'])
+        chainIDs_detected=set()
+        for a in self.Atoms:
+            chainIDs_detected.add(a.chainID)
+        self.chainIDs_available=self.chainIDs_allowed.difference(chainIDs_detected)
+        print('#### Chains detected: ',chainIDs_detected)
+        print('#### Chains available: ',self.chainIDs_available)
+        # replicate atoms for each biomt past the first one
+        biomt=self.BiomT[0]
+        for d in chainIDs_detected:
+            biomt.add_chain_replica(d,d)
+            self.biomt_chain_dict[d]=biomt
+        for bi in range(1,len(self.BiomT)):
+            biomt=self.BiomT[bi]
+            for d in chainIDs_detected:
+                new_chainID=self.chainIDs_available.pop()
+                self.biomt_chain_dict[new_chainID]=biomt
+                biomt.add_chain_replica(d,new_chainID)
+        for i,b in enumerate(self.BiomT):
+            b.molid='rep{:d}'.format(i)
+            b.pdb='{}-{}'.format(b.molid,self.pdb)
+            
+        print('#### The following chainIDs are still available after')
+        print('#### generating {} symmetry-related molecules:'.format(len(self.BiomT)-1))
+        print('####',self.chainIDs_available)
+    def MakeAtoms(self):
+        if len(self.BiomT)>1:  # need to make replica atoms
+            newatoms=[]
+            for bi in range(1,len(self.BiomT)):
+                biomt=self.BiomT[bi]
+                print('#### per biomt, generating replica-{} atoms'.format(biomt.rep))
+                for a in self.Atoms:
+                    aa=Atom(a.pdbrecord)
+                    aa.chainID=biomt.get_replica_chainID(aa.chainID)
+                    newatoms.append(aa)
+            print('#### adding {} symmetry-replica atoms'.format(len(newatoms)))
+            self.Atoms.extend(newatoms)
+            print('#### There are now {} atoms'.format(len(self.Atoms)))
     def MakeResidues(self):
         self.Residues=[]
         r=0
@@ -255,11 +333,17 @@ class Molecule:
                     r=self.Residues[-1]
         for m in self.MissingRes:
             self.Residues.append(Residue(m=m))
+            for bi in self.BiomT[1:]:
+                mm=Missing(m.pdbrecord)
+                mm.chainID=bi.get_replica_chainID(mm.chainID)
+                self.Residues.append(Residue(m=mm))
     def MakeChains(self):
         self.Chains=[]
         for r in self.Residues:
             if self.Chains==[]:
-                self.Chains.append(Chain(r))
+                newChain=Chain(r)
+                newChain.parent_molecule=self
+                self.Chains.append(newChain)
             else:
                 found=False
                 for c in self.Chains:
@@ -268,17 +352,42 @@ class Molecule:
                         c.add_residue(r)
                         break
                 if not found:
-                    self.Chains.append(Chain(r))
+                    newChain=Chain(r)
+                    newChain.parent_molecule=self
+                    self.Chains.append(newChain)
         for c in self.Chains:
             c.sort_residues()
+            c.biomt=self.biomt_chain_dict[c.chainID]
+        print('### Created {} chains'.format(len(self.Chains)))
+    def MakeSSBonds(self):
+        if len(self.BiomT)>1:
+            newssbonds=[]
+            for biomt in self.BiomT[1:]:
+                for b in self.SSBonds:
+                    bb=SSBond(b.pdbrecord)
+                    bb.chainID1=biomt.get_replica_chainID(bb.chainID1)
+                    bb.chainID2=biomt.get_replica_chainID(bb.chainID2)
+                    newssbonds.append(bb)
+            self.SSBonds.extend(newssbonds)
+ 
     def MakeLinks(self):
+        if len(self.BiomT)>1:
+            newlinks=[]
+            for biomt in self.BiomT[1:]:
+                for l in self.Links:
+                    ll=Link(l.pdbrecord)
+                    ll.chainID1=biomt.get_replica_chainID(ll.chainID1)
+                    ll.chainID2=biomt.get_replica_chainID(ll.chainID2)
+                    newlinks.append(ll)
+            self.Links.extend(newlinks)
         for l in self.Links:
-            #print(l)
             r1=get_residue(self.Residues,l.chainID1,l.resseqnum1)
             r2=get_residue(self.Residues,l.chainID2,l.resseqnum2)
-            #print('setting pointers: ',end='')
             # if their chains differ, earlier letters are upstream of later letters
-            if r1.chainID>r2.chainID:
+            if _seg_class_[r1.name]=='PROTEIN' and _seg_class_[r2.name]=='GLYCAN':
+                r1.down.append(r2)
+                r2.up.append(r1)
+            elif r1.chainID>r2.chainID:
                 r1.up.append(r2)
                 r2.down.append(r1)
                 #print(r2,'->',r1)
@@ -384,7 +493,6 @@ class Molecule:
         fp.write('pdbalias atom ANE5 O1B O12\n')
         fp.write('pdbalias atom ANE5 O10 O\n')
 
-
         for k,v in _ResNameDict_PDB_to_CHARMM_.items():
             fp.write('set RESDICT({}) {}\n'.format(k,v))
         for k,v in _PDBAtomNameDict_.items():
@@ -392,22 +500,52 @@ class Molecule:
 
         fp.write('set logid -1\n')
 
-        fp.write('mol new {}\n'.format(self.pdb))
-      
+        # instruct vmd to load replicas; 
+        # change chainIDs; perform coordinate transforms; save.
+        for i,b in enumerate(self.BiomT):
+            fp.write('mol new {}\n'.format(self.pdb))
+            fp.write('set {} [molinfo top get id]\n'.format(b.molid))
+            fp.write('set a [atomselect ${} all]\n'.format(b.molid))
+            if i>0:
+                for c,r in b.chainID_dict.items():
+                    fp.write('set c{} [atomselect ${} "chain {}"]\n'.format(c,b.molid,c))
+                    fp.write('$c{} set chain {}\n'.format(c,r))
+                fp.write('set tr '+b.OneLiner()+'\n')
+                fp.write('$a move $tr\n')
+            fp.write('$a writepdb {}\n'.format(b.pdb))
+        
         # if grafts are specified, load each parent PDB into a separate
-        # molecule 
+        # molecule; load new grafts if there are transformations
         if len(userGrafts)>0:
+            newgrafts=[]
             for i,g in enumerate(userGrafts):
                 g.load(fp,i)
-        
+                for i,b in enumerate(self.BiomT[1:]):
+                    gg=Graft(g.graftStr(replace_targ_chain=b.get_replica_chainID(g.target_chain)))
+                    newgrafts.append(gg)
+            userGrafts.extend(newgrafts)
+
+        if len(userMutations)>0:
+           newmutations=[]
+           for m in userMutations:
+               for b in self.BiomT[1:]:
+                   mm=Mutation(m.mutationStr(newChainID=b.get_replica_chainID(m.chainID)))
+                   newmutations.append(mm)
+           userMutations.extend(newmutations)
+        if fixConflicts==True:
+           newmutation=[]
+           for sa in self.Seqadv:
+               if sa.conflict=='CONFLICT':
+                   mm=Mutation(seqadv=sa)
+                   newmutations.append(mm)
+                   for b in self.BioMT[1:]:
+                       mmm=Mutation(mm.mutationStr(newChainID=b.get_replica_chainID(mm.chainID)))
+                       newmutations.append(mmm)
+           userMutations.extend(newmutations)
+
         fp.write('mol top 0\n')
         Loops=[]
         for c in self.Chains:
-            if fixConflicts==True:
-                for sa in self.Seqadv:
-                    if sa.chainID==c.chainID:
-                        if sa.conflict=='CONFLICT':
-                            userMutations.append(Mutation(seqadv=sa))
             c.MakeSegments(self.Links,Mutations=userMutations,Grafts=userGrafts)
             for s in c.Segments:
                 print('### SEGMENT: ',str(s))

@@ -8,7 +8,7 @@ def get_ra(mystr):
 
 class Graft:
     def __init__(self,graftstr=''):
-        # pdb,c:#-#,#,c:#
+        # pdb,c:#-#,#,c:#,#
         self.graftstr=graftstr
         self.source_pdb=''
         self.source_chain=''
@@ -61,9 +61,12 @@ class Graft:
                     print('ERROR: Could not find source segment for graft {}'.format(self.graftstr))         
             else:
                print('ERROR: Malformed graft argument: {}'.format(graftstr))
+    def graftStr(self,replace_targ_chain=''):
+        return '{},{}:{}{}-{}{},{},{}:{},{}'.format(self.source_pdb,self.source_chain,self.source_res1,self.source_ins1,self.source_res2,self.source_ins2,replace_targ_chain if replace_targ_chain != '' else self.target_chain,self.target_res,self.desired_offset)
     def __str__(self):
         retstr='Graft from {:s}, chain {:s}, {:d}{} to {:d}{}, using {:d}{} as root, onto base chain {:s} {:d}{} with resid offset {:d}'.format(self.source_pdb,self.source_chain,self.source_res1,self.source_ins1,self.source_res2,self.source_ins2,self.source_rootres,self.source_rootins,self.target_chain,self.target_res,self.target_ins,self.desired_offset)
         return retstr
+
     def load(self,fp,index):
         fp.write('mol new {}\n'.format(self.source_pdb))
         fp.write('set g{:d} [molinfo top get id]\n'.format(index))

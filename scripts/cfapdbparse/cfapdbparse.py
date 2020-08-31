@@ -84,6 +84,7 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops):
 if __name__=='__main__':
     parser=argparse.ArgumentParser()
     print('### cfapdbparser {}'.format(date.today()))
+    print('### python version {}'.format(sys.version.replace('\n',' ')))
     i=1
     Molecules=[]
     Mut=[]

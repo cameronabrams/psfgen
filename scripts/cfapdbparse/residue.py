@@ -11,9 +11,11 @@ class Residue:
     def __init__(self,a=-1,m=0):
         if a!=-1:
             self.resseqnum=a.resseqnum
+            self.insertion=''
             self.name=a.resname
             self.chainID=a.chainID
             self.source_chainID=a.chainID
+            self.biomt=a.biomt
             self.atoms=[a]
             self.up=[]
             self.down=[]
@@ -21,8 +23,10 @@ class Residue:
             if m!=0:
                 self.resseqnum=m.resseqnum
                 self.name=m.resname
+                self.insertion=m.insertion
                 self.chainID=m.chainID
                 self.source_chainID=m.chainID
+                self.biomt=0
                 self.atoms=[]
                 self.up=[]
                 self.down=[]
@@ -44,7 +48,7 @@ class Residue:
     def set_connections(self):
         pass
     def __str__(self):
-        return '{}-{}{}'.format(self.chainID,self.name,self.resseqnum)
+        return '[{}]{}-{}{}'.format(self.biomt,self.chainID,self.name,self.resseqnum)
     def str_full(self):
         if len(self.atoms)==0:
             atstr='MISSING'
@@ -53,7 +57,7 @@ class Residue:
             for a in self.atoms:
                 atser.append(a.serial)
             atstr='{:d} - {:d}'.format(min(atser),max(atser))
-        return 'RESIDUE {} {} {:d} {}'.format(self.chainID,self.name,self.resseqnum,atstr)
+        return '[{}] RESIDUE {} {} {:d} {}'.format(self.biomt,self.chainID,self.name,self.resseqnum,atstr)
 
     def get_down_group(self):
         res=[]
