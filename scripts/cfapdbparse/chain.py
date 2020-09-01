@@ -4,7 +4,7 @@ class Chain:
     def __init__(self,r):
         self.chainID=r.chainID
         self.residues=[r]
-        self.source_chainID='' # has a value if C-term-product of cleavage
+        self.source_chainID=r.chainID # has a value if C-term-product of cleavage
         self.Segments=[]
         self.subCounter={}
         self.subCounter['GLYCAN']=0

@@ -1,23 +1,25 @@
-# 4ZMJ -- unliganded SOSIP trimer with glycans; option to model-in MPER's
+# 4ZMJ -- Soluble, stabilized HIV-1 Env trimeric spike ectodomain, closed
 
-## Files
+[View PDB Entry](http://www.rcsb.org/structure/4ZMJ)
 
-This directory contains five files:
-1. mkpsf_4zmj.tcl -- this is the VMD/psfgen script that creates the first vacuum psf/pdb pair.  It uses a monte-carlo-based loop model-builder to build in the missing residues.  It includes all glycans present in the PDB entry and performs symmetry replication as instructed to generate the full trimer.
-2. my_4zmj_vac.namd -- this is a NAMD configuration file used to relax the "guessed" coordinates resulting from mkpsf_4zmj.tcl.
-3. my_4zmj_solv.tcl -- this is a VMD script that uses solvate and autoionize to generate a neutralized, solvated MD system using the coordinates from step 2 as input.
-4. my_4zmj_colvars_op.inp -- a colvars input file that defines collective variables that allow for center-of-mass restraint and an orientational restraint to keep the C3v axis along z.
-5. my_4zmj_solv.namd -- this is a NAMD configuration file that performs a minimization and short MD of the raw solvated system; uses colvars module input file from 4.
+[Read the source paper for this structure](http://dx.doi.org/10.1038/nsmb.3051)
+
+## Files provided here
+
+`crot.inp`:  A list of phi, psi rotations used to help insert model-built loops
 
 ## Instructions
 
+This workflow generates a solvated, cleaved, partially glycosylated HIV-1 Env ectodomain trimer based on the 4zmj PDB entry.  It uses the `cfapdbparser.py` package and the general driver `do_py.sh`.   Make sure your environment variable PSFGEN_BASEDIR resolves to the root directory of your local copy of this repository (mine is ${HOME}/research/psfgen).  It is also assumed below that CHARMRUN resolves to your local charmrun executable and NAMD2 resolves to your local NAMD2 executable.  (For me, these are /home/cfa/namd/NAMD_2.13_Source/Linux-x86_64-g++/charmrun and /home/cfa/namd/NAMD_2.13_Source/Linux-x86_64-g++/namd2.
+
 ```
-mkdir my_4zmj
-cd my_4zmj
-$PSFGEN_BASEDIR/scripts/do_test.sh -pdb 4zmj [-psfgen_args -seed # -mper-extend]
+$ mkdir my_4zmj
+$ cd my_4zmj
+$ $PSFGEN_BASEDIR/scripts/do_py.sh -pyparser-args '-crotfile $PSFGEN_BASEDIR/4zmj/crot.inp -rmi' -solv-stage-steps 100,200,400,800,20000 -temperature 310 -pdb 4zmj
 ```
 
-The `-seed` flag allows the user to set the random-number generator seed.  The flag `-mper-extend` instructs the script to grow in the MPER residues on each gp41 as an alpha-helix, out to residue 682.
+The `do_py.sh` script executes a series of tasks, beginning with downloading the required PDB file from the RCSB (if needed), then passing through a sequence of parse/psfgen/relax cycles to generate a complete vacuum structure, followed by solvation via psfgen, and finally through as series of solvated relaxations via NPT MD.  
 
-2017-2018, Cameron F Abrams
-cfa22@drexel.edu
+In this particular case, the driver runs one parser instance, indicated by the single `-pyparser-args` argument.  The will add missing loops and with some minor torsion adjustments to avoid clashes. Five stages of solvated equilibration are requested (which helps with patch-grid errors as the box size equilibrates.  
+
+2017-2020, Cameron F Abrams

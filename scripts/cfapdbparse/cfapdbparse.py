@@ -5,6 +5,7 @@ from molecule import Molecule
 from cleavage import Cleavage
 from mutation import Mutation
 from graft import Graft
+from crot import Crot
 import argparse
 ''' 
     Parses experimental PDB to build input file for VMD/psfgen
@@ -51,6 +52,8 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops):
             fp.write('$a move [transaxis z [expr -1 * $p] rad]\n')
             fp.write('$a move [transaxis y [expr -1 * $t] rad]\n')
     dlmc=False
+    for crot in PostMod['Crot']:
+        fp.write(crot.psfgen_str())
     if 'do_loop_mc' in PostMod:
         if PostMod['do_loop_mc']:
            dlmc=True
@@ -96,6 +99,7 @@ if __name__=='__main__':
     prefix='x01_'
     fixConflicts=True
     PostMod['do_loop_mc']=False
+    PostMod['Crot']=[]
 
     parser.add_argument('pdb',nargs='+',metavar='<?.pdb>',type=Molecule,help='name(s) of pdb file to parse; first is treated as the base molecule; others are ')
     parser.add_argument('-topo',metavar='<name>',action='append',default=[],help='additional CHARMM topology files')
@@ -105,6 +109,8 @@ if __name__=='__main__':
     parser.add_argument('-clv',metavar='X###Y',action='append',default=[],type=Cleavage,help='specify cleavage site.  Format: X is parent chain ID, ### is residue number immediately N-terminal to the cleavage site, and Y is the daughter chain ID that will begin immediately C-terminal to cleavage site. Multiple -clv\'s can be specified, each with its own -clv key.')
     parser.add_argument('-gra',metavar='<str>,A:XXX-YYY,ZZZ,C:BBB',action='append',default=[],type=Graft,help='graft resids XXX-YYY of chain A in pdb <str> to chain C of base molecule by overlapping resid ZZZ of chain A of graft and resid BBB of chain C of base')
     parser.add_argument('-graftfile',metavar='<name>',default='',help='input file listing all grafts (as an alternative to issuing multiple -gra arguments)')
+    parser.add_argument('-crot',metavar='<str>,A,XXX[,YYY],###',default=[],action='append',type=Crot,help='specify rotation about a specific torsion angle.  <str> is one of phi, psi, omega, chi1, or chi2.  A is the chainID, XXX is the resid of owner of torson, and YYY (if given) marks the end of the sequence C-terminal to XXX that is reoriented by a backbone rotation. ### is the degrees of rotation.')
+    parser.add_argument('-crotfile',metavar='<name>',default='',help='input file listing all torsion rotations requested (as an alternative to issuing multiple -crot arguments)')
     # booleans
     parser.add_argument('-rmi',action='store_true',help='asks psfgen to use the loopMC module to relax modeled-in loops of residues missing from PDB')
     parser.add_argument('-kc',action='store_true',help='ignores SEQADV records indicating conflicts; if unset, residues in conflict are mutated to their proper identities')
@@ -130,6 +136,12 @@ if __name__=='__main__':
                    Gra.append(Graft(l))
     prefix=args.prefix
     PostMod['do_loop_mc']=args.rmi
+    PostMod['Crot']=args.crot
+    if args.crotfile!='':
+        with open(args.crotfile,'r') as f:
+            for l in f:
+                if l[0]!='#':
+                    PostMod['Crot'].append(Crot(l))
     fixConflicts=~(args.kc)
     psfgen=args.psfgen
     PostMod['center_protein']=~(args.noc)

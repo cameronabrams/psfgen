@@ -284,7 +284,8 @@ class Molecule:
         chainIDs_detected=set()
         for a in self.Atoms:
             chainIDs_detected.add(a.chainID)
-        self.chainIDs_available=self.chainIDs_allowed.difference(chainIDs_detected)
+        self.chainIDs_available=sorted(list(self.chainIDs_allowed.difference(chainIDs_detected)))
+        chainIDs_detected=sorted(list(chainIDs_detected))
         print('#### Chains detected: ',chainIDs_detected)
         print('#### Chains available: ',self.chainIDs_available)
         # replicate atoms for each biomt past the first one
@@ -296,27 +297,28 @@ class Molecule:
         for bi in range(1,len(self.BiomT)):
             biomt=self.BiomT[bi]
             for d in chainIDs_detected:
-                new_chainID=self.chainIDs_available.pop()
+                new_chainID=self.chainIDs_available.pop(0)
                 self.biomt_chain_dict[new_chainID]=biomt
                 biomt.add_chain_replica(d,new_chainID)
+                print('#### chain {} is protomer-{} replica of chain {}'.format(new_chainID,bi,d))
         for i,b in enumerate(self.BiomT):
             b.molid='rep{:d}'.format(i)
             b.pdb='{}-{}'.format(b.molid,self.pdb)
             
         print('#### The following chainIDs are still available after')
-        print('#### generating {} symmetry-related molecules:'.format(len(self.BiomT)-1))
+        print('######## generating {} symmetry-related molecules:'.format(len(self.BiomT)-1))
         print('####',self.chainIDs_available)
     def MakeAtoms(self):
         if len(self.BiomT)>1:  # need to make replica atoms
             newatoms=[]
             for bi in range(1,len(self.BiomT)):
                 biomt=self.BiomT[bi]
-                print('#### per biomt, generating replica-{} atoms'.format(biomt.rep))
+                print('#### generating protomer-{} atoms'.format(biomt.rep))
                 for a in self.Atoms:
                     aa=Atom(a.pdbrecord)
                     aa.chainID=biomt.get_replica_chainID(aa.chainID)
                     newatoms.append(aa)
-            print('#### adding {} symmetry-replica atoms'.format(len(newatoms)))
+            print('#### Adding {} protomer-replica atoms'.format(len(newatoms)))
             self.Atoms.extend(newatoms)
             print('#### There are now {} atoms'.format(len(self.Atoms)))
     def MakeResidues(self):

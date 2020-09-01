@@ -184,7 +184,7 @@ class Segment:
     def psfgen_generate_input_pdb(self,l,r,pdb_to_create):
         st=self.segtype
         molid=self.parent_chain.biomt.molid
-        chainID=self.parent_chain.chainID
+        chainID=self.parent_chain.source_chainID
         g=self.graft
         p=pdb_to_create
         retstr=''

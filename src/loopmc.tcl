@@ -92,6 +92,7 @@ proc Crot_phi { r rend c molid deg } {
    $rot delete
    $ca delete
    $n delete
+
 }
 
 # same as above, but treats last residue as C-terminus
@@ -224,6 +225,9 @@ proc do_loop_mc { residueList c molid k r0 env rcut maxcycles temperature iseed 
 
   set msel [atomselect $molid "chain $c and residue $residueList"]
   set mselnoh [atomselect $molid "chain $c and residue $residueList and noh"]
+  set mselca [atomselect $molid "chain $c and residue $residueList and name CA"]
+  set envca [atomselect $molid "([$env text]) and name CA"]
+
   set rend [lindex $residueList end]
   set nres [llength $residueList]
 
@@ -238,7 +242,8 @@ proc do_loop_mc { residueList c molid k r0 env rcut maxcycles temperature iseed 
   set nacc 0
 
   set SE [expr 0.5*$k*pow([measure bond $idx]-$r0,2)]
-  set EE [roughenergy $mselnoh $env $rcut]
+  #set EE [roughenergy $mselnoh $env $rcut]
+  set EE [roughenergy $mselca $envca $rcut]
   set E [expr $SE + $EE]
   set E0 $E
 
@@ -259,7 +264,8 @@ proc do_loop_mc { residueList c molid k r0 env rcut maxcycles temperature iseed 
       }
     }
     set SE [expr 0.5*$k*pow([measure bond $idx]-$r0,2)]
-    set EE [roughenergy $mselnoh $env $rcut]
+    #set EE [roughenergy $mselnoh $env $rcut]
+    set EE [roughenergy $mselca $envca $rcut]
     set E [expr $SE + $EE]
     # decide to accept or reject this new conformation using a 
     # metropolis criterion
