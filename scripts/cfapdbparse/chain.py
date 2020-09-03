@@ -82,7 +82,7 @@ class Chain:
         Daughter.source_chainID=self.chainID
         Daughter.biomt=self.biomt
         return Daughter
-    def MakeSegments(self,Links,Mutations=[],Grafts=[]):
+    def MakeSegments(self,Links,Mutations=[],Grafts=[],Attachments=[]):
         self.Segments=[]
         for r in self.residues:
             if self.Segments==[]:
@@ -156,6 +156,25 @@ class Chain:
                                 found=True
                                 g.target_segment=s
                                 s.apply_graft(g)
+                                break
+                            else:
+                                pass
+                else:
+                    pass
+        else:
+            pass
+        # scan for any attachments to attach to this segment
+        if len(Attachments)>0:
+            for a in Attachments:
+                a.target_segment=''
+                found=False
+                if a.target_chain==self.chainID:
+                    for s in self.Segments:
+                        for r in s.residues:
+                            if r.resseqnum==a.target_res:
+                                found=True
+                                a.target_segment=s
+                                s.apply_attachment(a)
                                 break
                             else:
                                 pass

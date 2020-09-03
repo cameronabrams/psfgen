@@ -71,9 +71,8 @@ class Segment:
             a.segname=self.segname
     def apply_graft(self,g):
         self.graft=g
-        # commands to transform coords, write pdb with correct names, overwrite original segment
-        ### under construction
-        pass
+    def apply_attachment(self,a):
+        self.attach=a
     def psfgen_segmentstanza(self):
         stanzastr='segment {} {{\n'.format(self.segname)
         if self.segtype=='PROTEIN':
@@ -186,6 +185,7 @@ class Segment:
         molid=self.parent_chain.biomt.molid
         chainID=self.parent_chain.source_chainID
         g=self.graft
+        a=self.attach
         p=pdb_to_create
         retstr=''
         if st=='PROTEIN':
@@ -221,6 +221,8 @@ class Segment:
                 retstr+='$myseg set resid $newresid\n'
                 #print('resid_dict:',g.resid_dict)
                 p='{}_{}_to_{}-GRAFT.pdb'.format(g.source_chain,g.source_res1+g.desired_offset,g.source_res2+g.desired_offset)
+            elif a!='':
+                pass ### UNDER CONSTRUCTION -- ATTACH!!!
             else:
                 retstr+='set myseg [atomselect ${} "chain {} and resid {} to {}"]\n'.format(molid,chainID,l,r)
             retstr+='set sav_resname [$myseg get resname]\n'
@@ -250,7 +252,7 @@ class Segment:
             retstr+='# undo name changes and coordinate changes\n'
             retstr+='$myseg set resname $sav_resname\n'
             retstr+='$myseg set name $sav_name\n'
-            if g!='':
+            if g!='' or a!='':
                 retstr+='$myseg set resid $savresid\n'
                 retstr+='$myseg set x $gra_orig_x\n'
                 retstr+='$myseg set y $gra_orig_y\n'

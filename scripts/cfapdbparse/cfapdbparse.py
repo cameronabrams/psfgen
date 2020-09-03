@@ -6,9 +6,10 @@ from cleavage import Cleavage
 from mutation import Mutation
 from graft import Graft
 from crot import Crot
+from attach import Attach
 import argparse
 ''' 
-    Parses experimental PDB to build input file for VMD/psfgen
+    Parses PDB file(s) to build input file for VMD/psfgen
     Cameron F Abrams
     cfa22@drexel.edu
 '''
@@ -109,6 +110,8 @@ if __name__=='__main__':
     parser.add_argument('-clv',metavar='X###Y',action='append',default=[],type=Cleavage,help='specify cleavage site.  Format: X is parent chain ID, ### is residue number immediately N-terminal to the cleavage site, and Y is the daughter chain ID that will begin immediately C-terminal to cleavage site. Multiple -clv\'s can be specified, each with its own -clv key.')
     parser.add_argument('-gra',metavar='<str>,A:XXX-YYY,ZZZ,C:BBB',action='append',default=[],type=Graft,help='graft resids XXX-YYY of chain A in pdb <str> to chain C of base molecule by overlapping resid ZZZ of chain A of graft and resid BBB of chain C of base')
     parser.add_argument('-graftfile',metavar='<name>',default='',help='input file listing all grafts (as an alternative to issuing multiple -gra arguments)')
+    parser.add_argument('-att',metavar='<str>,A:XXX-YYY,ZZZ,B:QQQ,C:BBB',action='append',default=[],type=Attach,help='attach resids XXX-YYY of chain A using resid ZZZ (between XXX and YYY) in pdb <str> to chain C of base molecule at resid BBB by aligning resid QQQ of chain B from source to resid BBB of chain C of base')
+    parser.add_argument('-attfile',metavar='<name>',default='',help='input file listing all attachments (as an alternative to issuing multiple -att arguments)')
     parser.add_argument('-crot',metavar='<str>,A,XXX[,YYY],###',default=[],action='append',type=Crot,help='specify rotation about a specific torsion angle.  <str> is one of phi, psi, omega, chi1, or chi2.  A is the chainID, XXX is the resid of owner of torson, and YYY (if given) marks the end of the sequence C-terminal to XXX that is reoriented by a backbone rotation. ### is the degrees of rotation.')
     parser.add_argument('-crotfile',metavar='<name>',default='',help='input file listing all torsion rotations requested (as an alternative to issuing multiple -crot arguments)')
     # booleans
@@ -134,6 +137,12 @@ if __name__=='__main__':
            for l in f:
                if l[0]!='#':
                    Gra.append(Graft(l))
+    Att=args.att
+    if args.attfile!='':
+        with open(args.attfile,'r') as f:
+           for l in f:
+               if l[0]!='#':
+                   Att.append(Attach(l))
     prefix=args.prefix
     PostMod['do_loop_mc']=args.rmi
     PostMod['Crot']=args.crot
@@ -166,7 +175,7 @@ if __name__=='__main__':
     Base=Molecules[0]
     if len(Clv)>0:
         Base.CleaveChains(Clv)
-    Loops=Base.writepsfgeninput(psfgen_fp,topologies=Topo,userMutations=Mut,fixConflicts=fixConflicts,prefix=prefix,userGrafts=Gra)
+    Loops=Base.writepsfgeninput(psfgen_fp,topologies=Topo,userMutations=Mut,fixConflicts=fixConflicts,prefix=prefix,userGrafts=Gra,userAttach=Att)
     
     post_pdb=WritePostMods(psfgen_fp,Base.psf_outfile,Base.pdb_outfile,PostMod,Loops)
 

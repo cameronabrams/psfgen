@@ -287,27 +287,27 @@ class Molecule:
         self.chainIDs_available=sorted(list(self.chainIDs_allowed.difference(chainIDs_detected)))
         chainIDs_detected=sorted(list(chainIDs_detected))
         print('#### Chains detected: ',chainIDs_detected)
-        print('#### Chains available: ',self.chainIDs_available)
+        #print('#### Chains available: ',self.chainIDs_available)
         # replicate atoms for each biomt past the first one
         biomt=self.BiomT[0]
         for d in chainIDs_detected:
             biomt.add_chain_replica(d,d)
             self.biomt_chain_dict[d]=biomt
-            print('#### base molecule chain {} gets base biomt'.format(d))
+            #print('#### base molecule chain {} gets base biomt'.format(d))
         for bi in range(1,len(self.BiomT)):
             biomt=self.BiomT[bi]
             for d in chainIDs_detected:
                 new_chainID=self.chainIDs_available.pop(0)
                 self.biomt_chain_dict[new_chainID]=biomt
                 biomt.add_chain_replica(d,new_chainID)
-                print('#### chain {} is protomer-{} replica of chain {}'.format(new_chainID,bi,d))
+                #print('#### chain {} is protomer-{} replica of chain {}'.format(new_chainID,bi,d))
         for i,b in enumerate(self.BiomT):
             b.molid='rep{:d}'.format(i)
             b.pdb='{}-{}'.format(b.molid,self.pdb)
-            
-        print('#### The following chainIDs are still available after')
-        print('######## generating {} symmetry-related molecules:'.format(len(self.BiomT)-1))
-        print('####',self.chainIDs_available)
+            print('#### Protomer {:d} chains:',str(b)) 
+        #print('#### The following chainIDs are still available after')
+        #print('######## generating {} symmetry-related molecules:'.format(len(self.BiomT)-1))
+        #print('####',self.chainIDs_available)
     def MakeAtoms(self):
         if len(self.BiomT)>1:  # need to make replica atoms
             newatoms=[]
@@ -461,7 +461,7 @@ class Molecule:
                 ss.resseqnum2+=resseqnumshift
         return 0
 
-    def writepsfgeninput(self,fp,userMutations=[],topologies=[],prefix='my_',fixConflicts=False,userGrafts=[]):
+    def writepsfgeninput(self,fp,userMutations=[],topologies=[],prefix='my_',fixConflicts=False,userGrafts=[],userAttach=[]):
         fp.write('if {![info exists PSFGEN_BASEDIR]} {\n'+\
               '    if {[info exists env(PSFGEN_BASEDIR]} {\n'+\
               '        set PSFGEN_BASEDIR $env(PSFGEN_BASEDIR)\n'+\
@@ -527,6 +527,16 @@ class Molecule:
                     gg=Graft(g.graftStr(replace_targ_chain=b.get_replica_chainID(g.target_chain)))
                     newgrafts.append(gg)
             userGrafts.extend(newgrafts)
+        # if attachments are specified, load each parent PDB into a separate
+        # molecule; load new attachments if there are transformations
+        if len(userAttach)>0:
+            newattach=[]
+            for i,a in enumerate(userAttach):
+                a.load(fp,i)
+                for j,b in enumerate(self.BiomT[1:]):
+                    aa=Attach(a.attachStr(replace_targ_chain=b.get_replica_chainID(a.target_chain)))
+                    newattach.append(aa)
+            userAttach.extend(newattach)
 
         if len(userMutations)>0:
            newmutations=[]
@@ -549,7 +559,7 @@ class Molecule:
         fp.write('mol top 0\n')
         Loops=[]
         for c in self.Chains:
-            c.MakeSegments(self.Links,Mutations=userMutations,Grafts=userGrafts)
+            c.MakeSegments(self.Links,Mutations=userMutations,Grafts=userGrafts,Attachments=userAttach)
             for s in c.Segments:
                 print('### SEGMENT: ',str(s))
                 stanza,loops=s.psfgen_segmentstanza()
