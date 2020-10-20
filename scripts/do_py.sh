@@ -8,7 +8,7 @@ CHARMRUN=${HOME}/namd/NAMD_2.13_Source/Linux-x86_64-g++/charmrun
 NAMD2=${HOME}/namd/NAMD_2.13_Source/Linux-x86_64-g++/namd2
 PSFGEN_BASEDIR=${HOME}/research/psfgen
 PYTHON3=${HOME}/anaconda3/bin/python3
-PYPARSER=${PSFGEN_BASEDIR}/scripts/cfapdbparser/cfapdbparser.py
+PYPARSER=${PSFGEN_BASEDIR}/scripts/cfapdbparse/cfapdbparse.py
 
 ARGC=$#
 STAGE=0
@@ -52,6 +52,10 @@ while [ $i -le $ARGC ] ; do
     i=$((i+1))
     pyparser=${!i}
   fi
+  if [ "${!i}" = "-python3-path" ]; then
+    i=$((i+1))
+    PYTHON3=${!i}
+  fi
   i=$((i+1))
 done
 
@@ -78,12 +82,13 @@ done
 
 # download pdb's if necessary
 TASK=-1
+ENDPOINT=https://files.rcsb.org/download
 for p in `seq 0 $((npdb-1))`; do
     pdb=${PDB[$p]}
     if [ ! -e ${pdb}.pdb ]; then
         TASK=$((TASK+1))
         echo "TASK $TASK: Retrieving ${pdb}.pdb..."
-        wget -q http://www.rcsb.org/pdb/files/${pdb}.pdb
+        wget -q ${ENDPOINT}/${pdb}.pdb
     fi
 done
 CURRPDB=$BASEPDB
@@ -93,7 +98,7 @@ for pi in `seq 0 $((nparse-1))`; do
    TASK=$((TASK+1))
    CURRPSFGEN=psfgen${TASK}.tcl
    CURRPSFLOG=`echo $CURRPSFGEN | sed s/tcl/log/`
-   $PYTHON3 $PSFGEN_BASEDIR/scripts/cfapdbparse/cfapdbparse.py ${pyparser_args[$pi]} -psfgen ${CURRPSFGEN} ${CURRPDB}
+   $PYTHON3 $PYPARSER ${pyparser_args[$pi]} -psfgen ${CURRPSFGEN} ${CURRPDB}
    CURRPSF=`grep ^writepsf ${CURRPSFGEN} | tail -1 | awk '{print $2}'`
    CURRPDB=`grep writepdb ${CURRPSFGEN} | tail -1 | awk '{print $NF}'`
    echo "TASK $TASK: Generating vacuum system ${CURRPSF} + ${CURRPDB}..."
@@ -108,7 +113,7 @@ for pi in `seq 0 $((nparse-1))`; do
    $CHARMRUN +p${NPE} $NAMD2 run${TASK}.namd > run${TASK}.log
    $VMD -dispdev text -e $PSFGEN_BASEDIR/scripts/namdbin2pdb.tcl -args ${CURRPSF} config${TASK}.coor tmp.pdb
    cat charmm_header.pdb tmp.pdb > config${TASK}.pdb
-  CURRPDB=config${TASK}.pdb
+   CURRPDB=config${TASK}.pdb
 done
 
 # solvate
