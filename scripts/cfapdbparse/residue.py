@@ -7,26 +7,32 @@ _PDBResName123_={'A':'ALA','R':'ARG','N':'ASN','D':'ASP','C':'CYS','Q':'GLN','E'
 _ResNameDict_PDB_to_CHARMM_={'HIS':'HSE','ZN':'ZN2','HOH':'TIP3','CL':'CLA','NAG':'BGNA','MAN':'AMAN','BMA':'BMAN','FUC':'AFUC','GAL':'BGAL','SIA':'ANE5AC', 'ANE5':'ANE5AC'}
 _ResNameDict_CHARMM_to_PDB_={v:k  for k,v in _ResNameDict_PDB_to_CHARMM_.items()}
 
+def ResnameCharmify(nm):
+    return _ResNameDict_PDB_to_CHARMM_[nm] if nm in _ResNameDict_PDB_to_CHARMM_ else nm
+
 class Residue:
-    def __init__(self,a=-1,m=0):
+    def __init__(self,a=-1,m=0,molid='*'):
+        ''' initializing with an atom '''
         if a!=-1:
             self.resseqnum=a.resseqnum
             self.insertion=''
             self.name=a.resname
             self.chainID=a.chainID
             self.source_chainID=a.chainID
-            self.biomt=a.biomt
+            #self.biomt=a.biomt
+            #self.molid=a.molid
             self.atoms=[a]
             self.up=[]
             self.down=[]
         else:
+            ''' initializing with a missing residue '''
             if m!=0:
                 self.resseqnum=m.resseqnum
                 self.name=m.resname
                 self.insertion=m.insertion
                 self.chainID=m.chainID
                 self.source_chainID=m.chainID
-                self.biomt=0
+                self.biomt='*'
                 self.atoms=[]
                 self.up=[]
                 self.down=[]
@@ -48,7 +54,7 @@ class Residue:
     def set_connections(self):
         pass
     def __str__(self):
-        return '[{}]{}-{}{}'.format(self.biomt,self.chainID,self.name,self.resseqnum)
+        return '{}-{}{}'.format(self.chainID,self.name,self.resseqnum)
     def str_full(self):
         if len(self.atoms)==0:
             atstr='MISSING'

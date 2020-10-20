@@ -1,4 +1,5 @@
 from molecule import Molecule
+import sel
 
 def get_ra(mystr):
     if mystr[-1].isalpha():
@@ -22,11 +23,9 @@ class Graft:
         self.target_res=''
         self.target_ins=''
         self.source_segment=''
-        self.molecule=''
-        self.molid=''
-        self.index=''
         self.source_segment=''
         self.desired_offset=''
+        self.transformed_pdb=''
         if len(graftstr)>0:
             dat=graftstr.split(',')
             if len(dat)==5:
@@ -47,33 +46,51 @@ class Graft:
                     print('ERROR: Malformed graft source subargument: {}'.format(source_chain_res))
                 self.target_chain=target_chain_res[0]
                 self.target_res,self.target_ins=get_ra(target_chain_res[1]) 
-                self.molecule=Molecule(self.source_pdb)
+                self.molecule=Molecule(self.source_pdb,isgraft=True)
                 m=self.molecule
-                for c in m.Chains:
+                for c in m.Chains.values():
                     c.sort_residues()
                     c.MakeSegments(m.Links)
-                    if c.chainID==self.source_chain:
-                        for s in c.Segments:
-                            for r in s.residues:
-                                if r.resseqnum==self.source_res1:
-                                    self.source_segment=s
-                                    break
+                if self.source_chain in m.Chains:
+                    c=m.Chains[self.source_chain]
+                    for s in c.Segments:
+                        for r in s.residues:
+                            if r.resseqnum==self.source_res1:
+                               self.source_segment=s
+                               break
                 if self.source_segment!='':
-                    print('#### Graft {} will use this segment:'.format(self.graftstr))
-                    print(self.source_segment)
+                    print('#### Graft {} will copy from segment '.format(self.graftstr.strip(),str(self.source_segment)))
                 else:
                     print('ERROR: Could not find source segment for graft {}'.format(self.graftstr))         
             else:
-               print('ERROR: Malformed graft argument: {}'.format(graftstr))
+                print('ERROR: Malformed graft argument: {}'.format(graftstr))
     def graftStr(self,replace_targ_chain=''):
         return '{},{}:{}{}-{}{},{}{},{}:{}{},{}'.format(self.source_pdb,self.source_chain,self.source_res1,self.source_ins1,self.source_res2,self.source_ins2,self.source_rootres,self.source_rootins,replace_targ_chain if replace_targ_chain != '' else self.target_chain,self.target_res,self.target_ins,self.desired_offset)
     def __str__(self):
         retstr='Graft from {:s}, chain {:s}, {:d}{} to {:d}{}, using {:d}{} as root, onto base chain {:s} {:d}{} with resid offset {:d}'.format(self.source_pdb,self.source_chain,self.source_res1,self.source_ins1,self.source_res2,self.source_ins2,self.source_rootres,self.source_rootins,self.target_chain,self.target_res,self.target_ins,self.desired_offset)
         return retstr
 
-    def load(self,fp,index):
-        fp.write('mol new {}\n'.format(self.source_pdb))
-        fp.write('set g{:d} [molinfo top get id]\n'.format(index))
-        self.molid='$g{:d}'.format(index)
-        self.index=index
-   
+    def load(self,fp):
+        self.molecule.load(fp)
+
+    def transform(self,base):
+        a=''
+        a+='set ref [atomselect ${} "chain {} and resid {} and noh"]\n'.format(base.molid_varname,self.target_chain,self.target_res)
+        a+='set gra [atomselect ${} "chain {} and resid {} and noh"]\n'.format(self.molecule.molid_varname,self.source_chain,self.source_res1)
+        a+='set tra [atomselect ${} "chain {} and resid {} to {}"]\n'.format(self.molecule.molid_varname,self.source_chain,self.source_res1,self.source_res2)
+        a+=r'if { [$ref num] != [$gra num] } {'+'\n'
+        a+='    puts "psfgen: warning: target and graft alignment references are not congruent"\n'
+        a+='}\n'
+        a+=sel.backup('tra')
+        a+='$tra move [measure fit $gra $ref]\n'
+        self.resid_dict={}
+        for r in self.source_segment.residues:
+            self.resid_dict[r.resseqnum]=r.resseqnum+self.desired_offset
+        a+=sel.residshift('tra',self.desired_offset)
+        self.transformed_pdb='{}_{}_to_{}-GRAFT.pdb'.format(self.source_chain,self.source_res1+self.desired_offset,self.source_res2+self.desired_offset)
+        a+=sel.charmm_namify('tra')
+        a+='$tra writepdb {}\n'.format(self.transformed_pdb)
+        a+=sel.restore('tra')
+        self.transform_commands=a
+        return a
+ 

@@ -34,30 +34,43 @@ class Attach:
         so it serves as the alignment basis.   Only the N, CA, C and O (backbone) serves
         as an alignment basis.
     '''
-def __init__(self,attachstr=''):
+    def __init__(self,attachstr=''):
         # pdb,c:#-#,#,d:#,c:#,#
         self.attachstr=attachstr
+        ''' pdb file containing the selection to be attached '''
         self.source_pdb=''
+        ''' chain in that pdb file containing the selection to be attached '''
         self.source_chain=''
+        ''' first residue of range of selection '''
         self.source_res1=''
-        self.source_ins1=''    
+        self.source_ins1=''
+        ''' last residue of range of selection '''
         self.source_res2=''
         self.source_ins2=''
+        ''' chain containing the residue used as an alignment basis '''
         self.source_align_chain=''
+        ''' residue used as alignment basis '''
         self.source_align_res=''
         self.source_align_ins=''
+        ''' segments in source molecule; built upon pdb read-in '''
         self.source_segment=''
         self.source_align_segment=''
+        ''' chain in target (default is base molecule) to which attachment is made '''
         self.target_chain=''
+        ''' target residue to which attachment is made '''
         self.target_res=''
         self.target_ins=''
         self.molecule=''
         self.molid=''
         self.index=''
         self.source_segment=''
+        ''' resid offset for attached segment in target molecule '''
         self.desired_offset=''
-        if len(graftstr)>0:
-            dat=graftstr.split(',')
+        self.inattach_segname=''
+        self.inattach_chainID=''
+        self.resid_dict={}
+        if len(attachstr)>0:
+            dat=attachstr.split(',')
             if len(dat)==6:
                 self.source_pdb=dat[0]
                 self.source_chain,self.source_res1,self.source_ins1,self.source_res2,self.source_ins2=get_chain_ri1_ri2(dat[1])
@@ -68,10 +81,10 @@ def __init__(self,attachstr=''):
                 
                 self.molecule=Molecule(self.source_pdb)
                 m=self.molecule
-                for c in m.Chains:
+                for c in m.Chains.values():
                     c.sort_residues()
                     c.MakeSegments(m.Links)
-                for c in m.Chains:
+                for c in m.Chains.values():
                     if c.chainID==self.source_chain:
                         for s in c.Segments:
                             for r in s.residues:
@@ -83,7 +96,7 @@ def __init__(self,attachstr=''):
                     print(self.source_segment)
                 else:
                     print('ERROR: Could not find source segment for attachment {}'.format(self.graftstr))         
-                for c in m.Chains:
+                for c in m.Chains.values():
                     if c.chainID==self.source_align_chain:
                         for s in c.Segments:
                             for r in s.residues:
@@ -99,6 +112,7 @@ def __init__(self,attachstr=''):
             else:
                print('ERROR: Malformed attach argument: {}'.format(attachstr))
     def attachStr(self,replace_targ_chain=''):
+        ''' regenerate the string code for this attachment with option to change target chain ID '''
         # pdb,c:#-#,#,d:#,c:#,#
         return '{},{}:{}{}-{}{},{}{},{}:{}{},{}:{}{},{}'.format(self.source_pdb,self.source_chain,self.source_res1,self.source_ins1,self.source_res2,self.source_ins2,self.source_rootres,self.source_rootins,replace_targ_chain if replace_targ_chain != '' else self.target_chain,self.target_res,self.target_ins,self.desired_offset)
     def __str__(self):

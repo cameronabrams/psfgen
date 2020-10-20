@@ -8,9 +8,21 @@ from chain import Chain
 from seqadv import Seqadv
 from mutation import Mutation
 from residue import Residue, _PDBResName123_, _pdb_glycans_, _pdb_ions_, _ResNameDict_PDB_to_CHARMM_, _ResNameDict_CHARMM_to_PDB_, get_residue
+_molidcounter_=0
 class Molecule:
-    def __init__(self,pdb):
+    def load(self,fp):
+        global _molidcounter_
+        self.molid=_molidcounter_
+        self.molid_varname='m{}'.format(self.molid)
+        print('#### Registered instance of {:s} as molid {:d} with variable name {:s}'.format(self.pdb,self.molid,self.molid_varname))
+        self.psfgen_loadstr='mol new {} waitfor all\nset {} [molinfo top get id]\n'.format(self.pdb,self.molid_varname)
+        _molidcounter_+=1
+        fp.write(self.psfgen_loadstr+'\n')
+        
+    def __init__(self,pdb,isgraft=False):
         self.format='PDB' # default assume this is an actual PDB file from the PDB
+        self.molid=-1
+        self.molid_varname='UNREGISTERED'
         self.RawPDB=[]
         self.keywords=[]
         self.modtyp=[]
@@ -18,6 +30,7 @@ class Molecule:
         self.pdb=pdb
         self.Atoms=[]
         self.Links=[]
+        self.Chains={} # keyed by chain id 'A', 'B', 'C', etc.
         self.SSBonds=[]
         self.MissingRes=[]
         self.Seqadv=[]
@@ -40,9 +53,6 @@ class Molecule:
                     pass
                 elif line[:6] == 'SSBOND':
                     self.SSBonds.append(SSBond(line))
-                    #print('i: ',line,end='')
-                    #l=self.SSBonds[-1]
-                    #print('o: ',l.pdb_line())
                 elif line[:6] == 'SEQADV':
                     self.Seqadv.append(Seqadv(line))
                 elif line[:6] == 'REMARK':
@@ -61,28 +71,30 @@ class Molecule:
                     self.ParseDBRef(line)
                 elif line[:6] == 'SEQRES':
                     self.ParseSeqRes(line)
-        self.MakeBiomT()
-        self.MakeAtoms()
-        self.MakeResidues()
-        self.MakeChains()
-        self.MakeLinks()
-        self.MakeSSBonds()
-        #for m in self.MissingRes:
-         #   print(m)
-        #self.ShowSeqRes()
         if 'CHARMM' in self.keywords:
             self.format=='CHARMM'
             print('### THIS IS A CHARMM-FORMAT PDB FILE')
         print('### Read {:d} pdbrecords from {:s}'.format(len(self.RawPDB),pdb))
-    def show(self):
-        self.ShowTitle()
-        self.ShowHeader()
-        self.ShowKeywords()
-        self.ShowMasterRecord()
-        self.ShowModelType()
-        self.ShowDBRef()
-        self.ShowSeqadv(brief=True)
-        self.ShowBiomT()
+        self.MakeBiomT()
+        #self.MakeAtoms()
+        self.MakeResidues()
+        self.MakeChains()
+        self.MakeLinks()
+        self.MakeSSBonds()
+    def show(self,verbosity):
+        print('#'*60)
+        print('### MOLID {:s}'.format(self.molid_varname))
+        if verbosity>0:
+            self.ShowTitle()
+        if verbosity>1:
+            self.ShowBiomT()
+            self.ShowHeader()
+            self.ShowKeywords()
+            self.ShowMasterRecord()
+            self.ShowModelType()
+            self.ShowDBRef()
+            self.ShowSeqadv(brief=True)
+        print('#'*60)
     def ParseRemark(self,pdbrecord):
         token=pdbrecord[7:10]
         if token.isdigit():
@@ -226,9 +238,12 @@ class Molecule:
         else:
             print('### {} contains no DBREF records'.format(self.pdb))
     def ShowBiomT(self):
-        print('#### {} BIOMT transformation matrices:\n'.format(len(self.BiomT)))
+        n=len(self.BiomT)
+        l='x' if n==1 else 'ces'
+        print('#### {} BIOMT transformation matri{}:'.format(n,l))
         for b in self.BiomT:
-            print(b)
+            print(b,end='')
+        print('')
     def ParseSeqRes(self,pdbrecord):
         if len(pdbrecord)>0:
             if len(self.DBRef)>0:
@@ -269,59 +284,48 @@ class Molecule:
                 print('#### {} contains {:d} SEQADV records including {:d} conflicts'.format(self.pdb,len(self.Seqadv),nc))
 
     def MakeBiomT(self):
+        '''  every Molecule as a list of one or more BIOMT's; this function
+             constructs that list using the parsed BIOMT records. The identity is assumed.
+             '''
         if len(self.BiomT_row)>0:
            if len(self.BiomT_row)%3==0:
-               nrep=len(self.BiomT_row)//3
-               for i in range(nrep):
+               nProtomers=len(self.BiomT_row)//3
+               for i in range(1,nProtomers):  # only for ADDITIONAL protomers; skipping the first set which is ASSUMED to be the identity
                    rows=[self.BiomT_row[i*3],self.BiomT_row[i*3+1],self.BiomT_row[i*3+2]]
-                   self.BiomT.append(BiomT(rows=rows)) 
+                   self.BiomT.append(BiomT(rows=rows,molid=self.molid,basepdb=self.pdb))
            else:
-               print('ERROR: improper number of BIOMT records: {}'.format(len(self.BiomT_row)))
-        else:
-            print('WARNING: no BIOMT detected; assuming single identity')
-            self.BiomT.append(BiomT())
+               print('ERROR: improper number of BIOMT row records: {}'.format(len(self.BiomT_row)))
+#        else:
+#            print('#### No BIOMT detected; assuming single-protomer construct.')
+        
         self.chainIDs_allowed=set(['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'])
         chainIDs_detected=set()
         for a in self.Atoms:
             chainIDs_detected.add(a.chainID)
         self.chainIDs_available=sorted(list(self.chainIDs_allowed.difference(chainIDs_detected)))
         chainIDs_detected=sorted(list(chainIDs_detected))
-        print('#### Chains detected: ',chainIDs_detected)
-        #print('#### Chains available: ',self.chainIDs_available)
         # replicate atoms for each biomt past the first one
-        biomt=self.BiomT[0]
-        for d in chainIDs_detected:
-            biomt.add_chain_replica(d,d)
-            self.biomt_chain_dict[d]=biomt
-            #print('#### base molecule chain {} gets base biomt'.format(d))
-        for bi in range(1,len(self.BiomT)):
-            biomt=self.BiomT[bi]
+        for biomt in self.BiomT:
             for d in chainIDs_detected:
                 new_chainID=self.chainIDs_available.pop(0)
                 self.biomt_chain_dict[new_chainID]=biomt
                 biomt.add_chain_replica(d,new_chainID)
-                #print('#### chain {} is protomer-{} replica of chain {}'.format(new_chainID,bi,d))
-        for i,b in enumerate(self.BiomT):
-            b.molid='rep{:d}'.format(i)
-            b.pdb='{}-{}'.format(b.molid,self.pdb)
-            print('#### Protomer {:d} chains:',str(b)) 
-        #print('#### The following chainIDs are still available after')
-        #print('######## generating {} symmetry-related molecules:'.format(len(self.BiomT)-1))
-        #print('####',self.chainIDs_available)
-    def MakeAtoms(self):
-        if len(self.BiomT)>1:  # need to make replica atoms
-            newatoms=[]
-            for bi in range(1,len(self.BiomT)):
-                biomt=self.BiomT[bi]
-                print('#### generating protomer-{} atoms'.format(biomt.rep))
-                for a in self.Atoms:
-                    aa=Atom(a.pdbrecord)
-                    aa.chainID=biomt.get_replica_chainID(aa.chainID)
-                    newatoms.append(aa)
-            print('#### Adding {} protomer-replica atoms'.format(len(newatoms)))
-            self.Atoms.extend(newatoms)
-            print('#### There are now {} atoms'.format(len(self.Atoms)))
+            biomt.report_chain_replicas()
+#    def MakeAtoms(self):
+#       newatoms=[]
+#        for i,b in enumerate(self.BiomT):
+#           if i==0:
+#               for a in self.Atoms:
+#                   a.molid=b.molid
+#           else:
+#                for a in self.Atoms:
+#                    aa=Atom(a.pdbrecord)
+#                    aa.molid=b.molid
+#                    aa.chainID=biomt.get_replica_chainID(aa.chainID)
+#                    newatoms.append(aa)
+#        self.Atoms.extend(newatoms)
     def MakeResidues(self):
+        ''' make residues from atoms '''
         self.Residues=[]
         r=0
         for a in self.Atoms:
@@ -331,37 +335,33 @@ class Molecule:
             else:
                 if r.resseqnum==a.resseqnum and r.name == a.resname and r.chainID==a.chainID:
                     r.add_atom(a=a)
-                else:
+                else: # begin a new residue
                     self.Residues.append(Residue(a=a))
                     r=self.Residues[-1]
+        ''' insert missing residues '''
         for m in self.MissingRes:
             self.Residues.append(Residue(m=m))
-            for bi in self.BiomT[1:]:
-                mm=Missing(m.pdbrecord)
-                mm.chainID=bi.get_replica_chainID(mm.chainID)
-                self.Residues.append(Residue(m=mm))
     def MakeChains(self):
-        self.Chains=[]
         for r in self.Residues:
-            if self.Chains==[]:
-                newChain=Chain(r)
-                newChain.parent_molecule=self
-                self.Chains.append(newChain)
+            if r.chainID in self.Chains:
+                c=self.Chains[r.chainID]
+                c.add_residue(r)
             else:
-                found=False
-                for c in self.Chains:
-                    if c.chainID==r.chainID:
-                        found=True
-                        c.add_residue(r)
-                        break
-                if not found:
-                    newChain=Chain(r)
-                    newChain.parent_molecule=self
-                    self.Chains.append(newChain)
-        for c in self.Chains:
+                newChain=Chain(r,parent_molecule=self)
+                self.Chains[newChain.chainID]=newChain
+        for c in self.Chains.values():
             c.sort_residues()
-            c.biomt=self.biomt_chain_dict[c.chainID]
-        print('### Created {} chains'.format(len(self.Chains)))
+            #print('#### chain {} parent_molecule {}'.format(c.chainID,c.parent_molecule.molid_varname))
+        #print('### Created {} chains.'.format(len(self.Chains)))
+    def MakeSegments(self,userMutations=[],userGrafts=[],userAttachments=[]):
+        nseg=0
+        for c in self.Chains.values():
+             tmut=[_ for _ in userMutations if _.chainID==c.chainID]
+             tgra=[_ for _ in userGrafts if _.target_chain==c.chainID]
+             tatt=[_ for _ in userAttachments if _.target_chain==c.chainID]
+             c.MakeSegments(self.Links,tmut,tgra,tatt)
+             nseg+=len(c.Segments)
+        print('### Created {} segments.'.format(nseg))
     def MakeSSBonds(self):
         if len(self.BiomT)>1:
             newssbonds=[]
@@ -407,22 +407,21 @@ class Molecule:
                    r1.down.append(r2)
                    r2.up.append(r1)
                    #print(r1,'->',r2)
-        for c in self.Chains:
+        for c in self.Chains.values():
             #print('calling group_residues on chain {}'.format(c.chainID))
             c.group_residues() 
     def CleaveChains(self,Cleavages):
+        if len(self.chainIDs_available)<len(Cleavages):
+            print("### WARNING: insufficient chainID's are available for {} cleavages".format(len(Cleavages)))
+            print("### {} chain ID's available:".format(len(self.chainIDs_available)),self.chainIDs_available)
+            return -1
         for clv in Cleavages:
-            clv_c=-1
-            daughter_chainID_ok=True
-            for c in self.Chains:
-                if c.chainID==clv.parent_chainID:
-                    clv_c=c
-                if c.chainID==clv.daughter_chainID:
-                    daugher_chainID_ok=False
-            if clv_c!=-1 and daughter_chainID_ok:
-                print('### before cleave:',clv_c)
+            daughter_chain_ok=False
+            if clv.parent_chainID in self.Chains:
+                clv_c=self.Chains[clv.parent_chainID]
+                clv.daughter_chainID=self.chainIDs_available.pop(0)
                 daughter=clv_c.Cleave(clv)
-                self.Chains.append(daughter)
+                self.Chains[daughter.chainID]=daughter
                 for s in self.SSBonds:
                     if s.chainID1==clv_c.chainID and s.resseqnum1>clv.parent_Cterm_resseqnum:
                         s.chainID1=daughter.chainID
@@ -433,27 +432,22 @@ class Molecule:
                         l.chainID1=daughter.chainID
                     if l.chainID2==clv_c.chainID and daughter.has_resseqnum(l.resseqnum2):
                         l.chainID2=daughter.chainID
-                print('### after cleave:',clv_c,self.Chains[-1])
             else:
-                print('### unable to cleave chain {} at position {} to generate {} {}'.format(clv_c.chainID,clv.parent_Cterm_resseqnum,clv.parent_chainID,clv.daughter_chainID))
+                print('### unable to cleave chain {} at position {}'.format(clv_c.chainID,clv.parent_Cterm_resseqnum))
     def __str__(self):
         return 'Molecule {}: {} chains, {} residues, {} atoms, {} links, {} ssbonds'.format(self.pdb,len(self.Chains),len(self.Residues),len(self.Atoms),len(self.Links),len(self.SSBonds)) 
     def residue_shift(self,chainID,resseqnumshift):
-        found=False
-        for c in self.Chains:
-            if c.chainID==chainID:
-                 found=True
-                 break;
-        if not found:
-            print('### Could not apply shift to chain {}: no such chain in Molecule {}'.format(chainID,self.pdb))
+        if chainID not in self.Chains:
+            print('#### Warning: cannot shift in chain {}: no such chain'.format(chainID))
             return -1
+        c=self.Chains[chainID]
         for r in c.residues:
             r.residue_shift(resseqnumshift)
         for l in self.Links.L:
             if l.chainID1==chainID:
                 l.resseqnum1+=resseqnumshift
             if l.chainID2==chainID:
-                l.resseqnum2+=resseqnumshift            
+                l.resseqnum2+=resseqnumshift
         for ss in self.SSBonds:
             if ss.chainID1==chainID:
                 ss.resseqnum1+=resseqnumshift
@@ -461,113 +455,35 @@ class Molecule:
                 ss.resseqnum2+=resseqnumshift
         return 0
 
-    def writepsfgeninput(self,fp,userMutations=[],topologies=[],prefix='my_',fixConflicts=False,userGrafts=[],userAttach=[]):
-        fp.write('if {![info exists PSFGEN_BASEDIR]} {\n'+\
-              '    if {[info exists env(PSFGEN_BASEDIR]} {\n'+\
-              '        set PSFGEN_BASEDIR $env(PSFGEN_BASEDIR)\n'+\
-              '    } else {\n'+\
-              '        set PSFGEN_BASEDIR $env(HOME)/research/psfgen\n'+\
-              '    }\n'+\
-              '}\n')
-        fp.write('if {![info exists CHARMM_TOPPARDIR]} {\n'+\
-              '    if {[info exists env(CHARMM_TOPPARDIR]} {\n'+\
-              '        set TOPPARDIR $env(CHARMM_TOPPARDIR)\n'+\
-              '    } else {\n'+\
-              '        set TOPPARDIR $env(HOME)/charmm/toppar\n'+\
-              '    }\n'+\
-              '}\n')
-        fp.write('source ${PSFGEN_BASEDIR}/src/loopmc.tcl\n')
-        fp.write('source ${PSFGEN_BASEDIR}/scripts/vmdrc.tcl\n')
-        fp.write('package require psfgen\n')
-        for t in topologies:
-            fp.write('topology $TOPPARDIR/{}\n'.format(t))
-        fp.write('pdbalias residue HIS HSD\n')
-        fp.write('pdbalias atom ILE CD1 CD\n')
-        fp.write('pdbalias residue NAG BGNA\n')
-        fp.write('pdbalias atom BGNA C7 C\n')
-        fp.write('pdbalias atom BGNA O7 O\n')
-        fp.write('pdbalias atom BGNA C8 CT\n')
-        fp.write('pdbalias atom BGNA N2 N\n')
-        fp.write('pdbalias residue SIA ANE5\n')
-        fp.write('pdbalias atom ANE5 C10 C\n')
-        fp.write('pdbalias atom ANE5 C11 CT\n')
-        fp.write('pdbalias atom ANE5 N5 N\n')
-        fp.write('pdbalias atom ANE5 O1A O11\n')
-        fp.write('pdbalias atom ANE5 O1B O12\n')
-        fp.write('pdbalias atom ANE5 O10 O\n')
+    def WritePsfgenInput(self,fp,userMutations=[],topologies=[],prefix='my_',fixConflicts=False,userGrafts=[],userAttach=[],includeTerminalLoops=False):
 
-        for k,v in _ResNameDict_PDB_to_CHARMM_.items():
-            fp.write('set RESDICT({}) {}\n'.format(k,v))
-        for k,v in _PDBAtomNameDict_.items():
-            fp.write('set ANAMEDICT({}) {}\n'.format(k,v))
+        self.load(fp)
+        for g in userGrafts:
+            g.load(fp)
+        for a in userAttach:
+            pass # a.load(fp)
 
-        fp.write('set logid -1\n')
+        fp.write('mol top ${}\n'.format(self.molid_varname))
 
-        # instruct vmd to load replicas; 
-        # change chainIDs; perform coordinate transforms; save.
-        for i,b in enumerate(self.BiomT):
-            fp.write('mol new {}\n'.format(self.pdb))
-            fp.write('set {} [molinfo top get id]\n'.format(b.molid))
-            fp.write('set a [atomselect ${} all]\n'.format(b.molid))
-            if i>0:
-                for c,r in b.chainID_dict.items():
-                    fp.write('set c{} [atomselect ${} "chain {}"]\n'.format(c,b.molid,c))
-                    fp.write('$c{} set chain {}\n'.format(c,r))
-                fp.write('set tr '+b.OneLiner()+'\n')
-                fp.write('$a move $tr\n')
-            fp.write('$a writepdb {}\n'.format(b.pdb))
-        
-        # if grafts are specified, load each parent PDB into a separate
-        # molecule; load new grafts if there are transformations
-        if len(userGrafts)>0:
-            newgrafts=[]
-            for i,g in enumerate(userGrafts):
-                g.load(fp,i)
-                for i,b in enumerate(self.BiomT[1:]):
-                    gg=Graft(g.graftStr(replace_targ_chain=b.get_replica_chainID(g.target_chain)))
-                    newgrafts.append(gg)
-            userGrafts.extend(newgrafts)
-        # if attachments are specified, load each parent PDB into a separate
-        # molecule; load new attachments if there are transformations
-        if len(userAttach)>0:
-            newattach=[]
-            for i,a in enumerate(userAttach):
-                a.load(fp,i)
-                for j,b in enumerate(self.BiomT[1:]):
-                    aa=Attach(a.attachStr(replace_targ_chain=b.get_replica_chainID(a.target_chain)))
-                    newattach.append(aa)
-            userAttach.extend(newattach)
-
-        if len(userMutations)>0:
-           newmutations=[]
-           for m in userMutations:
-               for b in self.BiomT[1:]:
-                   mm=Mutation(m.mutationStr(newChainID=b.get_replica_chainID(m.chainID)))
-                   newmutations.append(mm)
-           userMutations.extend(newmutations)
         if fixConflicts==True:
-           newmutation=[]
+           #print('### fixing conflicts')
+           newmutations=[]
            for sa in self.Seqadv:
                if sa.conflict=='CONFLICT':
                    mm=Mutation(seqadv=sa)
                    newmutations.append(mm)
-                   for b in self.BioMT[1:]:
-                       mmm=Mutation(mm.mutationStr(newChainID=b.get_replica_chainID(mm.chainID)))
-                       newmutations.append(mmm)
            userMutations.extend(newmutations)
-
-        fp.write('mol top 0\n')
+        #else:
+           #print('### not fixing conflicts')
         Loops=[]
-        for c in self.Chains:
+        for c in self.Chains.values():
             c.MakeSegments(self.Links,Mutations=userMutations,Grafts=userGrafts,Attachments=userAttach)
             for s in c.Segments:
-                print('### SEGMENT: ',str(s))
-                stanza,loops=s.psfgen_segmentstanza()
-                fp.write('\n### begin stanza for segment {}\n'.format(s.segname))
+                stanza,loops=s.write_psfgen_stanza(includeTerminalLoops=includeTerminalLoops)
+                Loops.extend(loops) # psfgen postprocessing needs loop info
+                fp.write('\n### Begin stanza for segment {}\n'.format(s.segname))
                 fp.write(stanza)
-                if len(loops)>0:
-                   Loops.extend(loops)
-                fp.write('### end stanza for segment {}\n\n'.format(s.segname))
+                fp.write('### End stanza for segment {}\n\n'.format(s.segname))
 
         fp.write('### SSBONDS:\n')
         for ss in self.SSBonds:
@@ -584,6 +500,11 @@ class Molecule:
                 attributes of each link instance. '''
             l.updateSegnames(self.Residues)
             fp.write(l.psfgen_patchline())
+
+        for b in self.BiomT:
+            pass
+
+        fp.write('#### END OF SEGMENTS\n')
 
         fp.write('guesscoord\n')
         fp.write('regenerate angles dihedrals\n')
