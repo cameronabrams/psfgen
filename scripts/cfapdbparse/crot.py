@@ -23,7 +23,10 @@ class Crot:
             self.degrees=float(dat[3])
         else:
             print('Error: unable to parse Crot argument {}'.format(record))
-
+    def replicate(self,newc):
+        newcrot=Crot(self.record)
+        newcrot.chainID=newc
+        return newcrot
     def __str__(self):
         return self.record
 

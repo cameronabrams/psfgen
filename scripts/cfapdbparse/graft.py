@@ -58,9 +58,10 @@ class Graft:
                             if r.resseqnum==self.source_res1:
                                self.source_segment=s
                                break
-                if self.source_segment!='':
-                    print('#### Graft {} will copy from segment '.format(self.graftstr.strip(),str(self.source_segment)))
-                else:
+                #if self.source_segment!='':
+                if self.source_segment=='':
+                #    print('#### Graft {} will copy from segment {}'.format(self.graftstr.strip(),str(self.source_segment)))
+                #else:
                     print('ERROR: Could not find source segment for graft {}'.format(self.graftstr))         
             else:
                 print('ERROR: Malformed graft argument: {}'.format(graftstr))
@@ -87,7 +88,7 @@ class Graft:
         for r in self.source_segment.residues:
             self.resid_dict[r.resseqnum]=r.resseqnum+self.desired_offset
         a+=sel.residshift('tra',self.desired_offset)
-        self.transformed_pdb='{}_{}_to_{}-GRAFT.pdb'.format(self.source_chain,self.source_res1+self.desired_offset,self.source_res2+self.desired_offset)
+        self.transformed_pdb='{}-{}_{}_to_{}-GRAFT.pdb'.format(self.ingraft_chainID,self.source_chain,self.source_res1+self.desired_offset,self.source_res2+self.desired_offset)
         a+=sel.charmm_namify('tra')
         a+='$tra writepdb {}\n'.format(self.transformed_pdb)
         a+=sel.restore('tra')

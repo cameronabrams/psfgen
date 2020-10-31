@@ -196,3 +196,10 @@ class Chain:
             if r.resseqnum==resseqnum:
                 return True
         return False
+    def relabel(self,newchainID):
+        self.chainID=newchainID
+        for r in self.residues:
+            r.chainID=newchainID
+            for a in r.atoms:
+                a.chainID=newchainID
+

@@ -23,6 +23,8 @@ class Mutation:
             self.resseqnum=seqadv.seqNum
     def __str__(self):
         return '{}-{}{}{}'.format(self.chainID,self.orig,self.resseqnum,self.new)
+    def replicate(self,orig,newchainID=''):
+        return Mutation(commandlinerecord=self.mutationStr(newChainID=newchainID))
     def mutationStr(self,newChainID=''):
         return '{}-{}{}{}'.format(self.chainID if newChainID=='' else newChainID,self.orig,self.resseqnum,self.new)
     def psfgen_segment_str(self):

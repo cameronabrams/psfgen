@@ -65,7 +65,7 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops):
         fp.write('set loops {\n')
         for l in Loops:
             if l.term and len(l.residues)>1:
-                fp.write('{{ {} {} {} }}\n'.format(l.chainID,l.residues[0].resseqnum,l.residues[-1].resseqnum))
+                fp.write('{{ {} {} {} }}\n'.format(l.replica_chainID,l.residues[0].resseqnum,l.residues[-1].resseqnum))
         fp.write('           }\n')
         fp.write('set nc 1000\n')
         fp.write('set rcut 3.0\n')
@@ -139,8 +139,7 @@ def MrgCmdLineAndFileContents(cl_list,filename,typ):
 
 if __name__=='__main__':
     parser=argparse.ArgumentParser()
-    print('### cfapdbparser {}'.format(date.today()))
-    print('### python version {}'.format(sys.version.replace('\n',' ')))
+    print('cfapdbparser {} / python {}'.format(date.today(),sys.version.replace('\n',' ').split(' ')[0]))
     i=1
     Molecules=[]
     Mut=[]
@@ -185,10 +184,6 @@ if __name__=='__main__':
     Clv=MrgCmdLineAndFileContents(args.clv,args.clvfile,Cleavage)
     Gra=MrgCmdLineAndFileContents(args.gra,args.grafile,Graft)
     Att=MrgCmdLineAndFileContents(args.att,args.attfile,Attach)
-    Molecules=args.pdb
-    #print('#### Base molecule:')
-    Base=Molecules[0]
-    #Base.show(args.verbosity)
 
     if len(args.topo)>0:
         Topo.extend(args.topo)
@@ -203,7 +198,9 @@ if __name__=='__main__':
         PostMod['center_protein']=True
         PostMod['reorselstr']=args.ror.split(',')
 
-    print('### This will generate the following psfgen script "{}".'.format(psfgen))
+    Molecules=args.pdb
+    Base=Molecules[0]
+    Base.summarize()
 
     psfgen_fp=open(psfgen,'w')
     psfgen_fp.write('### This is an automatically generated psfgen input file\n')
@@ -222,13 +219,21 @@ if __name__=='__main__':
         Base.CleaveChains(Clv)
 
     Loops=Base.WritePsfgenInput(psfgen_fp,topologies=Topo,userMutations=Mut,fixConflicts=fixConflicts,prefix=prefix,userGrafts=Gra,userAttach=Att)
-    
+   
+    ''' fix crot replicas '''
+    newcrots=[]
+    for b in Base.Biomolecules:
+        for t in b.biomt:
+            if not t.isidentity():
+                for c in PostMod['Crot']:
+                    newcrots.append(c.replicate(t.get_replica_chainID(c.chainID)))
+    PostMod['Crot'].extend(newcrots)
     post_pdb=WritePostMods(psfgen_fp,Base.psf_outfile,Base.pdb_outfile,PostMod,Loops)
 
     Base.Tcl_PrependHeaderToPDB(post_pdb,psfgen_fp)
 
     psfgen_fp.write('exit\n')
     psfgen_fp.write('### thank you for using cfapdbparser!\n')
-    print('### next: vmd -dispdev text -e {}'.format(psfgen))
-    print('### will generate {} and {}'.format(Base.psf_outfile,post_pdb))
+    print('vmd -dispdev text -e {}'.format(psfgen))
+    print(' will generate {} and {}'.format(Base.psf_outfile,post_pdb))
     
