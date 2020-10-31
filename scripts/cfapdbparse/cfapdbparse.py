@@ -4,6 +4,7 @@ from datetime import date
 from molecule import Molecule
 from cleavage import Cleavage
 from mutation import Mutation
+from ssbond import SSBond
 from graft import Graft
 from crot import Crot
 from attach import Attach
@@ -144,6 +145,8 @@ if __name__=='__main__':
     Molecules=[]
     Mut=[]
     Clv=[]
+    Uss=[]
+    UIC=[]
     psfgen='mkpsf.tcl'
     Topo=['top_all36_prot.rtf','top_all36_carb_namd_cfa.rtf','stream/carb/toppar_all36_carb_glycopeptide.str','toppar_water_ions_namd_nonbfixes.str']
     PostMod={}
@@ -157,19 +160,23 @@ if __name__=='__main__':
     parser.add_argument('-topo',metavar='<name>',action='append',default=[],help='additional CHARMM topology files')
     parser.add_argument('-prefix',metavar='<str>',default='x01_',help='output PDB/PSF prefix; each file name will have the format <prefix><pdbcode>.pdb/psf, where <pdbcode> is the 4-letter PDB code of the base molecule.')
     parser.add_argument('-psfgen',metavar='<name>',default='mkpsf.tcl',help='name of TcL script generated as input to VMD/psfgen')
-    parser.add_argument('-mut',metavar='X_Y###Z',action='append',default=[],type=Mutation,help='specify mutation.  Format: X is chainID, Y is one-letter residue code to mutate FROM, ### is sequence number (can be any number of digits), and Z is one-letter residue code to mutate TO.  Multiple -mut\'s can be specified.')
+    parser.add_argument('-ignore',metavar='X',action='append',default=[],type=str,help='Specify a chain to ignore')
+    parser.add_argument('-mut',metavar='X_Y###Z',action='append',default=[],type=Mutation,help='specify mutation.  Format: X is chainID, Y is one-letter residue code to mutate FROM, ### is sequence number (can be any number of digits), and Z is one-letter residue code to mutate TO.  Multiple -mut\'s can be specified.  Mutations are automatically replicated if there are BIOMT transformations.')
     parser.add_argument('-mutfile',metavar='<name>',default='',help='input file listing all mutations (as an alternative to issuing multiple -mut arguments)')
     parser.add_argument('-clv',metavar='X###Y',action='append',default=[],type=Cleavage,help='specify cleavage site.  Format: X is parent chain ID, ### is residue number immediately N-terminal to the cleavage site, and Y is the daughter chain ID that will begin immediately C-terminal to cleavage site. Multiple -clv\'s can be specified, each with its own -clv key.')
     parser.add_argument('-clvfile',metavar='<name>',default='',help='input file listing all cleavages (as an alternative to issuing multiple -clv arguments)')
-    parser.add_argument('-gra',metavar='<str>,A:XXX-YYY,ZZZ,C:BBB',action='append',default=[],type=Graft,help='graft resids XXX-YYY of chain A in pdb <str> to chain C of base molecule by overlapping resid ZZZ of chain A of graft and resid BBB of chain C of base')
+    parser.add_argument('-gra',metavar='<str>,A:XXX-YYY,ZZZ,C:BBB',action='append',default=[],type=Graft,help='graft resids XXX-YYY of chain A in pdb <str> to chain C of base molecule by overlapping resid ZZZ of chain A of graft and resid BBB of chain C of base.  Grafts are automatically replicated if there are BIOMT transformations.')
     parser.add_argument('-grafile',metavar='<name>',default='',help='input file listing all grafts (as an alternative to issuing multiple -gra arguments)')
-    parser.add_argument('-att',metavar='<str>,A:XXX-YYY,ZZZ,B:QQQ,C:BBB',action='append',default=[],type=Attach,help='attach resids XXX-YYY of chain A using resid ZZZ (between XXX and YYY) in pdb <str> to chain C of base molecule at resid BBB by aligning resid QQQ of chain B from source to resid BBB of chain C of base')
+    parser.add_argument('-att',metavar='<str>,A:XXX-YYY,ZZZ,B:QQQ,C:BBB',action='append',default=[],type=Attach,help='attach resids XXX-YYY of chain A using resid ZZZ (between XXX and YYY) in pdb <str> to chain C of base molecule at resid BBB by aligning resid QQQ of chain B from source to resid BBB of chain C of base.  CURRENTLY UNIMPLEMENTED!!!')
     parser.add_argument('-attfile',metavar='<name>',default='',help='input file listing all attachments (as an alternative to issuing multiple -att arguments)')
-    parser.add_argument('-crot',metavar='<str>,A,XXX[,YYY],###',default=[],action='append',type=Crot,help='specify rotation about a specific torsion angle.  <str> is one of phi, psi, omega, chi1, or chi2.  A is the chainID, XXX is the resid of owner of torson, and YYY (if given) marks the end of the sequence C-terminal to XXX that is reoriented by a backbone rotation. ### is the degrees of rotation.')
+    parser.add_argument('-crot',metavar='<str>,A,XXX[,YYY],###',default=[],action='append',type=Crot,help='specify rotation about a specific torsion angle.  <str> is one of phi, psi, omega, chi1, or chi2.  A is the chainID, XXX is the resid of owner of torson, and YYY (if given) marks the end of the sequence C-terminal to XXX that is reoriented by a backbone rotation. ### is the degrees of rotation.  C-rotations are automatically replicated if there are BIOMT transformations.')
     parser.add_argument('-crotfile',metavar='<name>',default='',help='input file listing all torsion rotations requested (as an alternative to issuing multiple -crot arguments)')
+    parser.add_argument('-ssbond',metavar='X_###-Y_###',default=[],action='append',type=SSBond,help='Specify a disulfide bond not in the PDB file; X,Y are chainIDs and ### are resids; if residues are not CYS in wt or by mutations, there is no effect.  Because SSBonds can join chains together, they are NOT automatially replicated if there are BIOMT transformations.')
+    parser.add_argument('-ssfile',metavar='<name>',default='',help='input file listing all disulfide bonds to add that are not already in the PDB file (as an alternative to issuing multiple -ssbond arguments)')
     # booleans
     parser.add_argument('-rmi',action='store_true',help='asks psfgen to use the loopMC module to relax modeled-in loops of residues missing from PDB')
     parser.add_argument('-kc',action='store_true',help='ignores SEQADV records indicating conflicts; if unset, residues in conflict are mutated to their proper identities')
+    parser.add_argument('-rem',action='store_true',help='revert engineered mutations listed in SEQADV records')
     parser.add_argument('-noc',action='store_true',help='do not center the protein at the origin of the coordinate system')
     parser.add_argument('-ror',default='None,None',metavar='<atomselect string>,<atomselect string>',help='two comma-separated, single-quoted atomselect strings to define two groups of atoms whose centers of mass are aligned against the global z-axis')
     parser.add_argument('-v','--verbosity',action='count',help='output verbosity')
@@ -184,13 +191,15 @@ if __name__=='__main__':
     Clv=MrgCmdLineAndFileContents(args.clv,args.clvfile,Cleavage)
     Gra=MrgCmdLineAndFileContents(args.gra,args.grafile,Graft)
     Att=MrgCmdLineAndFileContents(args.att,args.attfile,Attach)
-
+    Uss=MrgCmdLineAndFileContents(args.ssbond,args.ssfile,SSBond)
+    UIC=args.ignore
     if len(args.topo)>0:
         Topo.extend(args.topo)
     prefix=args.prefix
     PostMod['do_loop_mc']=args.rmi
     PostMod['Crot']=MrgCmdLineAndFileContents(args.crot,args.crotfile,Crot)
     fixConflicts=not args.kc
+    fixEngineeredMutations=args.rem
     psfgen=args.psfgen
     PostMod['center_protein']=~(args.noc)
     if args.ror!='None,None':
@@ -204,9 +213,9 @@ if __name__=='__main__':
 
     psfgen_fp=open(psfgen,'w')
     psfgen_fp.write('### This is an automatically generated psfgen input file\n')
-    psfgen_fp.write('### created using cfapdbparser.py on {}\n'.format(date.today()))
-    psfgen_fp.write('### as part of the psfgen repository\n')
-    psfgen_fp.write('### github.com/cameronabrams/psgen\n')
+    psfgen_fp.write('### created using cfapdbparse.py on {}\n'.format(date.today()))
+    psfgen_fp.write('### cfapdbparse.py is part of the psfgen repository\n')
+    psfgen_fp.write('### github.com:cameronabrams/psfgen/scripts\n')
     psfgen_fp.write('### questions to cfa22@drexel.edu\n')
     psfgen_fp.write('### command: python3 ')
     for a in sys.argv:
@@ -218,7 +227,7 @@ if __name__=='__main__':
     if len(Clv)>0:
         Base.CleaveChains(Clv)
 
-    Loops=Base.WritePsfgenInput(psfgen_fp,topologies=Topo,userMutations=Mut,fixConflicts=fixConflicts,prefix=prefix,userGrafts=Gra,userAttach=Att)
+    Loops=Base.WritePsfgenInput(psfgen_fp,topologies=Topo,userMutations=Mut,fixConflicts=fixConflicts,fixEngineeredMutations=fixEngineeredMutations,prefix=prefix,userGrafts=Gra,userAttach=Att,userSSBonds=Uss,userIgnoreChains=UIC,removePDBs=True)
    
     ''' fix crot replicas '''
     newcrots=[]
@@ -233,7 +242,6 @@ if __name__=='__main__':
     Base.Tcl_PrependHeaderToPDB(post_pdb,psfgen_fp)
 
     psfgen_fp.write('exit\n')
-    psfgen_fp.write('### thank you for using cfapdbparser!\n')
-    print('vmd -dispdev text -e {}'.format(psfgen))
-    print(' will generate {} and {}'.format(Base.psf_outfile,post_pdb))
+    psfgen_fp.write('### thank you for using cfapdbparse.py!\n')
+    print('"vmd -dispdev text -e {}" will generate {}/{}'.format(psfgen,Base.psf_outfile,post_pdb))
     

@@ -1,18 +1,35 @@
 #!/bin/bash
-# master script for generating a solvated system
+#
+# driver for cfapdbparse.py
+# c 2020 cameron f abrams cfa22@drexel.edu
+#
+# This script implements a workflow that generates an
+# equilibrated solvated PSF/PDB/COOR/VEL/XSC datafile
+# set and a configuration file for NAMD.  In its 
+# simplest usage, the user needs only to specify 
+# a four-byte PDB code and this script does the rest.
+# 
+# The most important arguments are '-pyparserargs'
+# which you can learn more about in the help for
+# cfapdbparse.py.
 #
 # change these absolute pathnames to match your system
-PDB=()
-VMD=/opt/vmd/1.9.4a38/bin/vmd
-CHARMRUN=${HOME}/namd/NAMD_2.13_Source/Linux-x86_64-g++/charmrun
-NAMD2=${HOME}/namd/NAMD_2.13_Source/Linux-x86_64-g++/namd2
+#
+VMDVERSION=1.9.4a38
+NAMDVERSION=2.13
+
+VMD=/opt/vmd/${VMDVERSION}/bin/vmd
+CHARMRUN=${HOME}/namd/NAMD_${NAMDVERSION}_Source/Linux-x86_64-g++/charmrun
+NAMD2=${HOME}/namd/NAMD_${NAMDVERSION}_Source/Linux-x86_64-g++/namd2
 PSFGEN_BASEDIR=${HOME}/research/psfgen
 PYTHON3=${HOME}/anaconda3/bin/python3
 PYPARSER=${PSFGEN_BASEDIR}/scripts/cfapdbparse/cfapdbparse.py
+RCSB=https://files.rcsb.org/download
 
 ARGC=$#
-STAGE=0
-NPE=8
+PDB=()  # array of input PDB file names
+STAGE=0  # indicator of staged equilibration
+NPE=8  # number of processors to use in MD
 i=1
 seed=$RANDOM
 temperature=310
@@ -82,13 +99,12 @@ done
 
 # download pdb's if necessary
 TASK=-1
-ENDPOINT=https://files.rcsb.org/download
 for p in `seq 0 $((npdb-1))`; do
     pdb=${PDB[$p]}
     if [ ! -e ${pdb}.pdb ]; then
         TASK=$((TASK+1))
         echo "TASK $TASK: Retrieving ${pdb}.pdb..."
-        wget -q ${ENDPOINT}/${pdb}.pdb
+        wget -q ${RCSB}/${pdb}.pdb
     fi
 done
 CURRPDB=$BASEPDB
@@ -109,10 +125,12 @@ for pi in `seq 0 $((nparse-1))`; do
        sed s/%OUT%/config${TASK}/g | \
        sed s/%SEED%/${seed}/g | \
        sed s/%TEMPERATURE%/${temperature}/g > run${TASK}.namd
+   rm namd_header.${TASK}
    echo "        ->  Running namd2 on vacuum system ${CURRPSF}+${CURRPDB}..."
    $CHARMRUN +p${NPE} $NAMD2 run${TASK}.namd > run${TASK}.log
    $VMD -dispdev text -e $PSFGEN_BASEDIR/scripts/namdbin2pdb.tcl -args ${CURRPSF} config${TASK}.coor tmp.pdb
    cat charmm_header.pdb tmp.pdb > config${TASK}.pdb
+   rm charmm_header.pdb tmp.pdb
    CURRPDB=config${TASK}.pdb
 done
 
@@ -147,6 +165,7 @@ for s in `seq 0 $ls`; do
     echo "binvelocities  config${TASK}_stage${s}.vel"  >> namd_header.${TASK}-$ss
     echo "extendedsystem config${TASK}_stage${s}.xsc"  >> namd_header.${TASK}-$ss
 done
+
 firsttimestep=0
 cat namd_header.${TASK}-$ss $PSFGEN_BASEDIR/templates/solv.namd | \
     sed s/%STAGE%/$ss/g | \
@@ -156,5 +175,6 @@ cat namd_header.${TASK}-$ss $PSFGEN_BASEDIR/templates/solv.namd | \
     sed s/%TEMPERATURE%/${temperature}/g | \
     sed s/%FIRSTTIMESTEP%/$firsttimestep/g > prod.namd
  
-echo "Done.  Created prod.namd, config${TASK}_stage${s}.coor, config${TASK}_stage${s}.vel, and conf${TASK}_stage${s}.xsc."
+rm namd-header*
+echo "Done.  Created $CURRPSF, $CURRPDB, config${TASK}_stage${s}.coor, config${TASK}_stage${s}.vel, conf${TASK}_stage${s}.xsc, and prod.namd."
 

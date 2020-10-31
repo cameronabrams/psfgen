@@ -77,7 +77,7 @@ class Molecule:
                     self.ParseExpDta(line)
         if 'CHARMM' in self.keywords:
             self.source='CHARMM'
-        #print('### Read {:d} pdbrecords from {:s}'.format(len(self.RawPDB),pdb))
+        print('### Read {:d} pdbrecords from {:s}'.format(len(self.RawPDB),pdb))
         self.MakeBiomolecules()
         self.MakeResidues()
         self.MakeChains()
@@ -506,7 +506,7 @@ class Molecule:
                 ss.resseqnum2+=resseqnumshift
         return 0
 
-    def WritePsfgenInput(self,fp,userMutations=[],topologies=[],prefix='my_',fixConflicts=False,userGrafts=[],userAttach=[],includeTerminalLoops=False,removePDBs=True):
+    def WritePsfgenInput(self,fp,userMutations=[],topologies=[],prefix='my_',fixConflicts=False,fixEngineeredMutations=False,userGrafts=[],userAttach=[],userSSBonds=[],userIgnoreChains=[],includeTerminalLoops=False,removePDBs=True):
 
         self.load(fp)
         for g in userGrafts:
@@ -521,15 +521,13 @@ class Molecule:
             2. include any possible replicas created when new chains are eventually 
                created via BIOMT operations
         '''
-        if fixConflicts==True:
-            newmutations=[]
-            for sa in self.Seqadv:
-                if sa.conflict=='CONFLICT':
-                    mm=Mutation(seqadv=sa)
-                    newmutations.append(mm)
-            if len(newmutations)>0:
-                fp.write('#### Fixed {} conflicts\n'.format(len(newmutations)))
-            userMutations.extend(newmutations)
+        newmutations=[]
+        for sa in self.Seqadv:
+            if fixConflicts==True and sa.conflict=='CONFLICT':
+                newmutations.append(Mutation(seqadv=sa))
+            elif fixEngineeredMutations==True and sa.conflict=='ENGINEERED MUTATION':
+                newmutations.append(Mutation(seqadv=sa))
+        userMutations.extend(newmutations)
         replica_mutations=[]
         for b in self.Biomolecules:
             for t in b.biomt:
@@ -542,28 +540,30 @@ class Molecule:
 
         Loops=[]
         for c in self.Chains.values():
-            b=self.GetBiomoleculeByChain(c.chainID)
-            #print('#### Chain {} is claimed by Biomolecule {}'.format(c.chainID,b.index))
-            c.MakeSegments(self.Links,Mutations=userMutations,Grafts=userGrafts,Attachments=userAttach)
-            for s in c.Segments:
-                for t in b.biomt:
-                    #print('#### Chain {} replica in tmat {:d}: {}'.format(c.chainID,t.index,t.get_replica_chainID(c.chainID)))
-                    stanza,loops=s.write_psfgen_stanza(includeTerminalLoops=includeTerminalLoops,tmat=t)
-                    Loops.extend(loops) # psfgen postprocessing needs loop info
-                    fp.write('\n#### Begin stanza for segment {} biomolecule {} tmat {}\n'.format(s.segname,b.index,t.index))
-                    fp.write(stanza)
-                    fp.write('#### End stanza for segment {}\n\n'.format(s.segname))
-                #print('#### PDB files used to build this segment:')
-                for p in s.pdbfiles:
-                    #print('    {}'.format(p))
-                    if removePDBs:
-                        fp.write('file delete {}'.format(p))
+            if c.chainID not in userIgnoreChains:
+                b=self.GetBiomoleculeByChain(c.chainID)
+                #print('#### Chain {} is claimed by Biomolecule {}'.format(c.chainID,b.index))
+                c.MakeSegments(self.Links,Mutations=userMutations,Grafts=userGrafts,Attachments=userAttach)
+                for s in c.Segments:
+                    for t in b.biomt:
+                        #print('#### Chain {} replica in tmat {:d}: {}'.format(c.chainID,t.index,t.get_replica_chainID(c.chainID)))
+                        stanza,loops=s.write_psfgen_stanza(includeTerminalLoops=includeTerminalLoops,tmat=t)
+                        Loops.extend(loops) # psfgen postprocessing needs loop info
+                        fp.write('\n#### Begin stanza for segment {} biomolecule {} tmat {}\n'.format(s.segname,b.index,t.index))
+                        fp.write(stanza)
+                        fp.write('#### End stanza for segment {}\n\n'.format(s.segname))
+                    for p in s.pdbfiles:
+                        if removePDBs:
+                            fp.write('file delete {}\n'.format(p))
         fp.write('#### SSBONDS:\n')
         for ss in self.SSBonds:
+            if ss.chainID1 not in userIgnoreChains and ss.chainID2 not in userIgnoreChains:
+                fp.write(ss.psfgen_patchline())
+        for ss in userSSBonds:
             fp.write(ss.psfgen_patchline())
 
         if len(userGrafts)>0:
-            #print('#### Importing {} grafts'.format(len(userGrafts)))
+            print('#### Importing {} grafts'.format(len(userGrafts)))
             self.importGrafts(userGrafts)
         fp.write('#### {} LINKS:\n'.format(len(self.Links)))
         for l in self.Links:

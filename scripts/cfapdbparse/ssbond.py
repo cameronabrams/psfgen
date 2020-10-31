@@ -1,5 +1,33 @@
 class SSBond:
-    def __init__(self,pdbrecord):
+    ''' Creates SSBond instance from one of two types of input strings:
+        1. a PDB SSBOND record
+        2. a command-line argument of the form X_###-Y_### where X and Y are chain IDs and
+           the ###'s are resids
+    '''
+    def __init__(self,record):
+        if 'SSBOND' in record:
+            self.ssbond_from_pdbrecord(record)
+        else: # assume this is a command-line argument
+            self.ssbond_from_commandline(record)
+    def ssbond_from_commandline(self,record):
+        self.record_name='SSBOND'
+        self.serial_number=0
+        self.resname1='CYS'
+        self.resname2='CYS'
+        s1=record.split('-')
+        r1=s1[0].split('_')
+        r2=s1[1].split('_')
+        self.chainID1=r1[0]
+        self.chainID2=r2[0]
+        self.resseqnum1=r1[1]
+        self.resseqnum2=r2[1]
+        self.icode1=''
+        self.icode2=''
+        self.length=0.0
+        self.sym1=''
+        self.sym2=''
+        self.pdbrecord=self.pdb_line()
+    def ssbond_from_pdbrecord(self,pdbrecord):
         self.pdbrecord=pdbrecord
 # 1 -  6        Record name    "SSBOND"
         self.record_name=pdbrecord[0:6].strip()
