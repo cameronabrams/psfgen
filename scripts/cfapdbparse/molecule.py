@@ -354,7 +354,7 @@ class Molecule:
             self.Biomolecules.append(Biomolecule('IDENTITY'))
             for c in chainIDs_detected:
                 self.Biomolecules[0].chains.append(c)
-            print('#### added identity biomt to pdb without any')
+            print('#### added identity biomt to pdb without any',self.Biomolecules[0].chains)
         for b in self.Biomolecules:
             for c in b.chains:
                 for t in b.biomt:
