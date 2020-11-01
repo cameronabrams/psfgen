@@ -478,6 +478,8 @@ class Molecule:
                 clv.daughter_chainID=self.chainIDs_available.pop(0)
                 daughter=clv_c.Cleave(clv)
                 self.Chains[daughter.chainID]=daughter
+                b=self.GetBiomoleculeByChain(clv.parent_chainID)
+                b.chains.append(daughter.chainID)
                 for s in self.SSBonds:
                     if s.chainID1==clv_c.chainID and s.resseqnum1>clv.parent_Cterm_resseqnum:
                         s.chainID1=daughter.chainID
