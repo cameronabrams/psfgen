@@ -40,7 +40,7 @@ class Biomolecule:
                 self.fe_units=words[-1]
             elif 'APPLY THE FOLLOWING TO CHAINS:' in phrase:
                 self.chains.extend([_.replace(',','') for _ in words[7:]])
-            elif 'AND TO CHAINS:' in phrase:
+            elif 'AND CHAINS:' in phrase:
                 self.chains.extend([_.replace(',','') for _ in words[4:]])
             elif 'BIOMT' in words[2]:
                 self.parseBIOMT(words)
