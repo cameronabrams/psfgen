@@ -77,7 +77,7 @@ class Molecule:
                     self.ParseExpDta(line)
         if 'CHARMM' in self.keywords:
             self.source='CHARMM'
-        print('### Read {:d} pdbrecords from {:s}'.format(len(self.RawPDB),pdb))
+        #print('### Read {:d} pdbrecords from {:s}'.format(len(self.RawPDB),pdb))
         self.MakeBiomolecules()
         self.MakeResidues()
         self.MakeChains()
@@ -354,6 +354,7 @@ class Molecule:
             self.Biomolecules.append(Biomolecule('IDENTITY'))
             for c in chainIDs_detected:
                 self.Biomolecules[0].chains.append(c)
+            print('#### added identity biomt to pdb without any')
         for b in self.Biomolecules:
             for c in b.chains:
                 for t in b.biomt:
