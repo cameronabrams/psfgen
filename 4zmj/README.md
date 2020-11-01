@@ -22,6 +22,5 @@ The `do_py.sh` script executes a series of tasks, beginning with downloading the
 
 In this particular case, the driver runs one parser instance, indicated by the single `-pyparser-args` argument.  The will add missing loops and with some minor torsion adjustments to avoid clashes. Five stages of solvated equilibration are requested (which helps with patch-grid errors as the box size equilibrates.  
 
-The directory `my_4zmj` here contains example output of these commands.
 
 2017-2020, Cameron F Abrams

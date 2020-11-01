@@ -15,15 +15,25 @@
 #
 # change these absolute pathnames to match your system
 #
-VMDVERSION=1.9.4a38
-NAMDVERSION=2.13
+if [[ -z "${VMD}" ]]; then
+    VMD=/opt/vmd/1.9.4a38/bin/vmd
+fi
+if [[ -z "${CHARMRUN}" ]]; then
+    CHARMRUN=${HOME}/namd/NAMD_2.13_Source/Linux-x86_64-g++/charmrun
+fi
+if [[ -z "${NAMD2}" ]]; then
+    NAMD2=${HOME}/namd/NAMD_2.13_Source/Linux-x86_64-g++/namd2
+fi
+if [[ -z "${PSFGEN_BASEDIR}" ]]; then
+    PSFGEN_BASEDIR=${HOME}/research/psfgen
+fi
+if [[ -z "${PYTHON3}" ]]; then
+    PYTHON3=${HOME}/anaconda3/bin/python3
+fi
+if [[ -z "${PYPARSER}" ]]; then
+    PYPARSER=${PSFGEN_BASEDIR}/scripts/cfapdbparse/cfapdbparse.py
+fi
 
-VMD=/opt/vmd/${VMDVERSION}/bin/vmd
-CHARMRUN=${HOME}/namd/NAMD_${NAMDVERSION}_Source/Linux-x86_64-g++/charmrun
-NAMD2=${HOME}/namd/NAMD_${NAMDVERSION}_Source/Linux-x86_64-g++/namd2
-PSFGEN_BASEDIR=${HOME}/research/psfgen
-PYTHON3=${HOME}/anaconda3/bin/python3
-PYPARSER=${PSFGEN_BASEDIR}/scripts/cfapdbparse/cfapdbparse.py
 RCSB=https://files.rcsb.org/download
 
 ARGC=$#
