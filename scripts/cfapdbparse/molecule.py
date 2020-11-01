@@ -350,6 +350,10 @@ class Molecule:
             chainIDs_detected.add(a.chainID)
         self.chainIDs_available=sorted(list(self.chainIDs_allowed.difference(chainIDs_detected)))
         chainIDs_detected=sorted(list(chainIDs_detected))
+        if len(self.Biomolecules)==0:
+            self.Biomolecules.append(Biomolecule('IDENTITY'))
+            for c in chainIDs_detected:
+                self.Biomolecules[0].chains.append(c)
         for b in self.Biomolecules:
             for c in b.chains:
                 for t in b.biomt:

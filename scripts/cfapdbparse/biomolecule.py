@@ -2,22 +2,23 @@ class Biomolecule:
     ''' Container for handling info for "REMARK 350 BIOMOLECULE: #" stanzas in RCSB PDB files
     '''
     def __init__(self,pdbrecord):
-       tok=pdbrecord[11:23]
        #print('__init__ with {}'.format(pdbrecord))
-       if tok=='BIOMOLECULE:':
+       if 'BIOMOLECULE:' in pdbrecord:
            self.index=int(pdbrecord[23:25].strip())
            #print('new biomolecule index {:d}'.format(self.index))
-           self.chains=[]
-           self.biomt=[]
-           self.author_biol_unit='None'
-           self.software_quat_struct='None'
-           self.software_used=['None']
-           self.total_buried_surface_area='None'
-           self.surface_area_units='None'
-           self.surface_area_complex='None'
-           self.change_solv_fe='None'
-           self.fe_units='None'
-           self.chains=[]
+       self.chains=[]
+       self.biomt=[]
+       self.author_biol_unit='None'
+       self.software_quat_struct='None'
+       self.software_used=['None']
+       self.total_buried_surface_area='None'
+       self.surface_area_units='None'
+       self.surface_area_complex='None'
+       self.change_solv_fe='None'
+       self.fe_units='None'
+       self.chains=[]
+       if 'IDENTITY' in pdbrecord:
+           self.biomt.append(Biomt())
     def parsePDBrecordwords(self,words):
         if len(words)>2:
             phrase=' '.join(words[2:])
@@ -58,7 +59,7 @@ class Biomolecule:
 class BiomT:
      def __init__(self):
          self.index=-1
-         self.tmat=[[],[],[]]
+         self.tmat=[[1, 0, 0, 0],[0, 1, 0, 0],[0, 0, 1, 0]]
          self.replicachainID_from_sourcechainID={}
          self.sourcechainID_from_replicachainID={}
      def parseBIOMT(self,ax,words):
