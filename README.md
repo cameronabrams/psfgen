@@ -38,7 +38,7 @@ $ make bondstruct.so
 
 8. Add the following to your `~/.vmdrc` file:
 ```
-source $PSFGEN_BASEDIR/scripts/vmdrc.tcl
+source $env(PSFGEN_BASEDIR)/scripts/vmdrc.tcl
 ```
 
 ## Structures

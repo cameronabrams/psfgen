@@ -15,12 +15,21 @@ This workflow generates a solvated, cleaved, partially glycosylated HIV-1 Env ec
 ```
 $ mkdir my_4zmj
 $ cd my_4zmj
-$ $PSFGEN_BASEDIR/scripts/do_py.sh -pyparser-args '-crotfile $PSFGEN_BASEDIR/4zmj/crot.inp -rmi' -solv-stage-steps 100,200,400,800,20000 -temperature 310 -pdb 4zmj
+$ $PSFGEN_BASEDIR/scripts/do_py.sh -pyparser-args "-crotfile $PSFGEN_BASEDIR/4zmj/crot.inp -rmi" -solv-stage-steps 100,200,400,800,20000 -temperature 310 -pdb 4zmj
 ```
 
 The `do_py.sh` script executes a series of tasks, beginning with downloading the required PDB file from the RCSB (if needed), then passing through a sequence of parse/psfgen/relax cycles to generate a complete vacuum structure, followed by solvation via psfgen, and finally through as series of solvated relaxations via NPT MD.  
 
 In this particular case, the driver runs one parser instance, indicated by the single `-pyparser-args` argument.  The will add missing loops and with some minor torsion adjustments to avoid clashes. Five stages of solvated equilibration are requested (which helps with patch-grid errors as the box size equilibrates.  
+
+To introduce point mutations, use a -mut switch in the pyparser-args argument; e.g., for K117A in chain G:
+
+```
+$ $PSFGEN_BASEDIR/scripts/do_py.sh -pyparser-args "-crotfile $PSFGEN_BASEDIR/4zmj/crot.inp -rmi -mut G_K117A" -solv-stage-steps 100,200,400,800,20000 -temperature 310 -pdb 4zmj
+```
+
+Because of the BIOMT transformations, this mutation will also be carried out on the symmerty-related chains of chain G.
+
 
 
 2017-2020, Cameron F Abrams
