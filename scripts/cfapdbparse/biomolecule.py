@@ -18,7 +18,7 @@ class Biomolecule:
        self.fe_units='None'
        self.chains=[]
        if 'IDENTITY' in pdbrecord:
-           self.biomt.append(Biomt())
+           self.biomt.append(BiomT())
     def parsePDBrecordwords(self,words):
         if len(words)>2:
             phrase=' '.join(words[2:])
