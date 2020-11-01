@@ -604,7 +604,7 @@ class Molecule:
             #print('#### importing the following graft into Base as chain {} seg {}'.format(g.ingraft_chainID,g.ingraft_segname,str(g)))
             m=g.molecule
             for l in m.Links:
-                l.updateSegnames(m.Residues)
+                l.updateSegnames(m.Residues,m.Biomolecules)
             sseg=g.source_segment
             for r in sseg.residues:
                 r.segname=g.ingraft_segname
