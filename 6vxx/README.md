@@ -19,7 +19,7 @@ This workflow generates a solvated, cleaved, fully glycosylated SARS-CoV-2 S spi
 ```
 $ mkdir 6vxx
 $ cd 6vxx
-$ $PSFGEN_BASEDIR/scripts/do_py.sh -pyparser-args "-grafile $PSFGEN_BASEDIR/6vxx/grafts.inp -rmi" -pyparser-args "-clv A685 B685 C685" -solv-stage-steps 100,200,400,800,20000 -temperature 310 -pdb 6vxx -pdb 2wah -pdb 4byh -pdb 4b7i
+$ $PSFGEN_BASEDIR/scripts/do_py.sh -pyparser-args "-grafile $PSFGEN_BASEDIR/6vxx/grafts.inp -rmi" -pyparser-args "-clv A685 -clv B685 -clv C685" -solv-stage-steps 100,200,400,800,20000 -temperature 310 -pdb 6vxx -pdb 2wah -pdb 4byh -pdb 4b7i
 ```
 
 The `do_py.sh` script executes a series of tasks, beginning with downloading the required PDB file from the RCSB (if needed), then passing through a sequence of parse/psfgen/relax cycles to generate a complete vacuum structure, followed by solvation via psfgen, and finally through as series of solvated relaxations via NPT MD.  
