@@ -534,7 +534,7 @@ class Molecule:
                 for m in userMutations:
                     newc=t.get_replica_chainID(m.chainID)
                     if newc!=m.chainID:
-                        mm=m.replicate(newchainID=t.get_replica_chain(m.chainID))
+                        mm=m.replicate(newchainID=t.get_replica_chainID(m.chainID))
                         replica_mutations.append(mm)
         userMutations.extend(replica_mutations)
 
