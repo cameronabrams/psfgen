@@ -26,11 +26,11 @@ class Mutation:
             self.new=seqadv.dbRes
             self.resseqnum=seqadv.seqNum
     def __str__(self):
-        return '{}-{}{}{}'.format(self.chainID,self.orig,self.resseqnum,self.new)
+        return '{}_{}{}{}'.format(self.chainID,self.orig_1,self.resseqnum,self.new_1)
     def replicate(self,newchainID=''):
         return Mutation(commandlinerecord=self.mutationStr(newChainID=newchainID))
     def mutationStr(self,newChainID=''):
-        return '{}_{}{}{}'.format(self.chainID if newChainID=='' else newChainID,self.orig,self.resseqnum,self.new)
+        return '{}_{}{}{}'.format(self.chainID if newChainID=='' else newChainID,self.orig_1,self.resseqnum,self.new_1)
     def psfgen_segment_str(self):
         return '   mutate {} {}\n'.format(self.resseqnum,self.new) if self.chainID!='*' else ''
 
