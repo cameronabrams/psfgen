@@ -547,7 +547,7 @@ class Molecule:
         for c in self.Chains.values():
             if c.chainID not in userIgnoreChains:
                 b=self.GetBiomoleculeByChain(c.chainID)
-                #print('#### Chain {} is claimed by Biomolecule {}'.format(c.chainID,b.index))
+                print('#### Chain {} is claimed by Biomolecule {}'.format(c.chainID,b.index))
                 c.MakeSegments(self.Links,Mutations=userMutations,Grafts=userGrafts,Attachments=userAttach)
                 for s in c.Segments:
                     for t in b.biomt:
