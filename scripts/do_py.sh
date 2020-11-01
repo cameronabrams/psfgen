@@ -175,6 +175,6 @@ cat namd_header.${TASK}-$ss $PSFGEN_BASEDIR/templates/solv.namd | \
     sed s/%TEMPERATURE%/${temperature}/g | \
     sed s/%FIRSTTIMESTEP%/$firsttimestep/g > prod.namd
  
-rm namd-header*
+rm namd_header*
 echo "Done.  Created $CURRPSF, $CURRPDB, config${TASK}_stage${s}.coor, config${TASK}_stage${s}.vel, conf${TASK}_stage${s}.xsc, and prod.namd."
 
