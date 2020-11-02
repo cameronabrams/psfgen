@@ -513,7 +513,7 @@ class Molecule:
                 ss.resseqnum2+=resseqnumshift
         return 0
 
-    def WritePsfgenInput(self,fp,userMutations=[],topologies=[],prefix='my_',fixConflicts=False,fixEngineeredMutations=False,userGrafts=[],userAttach=[],userSSBonds=[],userIgnoreChains=[],includeTerminalLoops=False,removePDBs=True):
+    def WritePsfgenInput(self,fp,userMutations=[],prefix='my_',fixConflicts=False,fixEngineeredMutations=False,userGrafts=[],userAttach=[],userSSBonds=[],userIgnoreChains=[],includeTerminalLoops=False,removePDBs=True):
 
         self.load(fp)
         for g in userGrafts:

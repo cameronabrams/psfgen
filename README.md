@@ -42,7 +42,8 @@ cd ${HOME}/charmm
 tar zxf toppar_c36_jul20.tgz
 ln -s toppar_c36_jul20 toppar
 ```
-Note: you should use the `toppar_water_ions.str` in the $PSFGEN_BASEDIR/charmm directory rather than `toppar_water_ions.str` in $HOME/charmm/toppar for systems with explicit waters and/or ions to avoid input errors for NAMD.  This `toppar_water_ions.str` was generating by commenting out lines that offend NAMD from the July 2020 version of `toppar_water_ions.str`.
+
+CHARMM topologies are used in the workflow steps in which PSF files are generated, and CHARMM parameters are used during NAMD simulations.  At least two files are incompatible with VMD/psfgen: `toppar_water_ions.str` and `top_all36_carb.rtf`.  Slightly modified versions of these two files appear in the $PSFGEN_BASEDIR/charmm directory.  These are based on the July 2020 version of CHARMM force field.
 
 4. Compile the `bondstruct.so` module for the loop Monte Carlo procedures.  To build this:
 

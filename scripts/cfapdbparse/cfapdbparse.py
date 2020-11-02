@@ -88,14 +88,15 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops):
     fp.write('$a writepdb {}\n'.format(new_pdb_out))
     return new_pdb_out
 
-def WriteHeaders(fp,topologies):
+def WriteHeaders(fp,charmm_topologies,local_topologies):
     fp.write('if {![info exists PSFGEN_BASEDIR]} {\n'+\
 	  '    if {[info exists env(PSFGEN_BASEDIR]} {\n'+\
 	  '        set PSFGEN_BASEDIR $env(PSFGEN_BASEDIR)\n'+\
 	  '    } else {\n'+\
 	  '        set PSFGEN_BASEDIR $env(HOME)/research/psfgen\n'+\
 	  '    }\n'+\
-	  '}\n')
+	  '}\n'+
+          'set LOCAL_TOPPARDIR $PSFGEN_BASEDIR/charmm\n')
     fp.write('if {![info exists CHARMM_TOPPARDIR]} {\n'+\
 	  '    if {[info exists env(CHARMM_TOPPARDIR]} {\n'+\
 	  '        set TOPPARDIR $env(CHARMM_TOPPARDIR)\n'+\
@@ -106,8 +107,10 @@ def WriteHeaders(fp,topologies):
     fp.write('source ${PSFGEN_BASEDIR}/src/loopmc.tcl\n')
     fp.write('source ${PSFGEN_BASEDIR}/scripts/vmdrc.tcl\n')
     fp.write('package require psfgen\n')
-    for t in topologies:
+    for t in charmm_topologies:
         fp.write('topology $TOPPARDIR/{}\n'.format(t))
+    for t in local_topologies:
+        fp.write('topology $LOCAL_TOPPARDIR/{}\n'.format(t))
     fp.write('pdbalias residue HIS HSD\n')
     fp.write('pdbalias atom ILE CD1 CD\n')
     fp.write('pdbalias residue NAG BGNA\n')
@@ -148,7 +151,8 @@ if __name__=='__main__':
     Uss=[]
     UIC=[]
     psfgen='mkpsf.tcl'
-    Topo=['top_all36_prot.rtf','top_all36_carb_namd_cfa.rtf','stream/carb/toppar_all36_carb_glycopeptide.str','toppar_water_ions_namd_nonbfixes.str']
+    CTopo=['top_all36_prot.rtf','stream/carb/toppar_all36_carb_glycopeptide.str']
+    LocTopo=['top_all36_carb.rtf','toppar_water_ions.str']
     PostMod={}
     PostMod['center_protein']=True
     prefix='x01_'
@@ -194,7 +198,7 @@ if __name__=='__main__':
     Uss=MrgCmdLineAndFileContents(args.ssbond,args.ssfile,SSBond)
     UIC=args.ignore
     if len(args.topo)>0:
-        Topo.extend(args.topo)
+        CTopo.extend(args.topo)
     prefix=args.prefix
     PostMod['do_loop_mc']=args.rmi
     PostMod['Crot']=MrgCmdLineAndFileContents(args.crot,args.crotfile,Crot)
@@ -222,12 +226,12 @@ if __name__=='__main__':
         psfgen_fp.write('{} '.format(a))
     psfgen_fp.write('\n')
     
-    WriteHeaders(psfgen_fp,Topo)
+    WriteHeaders(psfgen_fp,CTopo,LocTopo)
  
     if len(Clv)>0:
         Base.CleaveChains(Clv)
 
-    Loops=Base.WritePsfgenInput(psfgen_fp,topologies=Topo,userMutations=Mut,fixConflicts=fixConflicts,fixEngineeredMutations=fixEngineeredMutations,prefix=prefix,userGrafts=Gra,userAttach=Att,userSSBonds=Uss,userIgnoreChains=UIC,removePDBs=True)
+    Loops=Base.WritePsfgenInput(psfgen_fp,userMutations=Mut,fixConflicts=fixConflicts,fixEngineeredMutations=fixEngineeredMutations,prefix=prefix,userGrafts=Gra,userAttach=Att,userSSBonds=Uss,userIgnoreChains=UIC,removePDBs=True)
    
     ''' fix crot replicas '''
     newcrots=[]

@@ -19,10 +19,10 @@ if [[ -z "${VMD}" ]]; then
     VMD=/opt/vmd/1.9.4a38/bin/vmd
 fi
 if [[ -z "${CHARMRUN}" ]]; then
-    CHARMRUN=${HOME}/namd/NAMD_2.13_Source/Linux-x86_64-g++/charmrun
+    CHARMRUN=${HOME}/namd/NAMD_2.14_Source/Linux-x86_64-g++/charmrun
 fi
 if [[ -z "${NAMD2}" ]]; then
-    NAMD2=${HOME}/namd/NAMD_2.13_Source/Linux-x86_64-g++/namd2
+    NAMD2=${HOME}/namd/NAMD_2.14_Source/Linux-x86_64-g++/namd2
 fi
 if [[ -z "${PSFGEN_BASEDIR}" ]]; then
     PSFGEN_BASEDIR=${HOME}/research/psfgen
@@ -108,12 +108,11 @@ for p in `seq 1 $((npdb-1))`; do
 done
 
 # download pdb's if necessary
-TASK=-1
+TASK=0
 for p in `seq 0 $((npdb-1))`; do
     pdb=${PDB[$p]}
     if [ ! -e ${pdb}.pdb ]; then
-        TASK=$((TASK+1))
-        echo "TASK $TASK: Retrieving ${pdb}.pdb..."
+        echo "Retrieving ${pdb}.pdb..."
         wget -q ${RCSB}/${pdb}.pdb
     fi
 done
@@ -176,15 +175,23 @@ for s in `seq 0 $ls`; do
     echo "extendedsystem config${TASK}_stage${s}.xsc"  >> namd_header.${TASK}-$ss
 done
 
+${PSFGEN_BASEDIR}/scripts/cp_charmm.sh namd_header.${TASK}-$ss
 firsttimestep=0
-cat namd_header.${TASK}-$ss $PSFGEN_BASEDIR/templates/solv.namd | \
-    sed s/%STAGE%/$ss/g | \
+cat namd_header.${TASK}-$ss $PSFGEN_BASEDIR/templates/prod.namd | \
     sed s/%OUT%/prod/g | \
     sed s/%NUMSTEPS%/10000000/g | \
     sed s/%SEED%/${seed}/g | \
     sed s/%TEMPERATURE%/${temperature}/g | \
-    sed s/%FIRSTTIMESTEP%/$firsttimestep/g > prod.namd
+    sed -e '/%PARAMETERS%/{r par.inp' -e 'd}' > prod.namd
  
-rm namd_header*
-echo "Done.  Created $CURRPSF, $CURRPDB, config${TASK}_stage${s}.coor, config${TASK}_stage${s}.vel, conf${TASK}_stage${s}.xsc, and prod.namd."
+tar zvcf prod.tgz $CURRPSF \
+                  $CURRPDB \
+                  config${TASK}_stage${s}.coor \
+                  config${TASK}_stage${s}.vel \
+                  conf${TASK}_stage${s}.xsc \
+                  `echo par.inp` \
+                  prod.namd
+
+rm namd_header* cell.inp par.inp
+echo "Done.  Created prod.tgz.'
 

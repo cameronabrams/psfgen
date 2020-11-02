@@ -117,17 +117,31 @@ class Link:
         if self.resname1=='ASN' and _seg_class_[self.resname2]=='GLYCAN':
             return 'patch NGLB {}:{} {}:{}\n'.format(self.segname1,self.resseqnum1,self.segname2,self.resseqnum2)
         else:
-            # for a glycan-glycan patch, the C1 atom is always on the ji-residue
+            retstr=''
+            # for a glycan-glycan patch, the C1 atom is always on the downstream-residue
+            # calls to the 'axeq' proc decide if the link is axial 'a' or equitorial 'b'
+            # when building the PRES name found in CHARMM file top_all36_carb.rtf
+            # for some reason, the characters 'a' and 'b' are not used for 1->6 linkages;
+            # in that case, 'A' and 'T' are used
             if self.name2=='C1' and _seg_class_[self.resname1]=='GLYCAN':
-                cmdi='[axeq {} 0 {} {} {}]'.format(self.resseqnum2,self.chainID2,self.name2,self.resseqnum1)
-                cmdj='[axeq {} 0 {} {} {}]'.format(self.resseqnum1,self.chainID1,self.name1,-1)
-                return 'patch 1{:1s}{}{} {}:{} {}:{}\n'.format(self.name1[1], cmdi,cmdj,self.segname1,self.resseqnum1,self.segname2,self.resseqnum2)
+                retstr+='set cn {}\n'.format(self.name1[1])
+                retstr+='set abi [axeq {} 0 {} {} {}]\n'.format(self.resseqnum2,self.chainID2,self.name2,self.resseqnum1)
+                retstr+='set abj [axeq {} 0 {} {} {}]\n'.format(self.resseqnum1,self.chainID1,self.name1,-1)
+                if self.name1=='O6':
+                    retstr+=r'if { $abi == "a" } { set abi A }'
+                    retstr+='\n'
+                    retstr+=r'if { $abi == "b" } { set abi B }'+'\n'
+                    retstr+=r'if { $abj == "b" } { set abj T }'+'\n'
+                retstr+='set pres "1$cn$abi$abj"\n'
+                retstr+='patch $pres {}:{} {}:{}\n'.format(self.segname1,self.resseqnum1,self.segname2,self.resseqnum2)
+                return retstr
             elif self.name1=='C1' and _seg_class_[self.resname2]=='GLYCAN':
                 cmdj='[axeq {} 0 {} {} {}]'.format(self.resseqnum2,self.chainID2,self.name2,self.resseqnum1)
                 cmdi='[axeq {} 0 {} {} {}]'.format(self.resseqnum1,self.chainID1,self.name1,-1)           
                 return 'patch 1{:1s}{}{} {}:{} {}:{}\n'.format(self.name2[1], cmdi,cmdj,self.segname2,self.resseqnum2,self.segname1,self.resseqnum1)
             elif self.name1=='O6' and self.name2=='C2':
-                return 'patch SA26E {}:{} {}:{}\n'.format(self.segname1,self.resseqnum1,self.segname2,self.resseqnum2)
+                #return 'patch SA26E {}:{} {}:{}\n'.format(self.segname1,self.resseqnum1,self.segname2,self.resseqnum2)
+                return 'patch SA26AT {}:{} {}:{}\n'.format(self.segname1,self.resseqnum1,self.segname2,self.resseqnum2)
                 pass
             else:
                 return '### patch unknown for '+str(self)+'\n'

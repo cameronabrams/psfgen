@@ -5,6 +5,7 @@ _PDBResName123_={'A':'ALA','R':'ARG','N':'ASN','D':'ASP','C':'CYS','Q':'GLN','E'
                'H':'HSE','I':'ILE','L':'LEU','K':'LYS','M':'MET','F':'PHE','P':'PRO','S':'SER',
                'T':'THR','W':'TRP','Y':'TYR','V':'VAL'}
 _ResNameDict_PDB_to_CHARMM_={'HIS':'HSE','ZN':'ZN2','HOH':'TIP3','CL':'CLA','NAG':'BGNA','MAN':'AMAN','BMA':'BMAN','FUC':'AFUC','GAL':'BGAL','SIA':'ANE5AC', 'ANE5':'ANE5AC'}
+#_ResNameDict_PDB_to_CHARMM_={'HIS':'HSE','ZN':'ZN2','HOH':'TIP3','CL':'CLA','NAG':'BGLC','MAN':'AMAN','BMA':'BMAN','FUC':'AFUC','GAL':'BGAL','SIA':'ANE5AC', 'ANE5':'ANE5AC'}
 _ResNameDict_CHARMM_to_PDB_={v:k  for k,v in _ResNameDict_PDB_to_CHARMM_.items()}
 
 def ResnameCharmify(nm):
