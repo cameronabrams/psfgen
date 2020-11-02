@@ -18,7 +18,7 @@ class Biomolecule:
        self.fe_units='None'
        self.chains=[]
        if 'IDENTITY' in pdbrecord:
-           print('#### identity biomt requested')
+           #print('#### identity biomt requested')
            self.index=1
            self.biomt.append(BiomT())
     def parsePDBrecordwords(self,words):

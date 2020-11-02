@@ -354,7 +354,7 @@ class Molecule:
             self.Biomolecules.append(Biomolecule('IDENTITY'))
             for c in chainIDs_detected:
                 self.Biomolecules[0].chains.append(c)
-            print('#### added identity biomt to pdb without any',self.Biomolecules[0].chains)
+            #print('#### added identity biomt to pdb without any',self.Biomolecules[0].chains)
         for b in self.Biomolecules:
             for c in b.chains:
                 for t in b.biomt:
@@ -548,9 +548,9 @@ class Molecule:
         Loops=[]
         for c in self.Chains.values():
             if c.chainID not in userIgnoreChains:
-                print('#### segmentifying chain {}'.format(c.chainID))
+                #print('#### segmentifying chain {}'.format(c.chainID))
                 b=self.GetBiomoleculeByChain(c.chainID)
-                print('#### Chain {} is claimed by Biomolecule {}'.format(c.chainID,b.index))
+                #print('#### Chain {} is claimed by Biomolecule {}'.format(c.chainID,b.index))
                 c.MakeSegments(self.Links,Mutations=userMutations,Grafts=userGrafts,Attachments=userAttach)
                 for s in c.Segments:
                     for t in b.biomt:
