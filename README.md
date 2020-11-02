@@ -3,7 +3,7 @@
 This repository contains psfgen scripts, TcL scripts for use in VMD, and some associated CHARMM36 topology and parameter files and NAMD config files used to generate _initial conditions_ for production MD simulations of various systems.  It should be helpful to anyone already familiar with using [psfgen](https://www.ks.uiuc.edu/Research/vmd/plugins/psfgen) to build systems using CHARMM topologies who also needs access to some more advanced system-building capabilities than are available in the [psfgen tutorial](https://www.ks.uiuc.edu/Research/namd/tutorial/NCSA2002/hands-on).  It is strongly recommended that users have familiarity with the psfgen plugin via the excellent [user guide](https://www.ks.uiuc.edu/Research/vmd/plugins/psfgen/ug.pdf). Some of the features this repository provides beyond what psfgen can easily do are the following:
 
 * support for rudimentary loop model-building to include residues missing in a PDB file but present in the crystallized protein sequence;
-* support for glycans and non-covalently linked sugars and other ligands;
+* support for glycans and non-covalently linked sugars and other ligands, including grafting
 * integration between solvation and initial MD simulation config file (easy transfer of box size);
 * support for down-puckered prolines;
 * de-novo membrane-building using packmol
@@ -14,20 +14,37 @@ The repository is being updated continuously.  Issue `git pull` in your local co
 
 ## Requirements
 
-1. NAMD v. 2.13.  Set environment variables CHARMRUN and NAMD2 to point to your system's `charmrun` and `namd2`; examples (in `~/.bashrc`):
+1. Software:
+
+* NAMD v. 2.13 or higher.
+* VMD 1.9.3 or higher.
+* Python 3.x
+* packmol
+* swig, tcl, and tcl headers/devel
+* gcc
+
+2. [CHARMM36 topologies and parameters](http://mackerell.umaryland.edu/charmm_ff.shtml#charmm)
+
+## Instructions
+
+1. Clone this repository; if you do this from your home directory, then you will have the `~/psfgen` directory in your home directory.
+
+2. Set environment variables in `~/.bashrc` (adjust pathnames as necessary):
 ```
+export PSFGEN_BASEDIR=${HOME}/psfgen
 export CHARMRUN=${HOME}/namd/NAMD_2.13_Source/Linux-x86_64-g++/charmrun
 export NAMD2=${HOME}/namd/NAMD_2.13_Source/Linux-x86_64-g++/namd2
 ```
-2. VMD v. 1.8.3
-3. CHARMM36 topologies and parameters (toppar_c36_jul16.tgz is the version used here) unpacked in ${HOME}/charmm/toppar
-4. packmol
-5. tcl, tcl-devel, and swig
-6. This repository cloned into a local directory and pointed to by the environment variable PSFGEN_BASEDIR; for example, in `~/.bashrc`,
+
+3. Put CHARMM36 parameters in `~/charmm/toppar`:
 ```
-export PSFGEN_BASEDIR=/home/myusername/psfgen
+cd ${HOME}/charmm
+tar zxf toppar_c36_jul20.tgz
+ln -s toppar_c36_jul20 toppar
 ```
-7. A locally compiled `bondstruct.so` module for the loop Monte Carlo procedures.  To build this:
+Note: you should use the `toppar_water_ions.str` in the $PSFGEN_BASEDIR/charmm directory rather than `toppar_water_ions.str` in $HOME/charmm/toppar for systems with explicit waters and/or ions to avoid input errors for NAMD.  This `toppar_water_ions.str` was generating by commenting out lines that offend NAMD from the July 2020 version of `toppar_water_ions.str`.
+
+4. Compile the `bondstruct.so` module for the loop Monte Carlo procedures.  To build this:
 
 ```
 $ cd $PSFGEN_BASEDIR
@@ -36,7 +53,7 @@ $ cd src
 $ make bondstruct.so
 ```
 
-8. Add the following to your `~/.vmdrc` file:
+5. Add the following line to the end of your `~/.vmdrc` file:
 ```
 source $env(PSFGEN_BASEDIR)/scripts/vmdrc.tcl
 ```
