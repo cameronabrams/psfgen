@@ -215,7 +215,7 @@ tar zvcf prod.tgz $CURRPSF \
                   config${TASK}_stage${s}.coor \
                   config${TASK}_stage${s}.vel \
                   config${TASK}_stage${s}.xsc \
-                  `cat par.inp` \
+                  `cat par.inp | awk '{print $2}'` \
                   prod.namd
 
 rm namd_header* cell.inp par.inp *restart*
