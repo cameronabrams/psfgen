@@ -17,18 +17,38 @@
 #
 if [[ -z "${VMD}" ]]; then
     VMD=/opt/vmd/1.9.4a38/bin/vmd
+    if [[ ! -f $VMD ]]; then
+        echo "No vmd found at $VMD"
+        exit
+    fi
 fi
 if [[ -z "${CHARMRUN}" ]]; then
     CHARMRUN=${HOME}/namd/NAMD_2.14_Source/Linux-x86_64-g++/charmrun
+    if [[ ! -f $CHARMRUN ]]; then
+        echo "No charmrun found at $CHARMRUN"
+        exit
+    fi
 fi
 if [[ -z "${NAMD2}" ]]; then
     NAMD2=${HOME}/namd/NAMD_2.14_Source/Linux-x86_64-g++/namd2
+    if [[ ! -f $NAMD2 ]]; then
+        echo "No namd2 found at $NAMD2"
+        exit
+    fi
 fi
 if [[ -z "${PSFGEN_BASEDIR}" ]]; then
     PSFGEN_BASEDIR=${HOME}/research/psfgen
 fi
 if [[ -z "${PYTHON3}" ]]; then
-    PYTHON3=${HOME}/anaconda3/bin/python3
+    if [[ -f /usr/bin/python3 ]]; then
+        PYTHON3=/usr/bin/python3
+    else
+        PYTHON3=${HOME}/anaconda3/bin/python3
+    fi
+    if [[ ! -f $PYTHON3 ]]; then
+        echo "No python3 found at $PYTHON3"
+        exit
+    fi
 fi
 if [[ -z "${PYPARSER}" ]]; then
     PYPARSER=${PSFGEN_BASEDIR}/scripts/cfapdbparse/cfapdbparse.py
