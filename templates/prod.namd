@@ -4,6 +4,7 @@ set temperature %TEMPERATURE%
 set outputname %OUT%
 
 paraTypeCharmm      on
+%PARAMETERS%
 
 exclude             scaled1-4
 1-4scaling          1.0
