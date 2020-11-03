@@ -219,5 +219,5 @@ tar zvcf prod.tgz $CURRPSF \
                   prod.namd
 
 rm namd_header* cell.inp par.inp *restart*
-echo "Done.  Created prod.tgz.'
+echo "Done.  Created prod.tgz."
 
