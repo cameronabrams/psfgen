@@ -27,25 +27,30 @@ The repository is being updated continuously.  Issue `git pull` in your local co
 
 ## Instructions
 
-1. Clone this repository; if you do this from your home directory, then you will have the `~/psfgen` directory in your home directory.
+1. Clone this repository; if you do this from your home directory, then this creates the `~/psfgen` directory.
 
 2. Set environment variables in `~/.bashrc` (adjust pathnames as necessary):
 ```
 export PSFGEN_BASEDIR=${HOME}/psfgen
-export CHARMRUN=${HOME}/namd/NAMD_2.13_Source/Linux-x86_64-g++/charmrun
-export NAMD2=${HOME}/namd/NAMD_2.13_Source/Linux-x86_64-g++/namd2
+export CHARMRUN=${HOME}/namd/NAMD_2.14_Source/Linux-x86_64-g++/charmrun
+export NAMD2=${HOME}/namd/NAMD_2.14_Source/Linux-x86_64-g++/namd2
 ```
+
+You can also set the variable `VMD` to point to a specific VMD executable if it is not in your path.
 
 3. Put CHARMM36 parameters in `~/charmm/toppar`:
 ```
-cd ${HOME}/charmm
+mkdir ~/charmm
+cd ~/charmm
 tar zxf toppar_c36_jul20.tgz
 ln -s toppar_c36_jul20 toppar
 ```
 
+If you put them somewhere else, use the environment variable `TOPPARDIR` in your `~\.bashrc` to specify.
+
 CHARMM topologies are used in the workflow steps in which PSF files are generated, and CHARMM parameters are used during NAMD simulations.  At least two files are incompatible with VMD/psfgen: `toppar_water_ions.str` and `top_all36_carb.rtf`.  Slightly modified versions of these two files appear in the $PSFGEN_BASEDIR/charmm directory.  These are based on the July 2020 version of CHARMM force field.
 
-4. Compile the `bondstruct.so` module for the loop Monte Carlo procedures.  To build this:
+4. Compile the `bondstruct.so` module for the loop-minimizing Monte Carlo:
 
 ```
 $ cd $PSFGEN_BASEDIR
