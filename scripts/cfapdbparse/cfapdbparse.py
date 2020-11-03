@@ -90,7 +90,7 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops):
 
 def WriteHeaders(fp,charmm_topologies,local_topologies):
     fp.write('if {![info exists PSFGEN_BASEDIR]} {\n'+\
-	  '    if {[info exists env(PSFGEN_BASEDIR]} {\n'+\
+	  '    if {[info exists env(PSFGEN_BASEDIR)]} {\n'+\
 	  '        set PSFGEN_BASEDIR $env(PSFGEN_BASEDIR)\n'+\
 	  '    } else {\n'+\
 	  '        set PSFGEN_BASEDIR $env(HOME)/research/psfgen\n'+\
@@ -98,7 +98,7 @@ def WriteHeaders(fp,charmm_topologies,local_topologies):
 	  '}\n'+
           'set LOCAL_TOPPARDIR $PSFGEN_BASEDIR/charmm\n')
     fp.write('if {![info exists CHARMM_TOPPARDIR]} {\n'+\
-	  '    if {[info exists env(CHARMM_TOPPARDIR]} {\n'+\
+	  '    if {[info exists env(CHARMM_TOPPARDIR)]} {\n'+\
 	  '        set TOPPARDIR $env(CHARMM_TOPPARDIR)\n'+\
 	  '    } else {\n'+\
 	  '        set TOPPARDIR $env(HOME)/charmm/toppar\n'+\

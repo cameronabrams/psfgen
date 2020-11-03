@@ -45,6 +45,7 @@ seed=$RANDOM
 temperature=310
 numsteps=(20000)
 pyparser_args=()
+PRODUCTION_STEPS=10000000
 while [ $i -le $ARGC ] ; do
   if [ "${!i}" = "-pdb" ]; then
     i=$((i+1))
@@ -82,6 +83,10 @@ while [ $i -le $ARGC ] ; do
   if [ "${!i}" = "-python3-path" ]; then
     i=$((i+1))
     PYTHON3=${!i}
+  fi
+  if [ "${!i}" = "-production-steps" ]; then
+    i=$((i+1))
+    PRODUCTION_STEPS=${!i}
   fi
   i=$((i+1))
 done
@@ -159,14 +164,15 @@ firsttimestep=0
 ls=`echo "${#numsteps[@]} - 1" | bc`
 for s in `seq 0 $ls`; do
     echo "          -> Running namd2 (stage $s) on solvated system..."
+    lastnamd=run${TASK}_stage${s}.namd
     cat namd_header.${TASK}-$s $PSFGEN_BASEDIR/templates/solv.namd | \
         sed s/%STAGE%/${s}/g | \
         sed s/%OUT%/config${TASK}_stage${s}/g | \
         sed s/%NUMSTEPS%/${numsteps[$s]}/g | \
         sed s/%SEED%/${seed}/g | \
         sed s/%TEMPERATURE%/${temperature}/g | \
-        sed s/%FIRSTTIMESTEP%/$firsttimestep/g > run${TASK}_stage${s}.namd
-    $CHARMRUN +p${NPE} $NAMD2 run${TASK}_stage${s}.namd > run${TASK}_stage${s}.log
+        sed s/%FIRSTTIMESTEP%/$firsttimestep/g > $lastnamd 
+    $CHARMRUN +p${NPE} $NAMD2 $lastname > run${TASK}_stage${s}.log
     firsttimestep=`echo "100 + $firsttimestep + ${numsteps[$s]}" | bc`
     ss=$((s+1))
     cp namd_header.${TASK} namd_header.${TASK}-$ss
@@ -175,11 +181,11 @@ for s in `seq 0 $ls`; do
     echo "extendedsystem config${TASK}_stage${s}.xsc"  >> namd_header.${TASK}-$ss
 done
 
-${PSFGEN_BASEDIR}/scripts/cp_charmm.sh namd_header.${TASK}-$ss
+${PSFGEN_BASEDIR}/scripts/cp_charmm.sh $lastnamd
 firsttimestep=0
 cat namd_header.${TASK}-$ss $PSFGEN_BASEDIR/templates/prod.namd | \
     sed s/%OUT%/prod/g | \
-    sed s/%NUMSTEPS%/10000000/g | \
+    sed s/%NUMSTEPS%/$PRODUCTION_STEPS/g | \
     sed s/%SEED%/${seed}/g | \
     sed s/%TEMPERATURE%/${temperature}/g | \
     sed -e '/%PARAMETERS%/{r par.inp' -e 'd}' > prod.namd
@@ -188,10 +194,10 @@ tar zvcf prod.tgz $CURRPSF \
                   $CURRPDB \
                   config${TASK}_stage${s}.coor \
                   config${TASK}_stage${s}.vel \
-                  conf${TASK}_stage${s}.xsc \
-                  `echo par.inp` \
+                  config${TASK}_stage${s}.xsc \
+                  `cat par.inp` \
                   prod.namd
 
-rm namd_header* cell.inp par.inp
+rm namd_header* cell.inp par.inp *restart*
 echo "Done.  Created prod.tgz.'
 
