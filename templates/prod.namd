@@ -1,21 +1,9 @@
 seed      %SEED%
-set STAGE %STAGE%
 set temperature %TEMPERATURE%
-if { $STAGE == "0" } {
-  temperature $temperature
-}
 
 set outputname %OUT%
 
 paraTypeCharmm      on
-
-parameters $env(HOME)/charmm/toppar/par_all36_prot.prm
-parameters $env(HOME)/charmm/toppar/par_all36_carb.prm
-parameters $env(HOME)/charmm/toppar/par_all36_lipid.prm
-parameters $env(HOME)/charmm/toppar/par_all36_na.prm
-parameters $env(HOME)/charmm/toppar/par_all36_cgenff.prm
-parameters $env(HOME)/charmm/toppar/stream/carb/toppar_all36_carb_glycopeptide.str
-parameters $env(PSFGEN_BASEDIR)/charmm/toppar_water_ions.str
 
 exclude             scaled1-4
 1-4scaling          1.0
@@ -29,9 +17,6 @@ rigidbonds      all
 PME on
 pmegridspacing 1.0
 
-if { $STAGE == "0" } {
-  source cell.inp
-}
 wrapall on
 
 nonbondedFreq       1
@@ -53,15 +38,10 @@ langevinpistontemp      $temperature
 usegrouppressure        yes
 useflexiblecell         no
 
-outputEnergies      10
-dcdfreq             1000
-restartfreq         1000
+outputEnergies      100
+dcdfreq             10000
+restartfreq         10000
 
-if { $STAGE > 0 } {
-  firsttimestep %FIRSTTIMESTEP%
-} else {
-  minimize 100
-}
 run %NUMSTEPS%
 
 
