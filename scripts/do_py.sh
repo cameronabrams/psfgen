@@ -172,7 +172,7 @@ for s in `seq 0 $ls`; do
         sed s/%SEED%/${seed}/g | \
         sed s/%TEMPERATURE%/${temperature}/g | \
         sed s/%FIRSTTIMESTEP%/$firsttimestep/g > $lastnamd 
-    $CHARMRUN +p${NPE} $NAMD2 $lastname > run${TASK}_stage${s}.log
+    $CHARMRUN +p${NPE} $NAMD2 $lastnamd > run${TASK}_stage${s}.log
     firsttimestep=`echo "100 + $firsttimestep + ${numsteps[$s]}" | bc`
     ss=$((s+1))
     cp namd_header.${TASK} namd_header.${TASK}-$ss
