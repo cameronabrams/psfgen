@@ -144,6 +144,8 @@ cosolvent
 
 38. [2WAH](http://www.rcsb.org/pdb/explore/explore/explore.do?structureID=2wah) -- An IgG1 Fc Glycoform (MAN9GLCNAC2)
 
+39. [5X58](http://www.rcsb.org/pdb/explore/explore.do?structureID=5x58) -- Soluble, stabilized trimeric SARS-CoV-1 S spike protein complex, closed
+
 More to come...
 
 ## Acknowledgments

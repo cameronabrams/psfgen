@@ -26,6 +26,6 @@ The `do_py.sh` script executes a series of tasks, beginning with downloading the
 
 In this particular case, the driver runs two parser instances in series, indicated by the two `-pyparser-args` arguments.  The first will add missing loops and graft on glycans, and the second executes the cleavage at the furin site.  Five stages of solvated equilibration are requested (which helps with patch-grid errors as the box size equilibrates).  The 2wah, 4yh, and 4b7i PDB entries contain large glycans that are grafted according to the graft records in `grafts.inp`.
 
-The glycans are assigned according to [Watanabe et al.](https://science.sciencemag.org/content/369/6501/330).
+The glycans are assigned according to [Watanabe et al.](https://science.sciencemag.org/content/369/6501/330) with glycans classified as "complex" represented by the glycan in 4byh, "hybrid" with 4b7i, and oligomannose with 2wah.
 
 2017-2020, Cameron F Abrams  cfa22@drexel.edu
