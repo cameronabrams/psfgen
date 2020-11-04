@@ -77,7 +77,7 @@ class Molecule:
                     self.ParseExpDta(line)
         if 'CHARMM' in self.keywords:
             self.source='CHARMM'
-        #print('### Read {:d} pdbrecords from {:s}'.format(len(self.RawPDB),pdb))
+        print('### Read {:d} pdbrecords from {:s}'.format(len(self.RawPDB),pdb))
         self.MakeBiomolecules()
         self.MakeResidues()
         self.MakeChains()
@@ -413,7 +413,7 @@ class Molecule:
             for b in self.Biomolecules:
                 for t in b.biomt:
                     if not t.isidentity():
-                        print('#### we are replicating SSBONDS!')
+                        #print('#### we are replicating SSBONDS!')
                         for ss in self.SSBonds:
                             newc1=t.get_replica_chainID(ss.chainID1)
                             newc2=t.get_replica_chainID(ss.chainID2)
