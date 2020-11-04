@@ -8,6 +8,7 @@ from ssbond import SSBond
 from graft import Graft
 from crot import Crot
 from attach import Attach
+from link import Link
 from atom import _PDBAtomNameDict_
 from residue import Residue, _PDBResName123_, _pdb_glycans_, _pdb_ions_, _ResNameDict_PDB_to_CHARMM_, _ResNameDict_CHARMM_to_PDB_, get_residue
 import argparse
@@ -160,7 +161,7 @@ if __name__=='__main__':
     PostMod['do_loop_mc']=False
     PostMod['Crot']=[]
 
-    parser.add_argument('pdb',nargs='+',metavar='<?.pdb>',type=Molecule,help='name(s) of pdb file to parse; first is treated as the base molecule; others are not considered (for now)')
+    parser.add_argument('pdb',nargs='+',metavar='<?.pdb>',type=str,help='name(s) of pdb file to parse; first is treated as the base molecule; others are not considered (for now)')
     parser.add_argument('-topo',metavar='<name>',action='append',default=[],help='additional CHARMM topology files')
     parser.add_argument('-prefix',metavar='<str>',default='x01_',help='output PDB/PSF prefix; each file name will have the format <prefix><pdbcode>.pdb/psf, where <pdbcode> is the 4-letter PDB code of the base molecule.')
     parser.add_argument('-psfgen',metavar='<name>',default='mkpsf.tcl',help='name of TcL script generated as input to VMD/psfgen')
@@ -177,6 +178,8 @@ if __name__=='__main__':
     parser.add_argument('-crotfile',metavar='<name>',default='',help='input file listing all torsion rotations requested (as an alternative to issuing multiple -crot arguments)')
     parser.add_argument('-ssbond',metavar='X_###-Y_###',default=[],action='append',type=SSBond,help='Specify a disulfide bond not in the PDB file; X,Y are chainIDs and ### are resids; if residues are not CYS in wt or by mutations, there is no effect.  Because SSBonds can join chains together, they are NOT automatially replicated if there are BIOMT transformations.')
     parser.add_argument('-ssfile',metavar='<name>',default='',help='input file listing all disulfide bonds to add that are not already in the PDB file (as an alternative to issuing multiple -ssbond arguments)')
+    parser.add_argument('-link',metavar='string',default=[],action='append',type=Link,help='PDB-format LINK record; must have exact spacing')
+    parser.add_argument('-linkfile',metavar='<name>',default='',help='input file with PDB-format LINK records the user would like to enforce that are not in the RCSB PDB file')
     # booleans
     parser.add_argument('-rmi',action='store_true',help='asks psfgen to use the loopMC module to relax modeled-in loops of residues missing from PDB')
     parser.add_argument('-kc',action='store_true',help='ignores SEQADV records indicating conflicts; if unset, residues in conflict are mutated to their proper identities')
@@ -196,6 +199,7 @@ if __name__=='__main__':
     Gra=MrgCmdLineAndFileContents(args.gra,args.grafile,Graft)
     Att=MrgCmdLineAndFileContents(args.att,args.attfile,Attach)
     Uss=MrgCmdLineAndFileContents(args.ssbond,args.ssfile,SSBond)
+    Usl=MrgCmdLineAndFileContents(args.link,args.linkfile,Link)
     UIC=args.ignore
     if len(args.topo)>0:
         CTopo.extend(args.topo)
@@ -211,7 +215,11 @@ if __name__=='__main__':
         PostMod['center_protein']=True
         PostMod['reorselstr']=args.ror.split(',')
 
-    Molecules=args.pdb
+    PDBfiles=args.pdb
+    Molecules=[]
+    Molecules.append(Molecule(PDBfiles[0],userLinks=Usl,userSSBonds=Uss))
+    for p in PDBfiles[1:]:
+        Molecules.append(Molecule(p))
     Base=Molecules[0]
     Base.summarize()
 

@@ -20,7 +20,7 @@ class Molecule:
         _molidcounter_+=1
         fp.write(self.psfgen_loadstr+'\n')
         
-    def __init__(self,pdb,isgraft=False):
+    def __init__(self,pdb,isgraft=False,userLinks=[],userSSBonds=[]):
         self.source='RCSB' # default assume this is an actual PDB file from the RCSB
         self.molid=-1
         self.molid_varname='UNREGISTERED'
@@ -30,9 +30,9 @@ class Molecule:
         self.title=[]
         self.pdb=pdb
         self.Atoms=[]
-        self.Links=[]
+        self.Links=userLinks
         self.Chains={} # keyed by chain id 'A', 'B', 'C', etc.
-        self.SSBonds=[]
+        self.SSBonds=userSSBonds
         self.MissingRes=[]
         self.Seqadv=[]
         self.Biomolecules=[]

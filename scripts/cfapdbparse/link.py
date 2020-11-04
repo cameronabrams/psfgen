@@ -2,7 +2,7 @@ from segment import _seg_class_
 from residue import get_residue,get_atom
 
 class Link:
-    def __init__(self,pdbrecord=[]):
+    def __init__(self,pdbrecord=''):
         self.pdbrecord=pdbrecord
 # 1 -  6         Record name    "LINK  "
         if len(pdbrecord)>0:

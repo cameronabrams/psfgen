@@ -73,7 +73,7 @@ class Segment:
         self.attach=''
         self.pdbfiles=[]
         if _seg_class_[r.name]=='GLYCAN':
-            #print(self.segname,r.name,r.resseqnum)
+            #print(self.segname,r.name,r.resseqnum,r.up)
             self.rootres=r.up[0]
         r.segname=self.segname
         for a in r.atoms:
