@@ -31,6 +31,7 @@ class Molecule:
         self.pdb=pdb
         self.Atoms=[]
         self.Links=userLinks
+        print('#### {} userlinks'.format(len(userLinks)))
         self.Chains={} # keyed by chain id 'A', 'B', 'C', etc.
         self.SSBonds=[]
         self.MissingRes=[]
