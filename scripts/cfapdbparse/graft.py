@@ -47,7 +47,7 @@ class Graft:
                 self.target_chain=target_chain_res[0]
                 self.target_res,self.target_ins=get_ra(target_chain_res[1]) 
                 print('#### reading {}'.format(self.source_pdb))
-                self.molecule=Molecule(self.source_pdb,isgraft=True)
+                self.molecule=Molecule(self.source_pdb,isgraft=True,userLinks=[])
                 m=self.molecule
                 print('#### finshed reading {} into {} -- {} links'.format(self.source_pdb,self.molecule,len(m.Links)))
                 for c in m.Chains.values():
