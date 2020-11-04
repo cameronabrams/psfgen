@@ -20,7 +20,7 @@ class Molecule:
         _molidcounter_+=1
         fp.write(self.psfgen_loadstr+'\n')
         
-    def __init__(self,pdb,isgraft=False,userLinks=[],userSSBonds=[]):
+    def __init__(self,pdb,isgraft=False,userLinks=[]):
         self.source='RCSB' # default assume this is an actual PDB file from the RCSB
         self.molid=-1
         self.molid_varname='UNREGISTERED'
@@ -32,7 +32,7 @@ class Molecule:
         self.Atoms=[]
         self.Links=userLinks
         self.Chains={} # keyed by chain id 'A', 'B', 'C', etc.
-        self.SSBonds=userSSBonds
+        self.SSBonds=[]
         self.MissingRes=[]
         self.Seqadv=[]
         self.Biomolecules=[]
@@ -406,12 +406,14 @@ class Molecule:
              nseg+=len(c.Segments)
         print('### Created {} segments.'.format(nseg))
     def MakeSSBonds(self):
+        print('#### MakeSSBonds is working with {} bonds'.format(len(self.SSBonds)))
         ''' we need to replicate all SSBOND across new chains in the list of Biomolecules '''
         if len(self.Biomolecules)>0:
             newssbonds=[]
             for b in self.Biomolecules:
                 for t in b.biomt:
                     if not t.isidentity():
+                        print('#### we are replicating SSBONDS!')
                         for ss in self.SSBonds:
                             newc1=t.get_replica_chainID(ss.chainID1)
                             newc2=t.get_replica_chainID(ss.chainID2)
@@ -421,6 +423,7 @@ class Molecule:
                                 bb.chainID2=newc2
                                 newssbonds.append(bb)
             self.SSBonds.extend(newssbonds)
+        print('#### MakeSSBonds finishes with {} bonds.'.format(len(self.SSBonds)))
  
     def MakeLinks(self):
         ''' Set all up and down links in residues participating in links '''

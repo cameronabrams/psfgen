@@ -217,7 +217,7 @@ if __name__=='__main__':
 
     PDBfiles=args.pdb
     Molecules=[]
-    Molecules.append(Molecule(PDBfiles[0],userLinks=Usl,userSSBonds=Uss))
+    Molecules.append(Molecule(PDBfiles[0],userLinks=Usl))
     for p in PDBfiles[1:]:
         Molecules.append(Molecule(p))
     Base=Molecules[0]
