@@ -31,7 +31,7 @@ class Molecule:
         self.pdb=pdb
         self.Atoms=[]
         self.Links=userLinks
-        print('#### {} userlinks'.format(len(userLinks)))
+        #print('#### {} userlinks'.format(len(userLinks)))
         self.Chains={} # keyed by chain id 'A', 'B', 'C', etc.
         self.SSBonds=[]
         self.MissingRes=[]
@@ -78,7 +78,7 @@ class Molecule:
                     self.ParseExpDta(line)
         if 'CHARMM' in self.keywords:
             self.source='CHARMM'
-        print('### Read {:d} pdbrecords from {:s}'.format(len(self.RawPDB),pdb))
+        #print('### Read {:d} pdbrecords from {:s}'.format(len(self.RawPDB),pdb))
         self.MakeBiomolecules()
         self.MakeResidues()
         self.MakeChains()

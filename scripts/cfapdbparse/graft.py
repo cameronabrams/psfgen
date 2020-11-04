@@ -46,14 +46,14 @@ class Graft:
                     print('ERROR: Malformed graft source subargument: {}'.format(source_chain_res))
                 self.target_chain=target_chain_res[0]
                 self.target_res,self.target_ins=get_ra(target_chain_res[1]) 
-                print('#### reading {}'.format(self.source_pdb))
+                #print('#### reading {}'.format(self.source_pdb))
                 self.molecule=Molecule(self.source_pdb,isgraft=True,userLinks=[])
                 m=self.molecule
-                print('#### finshed reading {} into {} -- {} links'.format(self.source_pdb,self.molecule,len(m.Links)))
+                #print('#### finshed reading {} into {} -- {} links'.format(self.source_pdb,self.molecule,len(m.Links)))
                 for c in m.Chains.values():
-                    print('#### {} sort_residues()'.format(c.chainID))
+                    #print('#### {} sort_residues()'.format(c.chainID))
                     c.sort_residues()
-                    print('#### {} MakeSegments(), {} links'.format(c.chainID,len(m.Links)))
+                    #print('#### {} MakeSegments(), {} links'.format(c.chainID,len(m.Links)))
                     c.MakeSegments(m.Links)
                 if self.source_chain in m.Chains:
                     c=m.Chains[self.source_chain]
