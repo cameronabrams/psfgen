@@ -73,7 +73,9 @@ class Segment:
         self.attach=''
         self.pdbfiles=[]
         if _seg_class_[r.name]=='GLYCAN':
-            #print(self.segname,r.name,r.resseqnum,r.up)
+            if len(r.up)==0:
+                print('ERROR: {}:{}{} has no uplink in PDB file.  You may need to add one to a user-link input.'.format(self.segname,r.name,r.resseqnum))
+                exit()
             self.rootres=r.up[0]
         r.segname=self.segname
         for a in r.atoms:
