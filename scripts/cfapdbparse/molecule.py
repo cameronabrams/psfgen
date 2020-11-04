@@ -406,7 +406,7 @@ class Molecule:
              nseg+=len(c.Segments)
         print('### Created {} segments.'.format(nseg))
     def MakeSSBonds(self):
-        print('#### MakeSSBonds is working with {} bonds'.format(len(self.SSBonds)))
+        #print('#### MakeSSBonds is working with {} bonds'.format(len(self.SSBonds)))
         ''' we need to replicate all SSBOND across new chains in the list of Biomolecules '''
         if len(self.Biomolecules)>0:
             newssbonds=[]
@@ -423,7 +423,7 @@ class Molecule:
                                 bb.chainID2=newc2
                                 newssbonds.append(bb)
             self.SSBonds.extend(newssbonds)
-        print('#### MakeSSBonds finishes with {} bonds.'.format(len(self.SSBonds)))
+       # print('#### MakeSSBonds finishes with {} bonds.'.format(len(self.SSBonds)))
  
     def MakeLinks(self):
         ''' Set all up and down links in residues participating in links '''
