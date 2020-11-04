@@ -48,8 +48,8 @@ class Graft:
                 self.target_res,self.target_ins=get_ra(target_chain_res[1]) 
                 print('#### reading {}'.format(self.source_pdb))
                 self.molecule=Molecule(self.source_pdb,isgraft=True)
-                print('#### finshed reading {} -- {} links'.format(self.source_pdb,len(m.Links)))
                 m=self.molecule
+                print('#### finshed reading {} into {} -- {} links'.format(self.source_pdb,m,len(m.Links)))
                 for c in m.Chains.values():
                     print('#### {} sort_residues()'.format(c.chainID))
                     c.sort_residues()
