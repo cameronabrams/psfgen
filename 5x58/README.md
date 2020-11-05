@@ -30,4 +30,10 @@ In this particular case, the driver runs a single parser instance, indicated by 
 
 The glycans are assigned according to [Walls et al.](https://doi.org/10.1016/j.cell.2018.12.028) with glycans classified as "complex" represented by the glycan in 4byh, "hybrid" with 4b7i, and oligomannose with 2wah.  Of particular note: Walls et al. only detected a NAG at N158, and a NAG is present at 158 in 5x58, so we do not graft onto that.  Also, N318 and N602 only showed glycans in their EM structures, not in the LC-MS/MS data; we assume these are complex.  We graft the glycan they detect at N1053 to the 5x58 N1056.  We currently do not graft any glycan to N589, or any N's above and including 1080.
 
+
+![A Rendering of the SARS-CoV-1 glycoprotein spike ectodomain](./5x58-yrot.gif)
+
+This animation shows a 360-degree rotation of the SARS-CoV-1 glycoprotein spike ectodomain after a short MD simulation.  White denotes glycans.
+
+
 2017-2020, Cameron F Abrams  cfa22@drexel.edu
