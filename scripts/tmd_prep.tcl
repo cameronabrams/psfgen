@@ -76,17 +76,57 @@ proc build_atom_select_strings { csl } {
     return $return_me
 }
 
+proc mapresids { shortcode &map } {
+     upvar 1 ${&map} arr
+    # set stringmap [array get arr]
+    # puts "stringmap $stringmap"
+#     puts "shortcode $shortcode"
+    # set newshortcode [string map $stringmap $shortcode]
+    # puts "newshortcode $newshortcode"
+     set myl [split $shortcode " "]
+#     puts "myl"
+     for {set i 0} {$i<[llength $myl]} {incr i} {
+	set rawwrd [lindex $myl $i]
+	set newwrd $rawwrd
+	set chrs [split $rawwrd ""]
+        set anum ""
+	set fst -1
+	set lst 0
+	for {set j 0} {$j<[llength $chrs]} {incr j} {
+	    set c [lindex $chrs $j]
+#	    puts -nonewline "-$c"
+	    if {[string is integer $c]} {
+                set anum "$anum$c"
+		if {$fst==-1} {
+		    set fst $j
+		}
+		set lst $j
+            }
+        }
+	if { $anum != "" } {
+	    set newwrd [string replace $rawwrd $fst $lst $arr($anum)]
+	    lset myl $i $newwrd
+#	    puts -nonewline "(anum $anum map $arr($anum))"
+        }
+#        puts -nonewline "|"
+     }
+#     puts ""
+     set newshortcode [join $myl " "]
+#     puts "newshortcode $newshortcode"
+     return $newshortcode
+}
+
 proc main { argv } {
     set seland "protein and backbone"
     set argc [llength $argv]
     for { set i 0 } { $i < $argc } { incr i } {
         if { [lindex $argv $i] == "--alignment-basis" } {
             incr i
-            set alb [build_atom_select_strings [lindex $argv $i]]
+            set albs [lindex $argv $i]
         }
         if { [lindex $argv $i] == "--target-sel" } {
             incr i
-            set tas [build_atom_select_strings [lindex $argv $i]]
+            set tass [lindex $argv $i]
         }
         if { [lindex $argv $i] == "--system" } {
             incr i
@@ -106,6 +146,15 @@ proc main { argv } {
             incr i
             set seland [lindex $argv $i]
         }
+        if { [lindex $argv $i] == "--map21" } {
+            incr i
+	    # argument is name of tcl script that defines
+	    # an associative array called "mymap"
+            source [lindex $argv $i]
+	    if { ! [info exists mymap] } {
+                puts "Error: [lindex $argv $i] does not define mymap.  No target resid renumbering is done."
+	    }
+        }
     }
     
     mol new $psf
@@ -113,7 +162,34 @@ proc main { argv } {
     set sys [molinfo top get id]
     mol new $tarpdb 
     set tar [molinfo top get id]
-
+    set alb [build_atom_select_strings $albs]
+    set tas [build_atom_select_strings $tass]
+    # if the system and target have different resid numbering, it is necessary to 
+    # map the target resids to their counterpart values in the system; we
+    # refer to this as a "21" mapping; "2" indicates target.  This involves
+    # changing resid values in the target pdb molecule and changing them
+    # in the atomselections against that molecule.
+    # For example, if the system is based on 5x58 and the target is 6vyb
+    # we will renumber the residues in the 6vyb molecule instance by asking
+    # what resid in 5x58 corresponds to a particular resid in 6vyb, or a 
+    # "6vyb-to-5x58" map.
+    if { [info exists mymap ] } {
+	# renumber resid's in the target pdb molecule
+	set newresid [list]
+	set tarall [atomselect $tar "protein"]
+	set oldresid [$tarall get resid]
+	foreach r $oldresid {
+	   lappend newresid $mymap($r)
+	}
+	puts "$newresid"
+	$tarall set resid $newresid
+	# change atomselection resids in the target alignment basis
+	set mapped [mapresids [lindex $alb 1] mymap]
+	lset alb 1 $mapped
+	# change atomselection resids in the target selection
+	set mapped [mapresids [lindex $tas 1] mymap]
+	lset tas 1 $mapped
+    }
     set tarall [atomselect $tar all]
     set taralb [atomselect $tar "$seland and ([lindex $alb 1])"]
     set sysalb [atomselect $sys "$seland and ([lindex $alb 0])"]
