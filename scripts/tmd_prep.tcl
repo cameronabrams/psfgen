@@ -78,13 +78,7 @@ proc build_atom_select_strings { csl } {
 
 proc mapresids { shortcode &map } {
      upvar 1 ${&map} arr
-    # set stringmap [array get arr]
-    # puts "stringmap $stringmap"
-#     puts "shortcode $shortcode"
-    # set newshortcode [string map $stringmap $shortcode]
-    # puts "newshortcode $newshortcode"
      set myl [split $shortcode " "]
-#     puts "myl"
      for {set i 0} {$i<[llength $myl]} {incr i} {
 	set rawwrd [lindex $myl $i]
 	set newwrd $rawwrd
@@ -94,7 +88,6 @@ proc mapresids { shortcode &map } {
 	set lst 0
 	for {set j 0} {$j<[llength $chrs]} {incr j} {
 	    set c [lindex $chrs $j]
-#	    puts -nonewline "-$c"
 	    if {[string is integer $c]} {
                 set anum "$anum$c"
 		if {$fst==-1} {
@@ -106,13 +99,9 @@ proc mapresids { shortcode &map } {
 	if { $anum != "" } {
 	    set newwrd [string replace $rawwrd $fst $lst $arr($anum)]
 	    lset myl $i $newwrd
-#	    puts -nonewline "(anum $anum map $arr($anum))"
         }
-#        puts -nonewline "|"
      }
-#     puts ""
      set newshortcode [join $myl " "]
-#     puts "newshortcode $newshortcode"
      return $newshortcode
 }
 
@@ -164,48 +153,54 @@ proc main { argv } {
     set tar [molinfo top get id]
     set alb [build_atom_select_strings $albs]
     set tas [build_atom_select_strings $tass]
-    # if the system and target have different resid numbering, it is necessary to 
-    # map the target resids to their counterpart values in the system; we
-    # refer to this as a "21" mapping; "2" indicates target.  This involves
-    # changing resid values in the target pdb molecule and changing them
-    # in the atomselections against that molecule.
-    # For example, if the system is based on 5x58 and the target is 6vyb
-    # we will renumber the residues in the 6vyb molecule instance by asking
-    # what resid in 5x58 corresponds to a particular resid in 6vyb, or a 
-    # "6vyb-to-5x58" map.
+
+    # Resid mapping:  in general it is assumed that the resid's in the
+    # shortcodes are in the same numbering scheme; in other words, the
+    # system and target have the same numbering.  If they do not,
+    # it should be assumed that the resids in the system shortcodes (which
+    # are alwasy to the LEFT of the colon) follow system numbering and
+    # resids in the target shortcodes follow the target numbering.  It is
+    # up the user to be sure the atomselections implied by the two
+    # shortcodes are congruent.
+    #
+    # In some cases in which the system and target have different numbering,
+    # and the user wishes to express all shortcodes in one numbering, the user
+    # must also supply a "mapping" so that atomselections built from the
+    # shortcodes indicate the correct resids for their respective molecules.
+    # For example, the shortcode "A_101-110:A_101-110" indicates resids 101 to 110
+    # on chain A both the system and target.  However, if this numbering 
+    # applies to the target but not to the system, the resids 101-110 on chain A
+    # will be translated to their corresponding numberings in the system by 
+    # the user-supplied map.
     if { [info exists mymap ] } {
-	# renumber resid's in the target pdb molecule
-	set newresid [list]
-	set tarall [atomselect $tar "protein"]
-	set oldresid [$tarall get resid]
-	foreach r $oldresid {
-	   lappend newresid $mymap($r)
-	}
-	puts "$newresid"
-	$tarall set resid $newresid
-	# change atomselection resids in the target alignment basis
-	set mapped [mapresids [lindex $alb 1] mymap]
-	lset alb 1 $mapped
-	# change atomselection resids in the target selection
-	set mapped [mapresids [lindex $tas 1] mymap]
-	lset tas 1 $mapped
+	set mapped [mapresids [lindex $alb 0] mymap]
+	lset alb 0 $mapped
+	set mapped [mapresids [lindex $tas 0] mymap]
+	lset tas 0 $mapped
     }
+    puts "System: $psf $cor"
+    puts "Target pdb: $tarpdb"
+    puts "Alignment basis: SYS([lindex $alb 0]) and TARG([lindex $alb 1])"
+    puts "Target selection: SYS([lindex $tas 0]) and TARG([lindex $tas 1])"
+
+    # perform an alignment-based move of the entire target
     set tarall [atomselect $tar all]
     set taralb [atomselect $tar "$seland and ([lindex $alb 1])"]
     set sysalb [atomselect $sys "$seland and ([lindex $alb 0])"]
-    puts "Alignment basis: SYS([lindex $alb 0]) and TARG([lindex $alb 1])"
-    puts "Target selection: SYS([lindex $tas 0]) and TARG([lindex $tas 1])"
-    puts "System: $psf $cor"
-    puts "Target pdb: $tarpdb"
-    puts "taralb num [$taralb num] sysalb num [$sysalb num]"
     $tarall move [measure fit $taralb $sysalb]
+
+    # copy target coordinates onto the system
     set sysrcv [atomselect $sys "$seland and ([lindex $tas 0])"]
     set targiv [atomselect $tar "$seland and ([lindex $tas 1])"]
-    puts "targiv num [$targiv num] sysrcv num [$sysrcv num]"
     $sysrcv set x [$targiv get x] 
     $sysrcv set y [$targiv get y] 
     $sysrcv set z [$targiv get z]
+
+    # zero occupancies for all but the target atoms
+    [atomselect $sys all] set occupancy 0
     $sysrcv set occupancy 1
+
+    # write the system-congruent output pdb
     [atomselect $sys all] writepdb $outpdb 
      
 }
