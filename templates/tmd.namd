@@ -1,0 +1,55 @@
+seed      %SEED%
+set temperature %TEMPERATURE%
+
+set outputname %OUT%
+
+paraTypeCharmm      on
+%PARAMETERS%
+
+exclude             scaled1-4
+1-4scaling          1.0
+cutoff              10.
+switching           on
+switchdist          9.
+pairlistdist        11.5
+timestep            2.0  ;
+rigidbonds      all
+
+PME on
+pmegridspacing 1.0
+
+wrapall on
+
+nonbondedFreq       1
+fullElectFrequency  2
+stepspercycle       10
+outputName          $outputname
+
+# Langevin Dynamics for T-control and P-control
+langevin                on;            # do langevin dynamics
+langevinDamping         5;              # damping coefficient (gamma) of 5/ps
+langevinTemp            $temperature;   # bath temperature
+langevinHydrogen        no;             # don't couple langevin bath to hydrogens
+
+langevinpiston          on
+langevinpistontarget    1.013  ;# 1-bar
+langevinpistonperiod    200
+langevinpistondecay     100
+langevinpistontemp      $temperature
+usegrouppressure        yes
+useflexiblecell         no
+
+outputEnergies      100
+dcdfreq             10000
+restartfreq         10000
+
+tmd on
+tmdk %TMDK%
+tmdoutputfreq 1000
+tmdfile %TMDFILE%
+tmdfirststep 0
+tmdlaststep %NUMSTEPS%
+
+run %NUMSTEPS%
+
+
