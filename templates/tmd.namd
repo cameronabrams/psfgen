@@ -1,6 +1,8 @@
 seed      %SEED%
 set temperature %TEMPERATURE%
 
+temperature $temperature
+
 set outputname %OUT%
 
 paraTypeCharmm      on

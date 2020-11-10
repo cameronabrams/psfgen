@@ -149,6 +149,16 @@ proc main { argv } {
     mol new $psf
     mol addfile $cor
     set sys [molinfo top get id]
+    mol new $psf
+    mol addfile $cor
+    set savsys [molinfo top get id]
+    # zero occupancies for all but the target atoms
+    set a1 [atomselect $sys "protein and backbone"]
+    set a2 [atomselect $savsys "protein and backbone"]
+    puts "[$a1 num] [$a2 num]"
+    [atomselect $sys all] set occupancy 0
+    $a1 set occupancy 1
+
     mol new $tarpdb 
     set tar [molinfo top get id]
     set alb [build_atom_select_strings $albs]
@@ -191,18 +201,19 @@ proc main { argv } {
 
     # copy target coordinates onto the system
     set sysrcv [atomselect $sys "$seland and ([lindex $tas 0])"]
+    set syssavx [$sysrcv get x]
+    set syssavy [$sysrcv get y]
+    set syssavz [$sysrcv get z]
     set targiv [atomselect $tar "$seland and ([lindex $tas 1])"]
     $sysrcv set x [$targiv get x] 
     $sysrcv set y [$targiv get y] 
     $sysrcv set z [$targiv get z]
 
-    # zero occupancies for all but the target atoms
-    [atomselect $sys all] set occupancy 0
-    $sysrcv set occupancy 1
-
     # write the system-congruent output pdb
     [atomselect $sys all] writepdb $outpdb 
-     
+    
+    set initrmsd [measure rmsd $a1 $a2]
+    puts "Initial RMSD: [format "%0.2f" $initrmsd] Angstroms."
 }
 
 main $argv
