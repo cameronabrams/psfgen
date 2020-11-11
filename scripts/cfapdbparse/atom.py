@@ -14,7 +14,7 @@ class Atom:
 #18 - 20        Residue name  resName      Residue name.
             self.resname=pdbrecord[17:21].strip() # modified for 4-char resnames
 #22             Character     chainID      Chain identifier.
-            self.chainID=pdbrecord[21:22]
+            self.chainID=pdbrecord[21:22]   # only one-character chain IDs are allowed
 #23 - 26        Integer       resSeq       Residue sequence number.
             self.resseqnum=int(pdbrecord[22:26])
 #27             AChar         iCode        Code for insertion of residues.

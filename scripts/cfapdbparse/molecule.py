@@ -9,6 +9,7 @@ from seqadv import Seqadv
 from mutation import Mutation
 from residue import Residue, _PDBResName123_, _pdb_glycans_, _pdb_ions_, _ResNameDict_PDB_to_CHARMM_, _ResNameDict_CHARMM_to_PDB_, get_residue
 from revdat import RevDat, FmtDat
+from CifFile import ReadCif
 _molidcounter_=0
 class Molecule:
     def load(self,fp):
@@ -20,18 +21,20 @@ class Molecule:
         _molidcounter_+=1
         fp.write(self.psfgen_loadstr+'\n')
         
-    def __init__(self,pdb,isgraft=False,userLinks=[]):
-        self.source='RCSB' # default assume this is an actual PDB file from the RCSB
+    def __init__(self,pdb='',cif='',isgraft=False,userLinks=[]):
+        self.source='RCSB' # default assume this is an actual PDB or CIF file from the RCSB
+        self.source_format='CIF' if cif!='' else 'PDB'
         self.molid=-1
         self.molid_varname='UNREGISTERED'
         self.RawPDB=[]
         self.keywords=[]
         self.modtyp=[]
-        self.title=[]
+        self.titlelines=[]
+        self.Title=''
         self.pdb=pdb
+        self.cif=cif
         self.Atoms=[]
         self.Links=userLinks
-        #print('#### {} userlinks'.format(len(userLinks)))
         self.Chains={} # keyed by chain id 'A', 'B', 'C', etc.
         self.SSBonds=[]
         self.MissingRes=[]
@@ -42,40 +45,47 @@ class Molecule:
         self.DBRef={} # outer dictionary referenced by chainID
         self.SeqRes={} # outer: chainID, inner: resnumber, value: resname(PDB)
         self.RevDat={}
-        with open(pdb) as pdbfile:
-            for line in pdbfile:
-                self.RawPDB.append(line)
-                if line[:4] == 'ATOM' or line[:6] == "HETATM":
-                    self.Atoms.append(Atom(line))
-                elif line[:4] == 'LINK':
-                    self.Links.append(Link(line))
-                elif line[:6] == 'CONECT':
-                    #self.Connect.append(Connect(line))
-                    pass
-                elif line[:6] == 'SSBOND':
-                    self.SSBonds.append(SSBond(line))
-                elif line[:6] == 'SEQADV':
-                    self.Seqadv.append(Seqadv(line))
-                elif line[:6] == 'REMARK':
-                    self.ParseRemark(line)
-                elif line[:5] == 'TITLE':
-                    self.ParseTitle(line)
-                elif line[:6] == 'KEYWDS':
-                    self.ParseKeywords(line)
-                elif line[:6] == 'MASTER':
-                    self.ParseMasterRecord(line)
-                elif line[:6] == 'HEADER':
-                    self.ParseHeader(line)
-                elif line[:6] == 'MDLTYP':
-                    self.ParseModelType(line)
-                elif line[:5] == 'DBREF':
-                    self.ParseDBRef(line)
-                elif line[:6] == 'SEQRES':
-                    self.ParseSeqRes(line)
-                elif line[:6] == 'REVDAT':
-                    self.ParseRevisionDate(line)
-                elif line[:6] == 'EXPDTA':
-                    self.ParseExpDta(line)
+        if pdb!='':
+            with open(pdb) as pdbfile:
+                for line in pdbfile:
+                    self.RawPDB.append(line)
+                    if line[:4] == 'ATOM' or line[:6] == "HETATM":
+                        self.Atoms.append(Atom(line))
+                    elif line[:4] == 'LINK':
+                        self.Links.append(Link(line))
+                    elif line[:6] == 'CONECT':
+                        #self.Connect.append(Connect(line))
+                        pass
+                    elif line[:6] == 'SSBOND':
+                        self.SSBonds.append(SSBond(line))
+                    elif line[:6] == 'SEQADV':
+                        self.Seqadv.append(Seqadv(line))
+                    elif line[:6] == 'REMARK':
+                        self.ParseRemark(line)
+                    elif line[:5] == 'TITLE':
+                        self.ParseTitle(line)
+                    elif line[:6] == 'KEYWDS':
+                        self.ParseKeywords(line)
+                    elif line[:6] == 'MASTER':
+                        self.ParseMasterRecord(line)
+                    elif line[:6] == 'HEADER':
+                        self.ParseHeader(line)
+                    elif line[:6] == 'MDLTYP':
+                        self.ParseModelType(line)
+                    elif line[:5] == 'DBREF':
+                        self.ParseDBRef(line)
+                    elif line[:6] == 'SEQRES':
+                        self.ParseSeqRes(line)
+                    elif line[:6] == 'REVDAT':
+                        self.ParseRevisionDate(line)
+                    elif line[:6] == 'EXPDTA':
+                        self.ParseExpDta(line)
+        else:
+            print('#### reading {}'.format(cif))
+            cf=ReadCif(cif)
+            print('#### done')
+            db=cf.first_block()
+            self.ParseCifDataBlock(db)
         if 'CHARMM' in self.keywords:
             self.source='CHARMM'
         #print('### Read {:d} pdbrecords from {:s}'.format(len(self.RawPDB),pdb))
@@ -85,13 +95,19 @@ class Molecule:
         self.MakeLinks()
         self.MakeSSBonds()
     def summarize(self):
-        print('File: {}, Source: {}'.format(self.pdb,self.source))
-        print('Title: {}'.format(self.TitleString()))
+        print('File: {}, Source: {}, Source format: {}'.format(self.pdb if self.source_format=='PDB' else self.cif,self.source,self.source_format))
+        print('Title: {}'.format(self.Title))
+        self.ShowKeywords()
         if self.source=='RCSB':
-            print('{}'.format(str(self.FmtDat)))
+            if self.source_format=='PDB':
+                print('{}'.format(str(self.FmtDat)))
+            else:
+                print('CIF Dict. version: {}'.format(self.cif_dict_version))
             print('Last revision: {}'.format(self.ShowRevisions(which='latest',justdates=True)))
             #print('All revisions: {}'.format(self.ShowRevisions(which='all',justdates=False)))
             print('Method: {}; Resolution: {} Ang.'.format(self.ExpDta,self.Resolution))
+            if len(self.Chains)>0:
+               print('Chains: {}'.format(", ".join(c.chainID for c in self.Chains.values())))
             print('Biomolecules:')
             for b in self.Biomolecules:
                 b.show()
@@ -143,24 +159,20 @@ class Molecule:
                     self.FmtDat=FmtDat(pdbrecord)
                 
     def ParseTitle(self,pdbrecord):
-        self.title.append(pdbrecord[10:80].strip())
-    def TitleString(self):
-        retstr=''
-        if len(self.title)>0:
-            for i,l in enumerate(self.title):
-                retstr+='{}{}'.format(l,' ' if i<len(self.title)-1 else '')
-        return retstr
-    def ShowTitle(self):
-        if len(self.title)>0:
+        short=pdbrecord[10:80].strip()
+        self.titlelines.append(short)
+        self.Title=short if len(self.Title)==0 else (self.Title+short)
+    def ShowTitleLines(self):
+        if len(self.titlelines)>0:
             print('### TITLE records:')
             for i,l in enumerate(self.title):
-                print('-> {:1s} {}'.format(' ' if i==0 else str(i),self.title[i]))
+                print('-> {:1s} {}'.format(' ' if i==0 else str(i),self.titlelines[i]))
         else:
             print('### {} contains no TITLE record'.format(self.pdb))
     def TitleRecord(self):
         retstr=''
-        if len(self.title)>0:
-           for i,l in enumerate(self.title):
+        if len(self.titlelines)>0:
+           for i,l in enumerate(self.titlelines):
                retstr+='TITLE   {}'.format(' ' if i==0 else str(i))+' {}\n'.format(l)
         return retstr
     def ParseKeywords(self,pdbrecord):
@@ -174,9 +186,7 @@ class Molecule:
             else:
                 self.keywords.append(k.strip())
     def ShowKeywords(self):
-        print('### Keywords:')
-        for k in self.keywords:
-            print('->   {}'.format(k))
+        print('Keywords: {}'.format(", ".join(self.keywords)))
     def KeywordsRecord(self):
         retstr=''
         if len(self.keywords)>0:
@@ -674,7 +684,7 @@ class Molecule:
                 #print(l.pdb_line())
                 #print(l.psfgen_patchline())
                 if l not in self.Links:
-                    print('ERRROR: In-situ link is not in-situ!')
+                    print('ERROR: In-situ link is not in-situ!')
             #print('#### The following Base links were removed:')
             for l in linksToRemove:
                 #print(l.pdb_line())
@@ -696,4 +706,28 @@ class Molecule:
         psfgen_script.write('exec cat {} {} > {}\n'.format(hdr,newpdb,_tmpfile_))
         psfgen_script.write('exec mv {} {}\n'.format(_tmpfile_,newpdb))
         psfgen_script.write('exec rm -f {}\n'.format(_tmpfile_))
+    def ParseCifDataBlock(self,db):
+        structs={}
+        for k in db.keys():
+            kk=k.split('.')
+            s=kk[0]
+            if s in structs:
+                i+=1
+                structs[s][kk[1]]=i
+            else:
+                i=0
+                structs[s]={}
+                structs[s][kk[1]]=i
+        self.Title=db['_struct.title']
+        self.keywords=[_.strip() for _ in db['_struct_keywords.text'].split(',')]
+        self.cif_dict_version=db['_audit_conform.dict_version']
+        self.ExpDta=db['_exptl.method'].title()
+        self.Resolution=db['_refine.ls_d_res_high']
+        x=db.GetLoop('_pdbx_audit_revision_history.ordinal')
+        keys=[_ for _ in structs['_pdbx_audit_revision_history'].keys()]
+        for y in x:
+            d={}
+            for v in keys:
+                d[v]=y[structs['_pdbx_audit_revision_history'][v]]
+            self.RevDat[int(d['ordinal'])]=RevDat(d,fmt='CIF')
 

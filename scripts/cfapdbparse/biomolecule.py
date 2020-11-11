@@ -1,6 +1,6 @@
 class Biomolecule:
     ''' Container for handling info for "REMARK 350 BIOMOLECULE: #" stanzas in RCSB PDB files
-    '''
+        or _pdbx_struct blocks in RCSB CIF files '''
     def __init__(self,pdbrecord):
        #print('__init__ with {}'.format(pdbrecord))
        if 'BIOMOLECULE:' in pdbrecord:
@@ -8,6 +8,7 @@ class Biomolecule:
            #print('new biomolecule index {:d}'.format(self.index))
        self.chains=[]
        self.biomt=[]
+       self.pdbx_struct={}
        self.author_biol_unit='None'
        self.software_quat_struct='None'
        self.software_used=['None']
@@ -17,7 +18,9 @@ class Biomolecule:
        self.change_solv_fe='None'
        self.fe_units='None'
        self.chains=[]
-       if 'IDENTITY' in pdbrecord:
+       if 'IDENTITY' in pdbrecord:  
+           # caller would like an identity created, most likely because no 
+           # BIOMOLECULE or PDBX_STRUCT was in the input file
            #print('#### identity biomt requested')
            self.index=1
            self.biomt.append(BiomT())
@@ -75,8 +78,8 @@ class BiomT:
          self.tmat[ax-1]=vals
      def show(self):
          print('BIOMT {:d}'.format(self.index))
-         print(self.tmat)
-         print(self.replicachainID_from_sourcechainID)
+         print('    TMAT',self.tmat)
+         print('    REPC',self.replicachainID_from_sourcechainID)
      def isidentity(self):
          t=self.tmat
          if t[0][0]==1.0 and t[1][1]==1.0 and t[2][2]==1.0:
