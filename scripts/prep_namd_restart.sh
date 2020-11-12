@@ -54,12 +54,28 @@ function prep_namd_restart {
         echo "${LOG} indicates run has finished ($stepsleft steps left); no restart is necessary."
         return 1
     fi 
+    tmdon=`grep "^tmd on" $CONF | awk '{print $2}'`
+    if [ ! -z "${tmdon}" ]; then
+	# check config for a tmdinitialrmsd
+	tmdinitialrmsd=`grep ^tmdinitialrmsd $CONF | awk '{print $2}'`
+	if [ -z "${tmdinitialrmsd}" ]; then
+            # try to find it in the log
+            tmdinitialrmsd=`grep ^TMD $LOG | grep "Domain: 0" | head -1 | awk '{print $5}'`
+	    if [ -z "${tmdinitialrmsd}" ]; then
+                echo "Error: $CONF indicates a TMD run but neither $CONF nor $LOG sets tmdinitialrmsd."
+	        return 1
+	    fi
+        else
+	    tmdinitialrmsd_inconf=1
+	fi
+    fi
+
     for suf in coor vel xsc; do
         if [ ! -f ${lastout}.restart.${suf} ]; then
             echo "Error: ${lastout}.restart.${suf} not found"
             return 1
         fi
-        if [ ! if ${REOUTNAME}.restart.${suf} ]; then
+        if [ -f ${REOUTNAME}.restart.${suf} ]; then
             echo "Error: ${REOUTNAME}.restart.${suf} already exists"
             return 1
         fi
@@ -77,6 +93,12 @@ function prep_namd_restart {
                 sed '6 i extendedsystem '${lastout}'.restart.xsc' | \
                 sed '/^run/ i firsttimestep '$stepsrun | \
                 sed '/^run/ c run '$stepsleft > $RECONF
+    if [ ! -z "${tmdon}" ]; then
+        if [ -z "${tmdinitialrmsd_inconf}" ]; then
+            cat $RECONF | sed '/tmd on/ a tmdinitialrmsd '${tmdinitialrmsd} > tmp
+	    mv tmp $RECONF
+	fi
+    fi	
     echo "Created restart config $RECONF"
     return 0
 }
