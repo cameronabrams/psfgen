@@ -359,6 +359,7 @@ class Molecule:
         chainIDs_detected=set()
         for a in self.Atoms:
             chainIDs_detected.add(a.chainID)
+        print(list(chainIDs_detected))
         self.chainIDs_available=sorted(list(self.chainIDs_allowed.difference(chainIDs_detected)))
         chainIDs_detected=[_ for _ in reversed(list(chainIDs_detected))]  # preserves ordering implied by atom list
         if len(self.Biomolecules)==0:
