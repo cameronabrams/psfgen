@@ -45,7 +45,7 @@ class Atom:
             self.serial=int(cifdict['id'])
             self.name=cifdict['auth_atom_id']
             al=cifdict['label_alt_id']
-            self.altloc=' ' if al='.' else al
+            self.altloc=' ' if al=='.' else al
             self.resname=cifdict['auth_comp_id']
             self.chainID=cifdict['auth_asym_id']
             self.resseqnum=int(cifdict['auth_seq_id'])
