@@ -620,8 +620,9 @@ class Molecule:
         fp.write('guesscoord\n')
         fp.write('regenerate angles dihedrals\n')
 
-        code=self.pdb[:]
-        code=code.replace('.pdb','')
+        code='.'.join(self.pdb.split('.')[:-1])
+#        code=self.pdb[:]
+#        code=code.replace('.pdb','')
         self.psf_outfile='{}{}.psf'.format(prefix,code)
         self.pdb_outfile='{}{}.pdb'.format(prefix,code)
         fp.write('writepsf {}\n'.format(self.psf_outfile))
