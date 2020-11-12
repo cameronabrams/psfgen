@@ -48,6 +48,7 @@ class Link:
 #            self.biomt=0
             self.empty=False
         elif cifdict!=None:
+            d=cifdict
             self.name1=d['ptnr1_label_atom_id']
             al=d['pdbx_ptnr1_label_alt_id']
             self.altloc1=' ' if al=='?' else al
