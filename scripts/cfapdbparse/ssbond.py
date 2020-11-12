@@ -31,7 +31,7 @@ class SSBond:
         self.sym2=d['ptnr2_symmetry']
         self.length=float(d['pdbx_dist_value'])
         self.pdbrecord=self.pdb_line()
-   def ssbond_from_commandline(self,record):
+    def ssbond_from_commandline(self,record):
         self.record_name='SSBOND'
         self.serial_number=0
         self.resname1='CYS'
