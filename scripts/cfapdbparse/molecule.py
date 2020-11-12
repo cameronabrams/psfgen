@@ -115,8 +115,6 @@ class Molecule:
     def show(self,verbosity):
         print('#'*60)
         print('### MOLID {:s}'.format(self.molid_varname))
-        if verbosity>0:
-            self.ShowTitle()
         if verbosity>1:
             self.ShowHeader()
             self.ShowKeywords()
@@ -733,5 +731,5 @@ class Molecule:
                 d[v]=y[structs['_pdbx_audit_revision_history'][v]]
             self.RevDat[int(d['ordinal'])]=RevDat(d,fmt='CIF')
         self.Biomolecules=Biomolecule(cifdb=db)
-        
+
 
