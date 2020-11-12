@@ -730,6 +730,10 @@ class Molecule:
             for v in keys:
                 d[v]=y[structs['_pdbx_audit_revision_history'][v]]
             self.RevDat[int(d['ordinal'])]=RevDat(d,fmt='CIF')
-        self.Biomolecules.append(Biomolecule(cifdb=db))
+        isloop=True if db.FindLoop('_pdbx_struct_assembly.id')!=-1 else False
+        if isloop:
+            pass
+        else
+            self.Biomolecules.append(Biomolecule(cifdb=db))
 
 
