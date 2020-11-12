@@ -59,9 +59,9 @@ class Biomolecule:
             self.biomt.append(BiomT())
         self.biomt[-1].parseBIOMT(ax,words)
     def CIFBiomT(self,cifdict):
-        self.biomt.append(BioMT())
+        self.biomt.append(BiomT())
         biomt[-1].CIFBiomt(cifdict)
-        
+
 class BiomT:
     def __init__(self):
         self.index=-1
