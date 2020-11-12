@@ -732,4 +732,6 @@ class Molecule:
             for v in keys:
                 d[v]=y[structs['_pdbx_audit_revision_history'][v]]
             self.RevDat[int(d['ordinal'])]=RevDat(d,fmt='CIF')
+        self.Biomolecules=Biomolecule(cifdb=db)
+        
 

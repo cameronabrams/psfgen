@@ -1,48 +1,52 @@
 class Biomolecule:
     ''' Container for handling info for "REMARK 350 BIOMOLECULE: #" stanzas in RCSB PDB files
         or _pdbx_struct blocks in RCSB CIF files '''
-    def __init__(self,pdbrecord):
-       #print('__init__ with {}'.format(pdbrecord))
-       if 'BIOMOLECULE:' in pdbrecord:
-           self.index=int(pdbrecord[23:25].strip())
+    def __init__(self,pdbrecord=None,cifdb=None):
+        #print('__init__ with {}'.format(pdbrecord))
+        self.chains=[]
+        self.biomt=[]
+        self.pdbx_struct={}
+        if pdbrecord!=None and cifdb!=None:
+           print('Warning: Biomolecule.__init__ called with both a pdbrecord and cifdb; using pdbrecord')
+        if pdbrecord!=None:
+            if 'BIOMOLECULE:' in pdbrecord:
+               self.index=int(pdbrecord[23:25].strip())
            #print('new biomolecule index {:d}'.format(self.index))
-       self.chains=[]
-       self.biomt=[]
-       self.pdbx_struct={}
-       self.author_biol_unit='None'
-       self.software_quat_struct='None'
-       self.software_used=['None']
-       self.total_buried_surface_area='None'
-       self.surface_area_units='None'
-       self.surface_area_complex='None'
-       self.change_solv_fe='None'
-       self.fe_units='None'
-       self.chains=[]
-       if 'IDENTITY' in pdbrecord:  
-           # caller would like an identity created, most likely because no 
-           # BIOMOLECULE or PDBX_STRUCT was in the input file
-           #print('#### identity biomt requested')
-           self.index=1
-           self.biomt.append(BiomT())
+        #self.author_biol_unit='None'
+        #self.software_quat_struct='None'
+        #self.software_used=['None']
+        #self.total_buried_surface_area='None'
+        #self.surface_area_units='None'
+        #self.surface_area_complex='None'
+        #self.change_solv_fe='None'
+        #self.fe_units='None'
+            if 'IDENTITY' in pdbrecord:  
+                # caller would like an identity created, most likely because no 
+                # BIOMOLECULE or PDBX_STRUCT was in the input file
+                #print('#### identity biomt requested')
+                self.index=1
+                self.biomt.append(BiomT())
+        elif cifdb!=None:
+            pass
     def parsePDBrecordwords(self,words):
         if len(words)>2:
             phrase=' '.join(words[2:])
           #  print(phrase)
             if 'AUTHOR DETERMINED BIOLOGICAL UNIT:' in phrase:
            #     print(words[-1])
-                self.author_biol_unit=words[-1]
+                self.pdbx_struct['author_biol_unit']=words[-1]
             elif 'SOFTWARE DETERMINED QUATERNARY STRUCTURE:' in phrase:
-                self.software_quat_struct=words[-1]
+                self.pdbx_struct['software_quat_struct']=words[-1]
             elif 'SOFTWARE USED:' in phrase:
-                self.software_used=[_.replace(',','') for _ in words[4:]]
+                self.pdbx_struct['software_used']=[_.replace(',','') for _ in words[4:]]
             elif 'TOTAL BURIED SURFACE AREA:' in phrase:
-                self.total_buried_surface_area=int(words[-2])
-                self.surface_area_units=words[-1]
+                self.pdbx_struct['total_buried_surface_area']=int(words[-2])
+                self.pdbx_struct['surface_area_units']=words[-1]
             elif 'SURFACE AREA OF THE COMPLEX' in phrase:
-                self.surface_area_complex=int(words[-2])
+                self.pdbx_struct['surface_area_complex']=int(words[-2])
             elif 'CHANGE IN SOLVENT FREE ENERGY:' in phrase:
-                self.change_solv_fe=float(words[-2])
-                self.fe_units=words[-1]
+                self.pdbx_struct['change_solv_fe']=float(words[-2])
+                self.pdbx_struct['fe_units']=words[-1]
             elif 'APPLY THE FOLLOWING TO CHAINS:' in phrase:
                 self.chains.extend([_.replace(',','') for _ in words[7:]])
             elif 'AND CHAINS:' in phrase:
@@ -50,11 +54,11 @@ class Biomolecule:
             elif 'BIOMT' in words[2]:
                 self.parseBIOMT(words)
             else:
-                print('#### ERROR: Unrecognized REMARK 350 line:')
+                print('#### ERROR: Unrecognized PDB-format REMARK 350 line:')
                 print(' '.join(words))
     def show(self):
         print('Biomolecule {:d}'.format(self.index))
-        print(self.author_biol_unit,self.software_quat_struct,self.total_buried_surface_area,self.surface_area_complex,self.change_solv_fe,self.chains)
+        print(self.pdbx_struct,self.chains)
         for b in self.biomt:
             b.show()
     def parseBIOMT(self,words):
