@@ -75,7 +75,7 @@ class Link:
             self.atom2=''
 #            self.biomt=0
             self.empty=False
-       else:
+        else:
             self.empty=True
     def pdb_line(self):
         pdbline='{:6s}'.format(self.record_name)+6*' '+'{:>4s}'.format(self.name1+' ' if len(self.name1)<3 else self.name1)+'{:1s}'.format(self.altloc1)+'{:3s}'.format(self.resname1)+' '+'{:1s}'.format(self.chainID1)+'{:4d}'.format(self.resseqnum1)+'{:1s}'.format(self.icode1)+16*' '+'{:4>s}'.format(self.name2+' ' if len(self.name2)<3 else self.name2)+'{:1s}'.format(self.altloc2)+'{:3s}'.format(self.resname2)+' '+'{:1s}'.format(self.chainID2)+'{:4d}'.format(self.resseqnum2)+'{:1s}'.format(self.icode2)+2*' '+'{:>6s}'.format(self.sym1)+' '+'{:>6s}'.format(self.sym2)+'{:6.2f}'.format(self.link_distance)
