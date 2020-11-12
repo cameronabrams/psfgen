@@ -1,7 +1,7 @@
 class Biomolecule:
     ''' Container for handling info for "REMARK 350 BIOMOLECULE: #" stanzas in RCSB PDB files
         or _pdbx_struct blocks in RCSB CIF files '''
-    def __init__(self,pdbrecord=None,cifdb=None):
+    def __init__(self,pdbrecord=None,cifdb=None,cifdict=None):
         #print('__init__ with {}'.format(pdbrecord))
         self.chains=[]
         self.biomt=[]
@@ -11,25 +11,19 @@ class Biomolecule:
         if pdbrecord!=None:
             if 'BIOMOLECULE:' in pdbrecord:
                self.index=int(pdbrecord[23:25].strip())
-           #print('new biomolecule index {:d}'.format(self.index))
-        #self.author_biol_unit='None'
-        #self.software_quat_struct='None'
-        #self.software_used=['None']
-        #self.total_buried_surface_area='None'
-        #self.surface_area_units='None'
-        #self.surface_area_complex='None'
-        #self.change_solv_fe='None'
-        #self.fe_units='None'
             if 'IDENTITY' in pdbrecord:  
                 # caller would like an identity created, most likely because no 
                 # BIOMOLECULE or PDBX_STRUCT was in the input file
-                #print('#### identity biomt requested')
                 self.index=1
                 self.biomt.append(BiomT())
         elif cifdb!=None:
             self.index=int(cifdb['_pdbx_struct_assembly.id'])
             for k in ['method_details','oligomeric_details','oligomeric_count']:
                 self.pdbx_struct[k]=cifdb['_pdbx_struct_assembly.{}'.format(k)]
+        elif cifdict!=None:
+            self.index=int(cifdict['_pdbx_struct_assembly.id'])
+            for k in ['method_details','oligomeric_details','oligomeric_count']:
+                self.pdbx_struct[k]=cifdict['_pdbx_struct_assembly.{}'.format(k)]
     def parsePDBrecordwords(self,words):
         if len(words)>2:
             phrase=' '.join(words[2:])

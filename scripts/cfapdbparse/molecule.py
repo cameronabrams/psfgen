@@ -738,6 +738,7 @@ class Molecule:
                 d={}
                 for v in keys:
                     d[v]=y[structs['_pdbx_struct_assembly'][v]]
+                print('### init biomolecule with',d)
                 self.Biomolecules.append(Biomolecule(cifdict=d))
         else:
             self.Biomolecules=[Biomolecule(cifdb=db)]
