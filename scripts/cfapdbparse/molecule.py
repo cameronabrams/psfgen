@@ -10,6 +10,7 @@ from mutation import Mutation
 from residue import Residue, _PDBResName123_, _pdb_glycans_, _pdb_ions_, _ResNameDict_PDB_to_CHARMM_, _ResNameDict_CHARMM_to_PDB_, get_residue
 from revdat import RevDat, FmtDat
 from CifFile import ReadCif
+from cifutil import *
 _molidcounter_=0
 class Molecule:
     def load(self,fp):
@@ -705,39 +706,6 @@ class Molecule:
         psfgen_script.write('exec cat {} {} > {}\n'.format(hdr,newpdb,_tmpfile_))
         psfgen_script.write('exec mv {} {}\n'.format(_tmpfile_,newpdb))
         psfgen_script.write('exec rm -f {}\n'.format(_tmpfile_))
-
-    def CIFMakeStructs(db):
-        structs={}
-        for k in db.keys():
-            kk=k.split('.')
-            s=kk[0]
-            if s in structs:
-                i+=1
-                structs[s][kk[1]]=i
-            else:
-                i=0
-                structs[s]={}
-                structs[s][kk[1]]=i
-        return structs
-
-    def GetCIFStructDictList(db,structs,struk):
-        keys=[_ for _ in structs[struk].keys()]
-        dlist=[]
-        chek=struk+'.'+keys[0]
-        isloop=True if db.FindLoop(chek)!=-1 else False
-        if isloop:
-            x=db.GetLoop(chek)
-            for y in x:
-                d={}
-                for v in keys:
-                    d[v]=y[structs[struk][v]]
-                dlist.append(d)
-        else:
-            d={}
-            for v in keys:
-                d[v]=db[struk+'.'+v]
-            dlist.append(d)
-        return dlist
 
     def ParseCifDataBlock(self,db):
         structs=CIFMakeStructs(db)
