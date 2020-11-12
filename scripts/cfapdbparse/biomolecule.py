@@ -81,7 +81,7 @@ class BiomT:
             for j in range(3):
                 self.tmat[i][j]=float(cifdict['matrix[{}][{}]'.format(i+1,j+1)])
             self.tmat[i][3]=float(cifdict['vector[{}]'.format(i+1)])
-        self.tmat[3][3]=0.0
+
     def show(self):
         print('BIOMT {:d}'.format(self.index))
         print('    TMAT',self.tmat)
