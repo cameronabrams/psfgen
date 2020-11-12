@@ -726,7 +726,9 @@ class Molecule:
         for d in dlist:
             self.Biomolecules.append(Biomolecule(cifdict=d))
         self.CIFParseBiomolecules(GetCIFStructDictList(db,structs,'_pdbx_struct_assembly_gen'),GetCIFStructDictList(db,structs,'_pdbx_struct_oper_list'))
-        
+        dlist=GetCIFStructDictList(db,structs,'_atom_site')
+        self.CIFParseAtoms(dlist)
+
     def CIFParseBiomolecules(self,genl,operl):
         # for each gen, associate with a biomoleculr  
         #print(genl)
@@ -743,6 +745,11 @@ class Molecule:
                     print('Error: oper index {} not found in oper_list'.format(i))
                 else:
                     self.Biomolecules[index].CIFBiomT(useme)
+
+    def CIFParseAtoms(self,alist):
+        for a in alist:
+            self.Atoms.append(Atom(cifdict=a))
+            
     
 
 

@@ -1,8 +1,12 @@
 _PDBAtomNameDict_={'CL':'CLA'}
 class Atom:
-    def __init__(self,pdbrecord=''):
+    def __init__(self,pdbrecord=None,cifdict=None):
+        if pdbrecord!=None and cifdict!=None:
+            print('Error: Atom __init__() called with both a pdbrecord and a cifdict.\nUsing the pdbrecord.')
         self.pdbrecord=pdbrecord
-        if len(pdbrecord)>0:
+        self.cifdict=cifdict
+
+        if pdbrecord!=None:
 # 1 -  6        Record name   "ATOM  "
             self.record_name=pdbrecord[0:6].strip()
 # 7 - 11        Integer       serial       Atom  serial number.
@@ -36,7 +40,28 @@ class Atom:
             self.segname=self.chainID
             self.empty=False
             self.link='None'
-            self.biomt=0
+#            self.biomt=0
+        elif cifdict!=None:
+            self.serial=int(cifdict['id'])
+            self.name=cifdict['auth_atom_id']
+            al=cifdict['label_alt_id']
+            self.altloc=' ' if al='.' else al
+            self.resname=cifdict['auth_comp_id']
+            self.chainID=cifdict['auth_asym_id']
+            self.resseqnum=int(cifdict['auth_seq_id'])
+            ic=cifdict['pdbx_pdb_ins_code']
+            self.insertion=' ' if ic=='?' else ic
+            self.x=float(cifdict['cartn_x'])
+            self.y=float(cifdict['cartn_y'])
+            self.z=float(cifdict['cartn_z'])
+            self.occ=float(cifdict['occupancy'])
+            self.beta=float(cifdict['b_iso_or_equiv'])
+            c=cifdict['pdbx_formal_charge']
+            self.charge=0.0 if c=='?' else float(c)
+            self.elem=cifdict['type_symbol']
+            self.segname=self.chainID
+            self.empty=False
+            self.link='None'
         else:
             self.empty=True 
     def pdb_line(self):
