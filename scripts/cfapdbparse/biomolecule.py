@@ -21,9 +21,9 @@ class Biomolecule:
             for k in ['method_details','oligomeric_details','oligomeric_count']:
                 self.pdbx_struct[k]=cifdb['_pdbx_struct_assembly.{}'.format(k)]
         elif cifdict!=None:
-            self.index=int(cifdict['_pdbx_struct_assembly.id'])
+            self.index=int(cifdict['id'])
             for k in ['method_details','oligomeric_details','oligomeric_count']:
-                self.pdbx_struct[k]=cifdict['_pdbx_struct_assembly.{}'.format(k)]
+                self.pdbx_struct[k]=cifdict[k]
     def parsePDBrecordwords(self,words):
         if len(words)>2:
             phrase=' '.join(words[2:])
