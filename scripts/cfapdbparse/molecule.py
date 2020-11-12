@@ -737,6 +737,7 @@ class Molecule:
         for g in genl:
             index=int(g['assembly_id'])-1
             operids=g['oper_expression'].split(',')
+            chains=g['asum_id_list'].split(',')
             for i in operids:
                 useme={}
                 for od in operl:
@@ -746,6 +747,7 @@ class Molecule:
                     print('Error: oper index {} not found in oper_list'.format(i))
                 else:
                     self.Biomolecules[index].CIFBiomT(useme)
+                    self.Biomolecules.chains=chains[:]
 
     def CIFParseAtoms(self,alist):
         for a in alist:
