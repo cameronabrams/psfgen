@@ -740,6 +740,8 @@ class Molecule:
         self.CIFParseAtoms(dlist)
         dlist=GetCIFStructDictList(db,structs,'_pdbx_unobs_or_zero_occ_residues')
         self.CIFParseMissing(dlist)
+        dlist=GetCIFStructDictList(db,structs,'_struct_conn')
+        self.CIFParseConnections(dlist)
 
     def CIFParseBiomolecules(self,genl,operl):
         # for each gen, associate with a biomoleculr  
@@ -768,6 +770,12 @@ class Molecule:
         for m in mlist:
             self.MissingRes.append(Missing(cifdict=m))
 
-    
+    def CIFParseConnections(self,clist):
+        for c in clist:
+            typ=c['conn_type_id']
+            if typ=='disulf':
+                self.SSBonds.append(SSBond(cifdict=c))
+            elif typ=='covale':
+                self.Links.append(Link(cifdict=c))
 
 

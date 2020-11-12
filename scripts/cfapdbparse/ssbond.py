@@ -1,15 +1,35 @@
 class SSBond:
-    ''' Creates SSBond instance from one of two types of input strings:
-        1. a PDB SSBOND record
-        2. a command-line argument of the form X_###-Y_### where X and Y are chain IDs and
-           the ###'s are resids
+    ''' 
+    Creates SSBond instance from one of two types of input strings:
+    1. a PDB SSBOND record
+    2. a command-line argument of the form X_###-Y_### where X and Y are chain IDs and
+    the ###'s are resids
+    Can also accept a CIFDict
     '''
-    def __init__(self,record):
-        if 'SSBOND' in record:
-            self.ssbond_from_pdbrecord(record)
-        else: # assume this is a command-line argument
-            self.ssbond_from_commandline(record)
-    def ssbond_from_commandline(self,record):
+    def __init__(self,record=None,cifdict=None):
+        if record!=None and cifdict!=None:
+            print('Error: SSBond __init__ called with both a record and a cifdict.\nUsing the record.')
+        if record!=None:
+            if 'SSBOND' in record:
+                self.ssbond_from_pdbrecord(record)
+            else: # assume this is a command-line argument
+                self.ssbond_from_commandline(record)
+        elif cifdict!=None:
+            self.ssbond_from_cifdict(cifdict)
+    def ssbond_from_cifdict(d):
+        self.serial_number=int(d['id'].strip('disulf'))
+        self.resname1='CYS'
+        self.resname2='CYS'
+        self.chainID1=d['ptnr1_auth_asym_id']
+        self.chainID2=d['ptnr2_auth_asym_id']
+        self.resseqnum1=int(d['ptnr1_auth_seq_id'])
+        self.resseqnum2=int(d['ptnr2_auth_seq_id'])
+        self.icode1=d['pdbx_ptnr1_pdb_ins_code']
+        self.icode2=d['pdbx_ptnr2_pdb_ins_code']
+        self.sym1=d['ptnr1_symmetry']
+        self.sym2=d['ptnr2_symmetry']
+        self.length=float(d['pdbx_dist_value'])
+   def ssbond_from_commandline(self,record):
         self.record_name='SSBOND'
         self.serial_number=0
         self.resname1='CYS'
