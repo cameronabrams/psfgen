@@ -732,8 +732,14 @@ class Molecule:
             self.RevDat[int(d['ordinal'])]=RevDat(d,fmt='CIF')
         isloop=True if db.FindLoop('_pdbx_struct_assembly.id')!=-1 else False
         if isloop:
-            pass
+            x=db.GetLoop('_pdbx_struct_assembly.id')
+            keys=[_ for _ in structs['_pdbx_struct_assembly'].keys()]
+            for y in x:
+                d={}
+                for v in keys:
+                    d[v]=y[structs['_pdbx_struct_assembly'][v]]
+                self.Biomolecules.append(Biomolecule(cifdict=d))
         else:
-            self.Biomolecules.append(Biomolecule(cifdb=db))
+            self.Biomolecules=[Biomolecule(cifdb=db)]
 
 
