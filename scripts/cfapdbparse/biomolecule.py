@@ -27,7 +27,7 @@ class Biomolecule:
                 self.index=1
                 self.biomt.append(BiomT())
         elif cifdb!=None:
-            self.index=cifdb['_pdbx_struct_assembly.id']
+            self.index=int(cifdb['_pdbx_struct_assembly.id'])
             for k in ['method_details','oligomeric_details','oligomeric_count']:
                 self.pdbx_struct[k]=cifdb['_pdbx_struct_assembly.{}'.format(k)]
     def parsePDBrecordwords(self,words):
