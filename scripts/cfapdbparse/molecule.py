@@ -727,7 +727,7 @@ class Molecule:
             self.Biomolecules.append(Biomolecule(cifdict=d))
         self.CIFParseBiomolecules(GetCIFStructDictList(db,structs,'_pdbx_struct_assembly_gen'),GetCIFStructDictList(db,structs,'_pdbx_struct_oper_list'))
         
-    def CIFParseBiolmolecules(self,genl,operl):
+    def CIFParseBiomolecules(self,genl,operl):
         pass
 
 
