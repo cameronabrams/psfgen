@@ -108,7 +108,7 @@ class Molecule:
             #print('All revisions: {}'.format(self.ShowRevisions(which='all',justdates=False)))
             print('Method: {}; Resolution: {} Ang.'.format(self.ExpDta,self.Resolution))
             print('{} ATOM or HETATOM records.'.format(len(self.Atoms)))
-            print('{} unique residues.'.format(len(self.Residues)))
+            print('{} unique residues, {} missing.'.format(len(self.Residues),len(self.Missing)))
             if len(self.Chains)>0:
                print('Chains: {}'.format(", ".join(c.chainID for c in self.Chains.values())))
             print('Biomolecules:')
@@ -738,6 +738,8 @@ class Molecule:
         self.CIFParseBiomolecules(GetCIFStructDictList(db,structs,'_pdbx_struct_assembly_gen'),GetCIFStructDictList(db,structs,'_pdbx_struct_oper_list'))
         dlist=GetCIFStructDictList(db,structs,'_atom_site')
         self.CIFParseAtoms(dlist)
+        dlist=GetCIFStructDictList(db,structs,'_pdbx_unobs_or_zero_occ_residues')
+        self.CIFParseMissing(dlist)
 
     def CIFParseBiomolecules(self,genl,operl):
         # for each gen, associate with a biomoleculr  
@@ -761,6 +763,10 @@ class Molecule:
     def CIFParseAtoms(self,alist):
         for a in alist:
             self.Atoms.append(Atom(cifdict=a))
+
+    def CIFParseMissing(self,mlist):
+        for m in mlist:
+            self.Missing.append(Missing(cifdict=m))
 
     
 
