@@ -719,9 +719,15 @@ class Molecule:
         dlist=GetCIFStructDictList(db,structs,struk)
         for d in dlist:
             self.RevDat[int(d['ordinal'])]=RevDat(d,fmt='CIF')
+        
+        # "assemblies" in the CIF are "biomolecules" in the PDB
         struk='_pdbx_struct_assembly'
         dlist=GetCIFStructDictList(db,structs,struk)
         for d in dlist:
             self.Biomolecules.append(Biomolecule(cifdict=d))
+        self.CIFParseBiomolecules(GetCIFStructDictList(db,structs,'_pdbx_struct_assembly_gen'),GetCIFStructDictList(db,structs,'_pdbx_struct_oper_list'))
+        
+    def CIFParseBiolmolecules(self,genl,operl):
+        pass
 
 
