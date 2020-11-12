@@ -21,10 +21,45 @@ class Molecule:
         self.psfgen_loadstr='mol new {} waitfor all\nset {} [molinfo top get id]\n'.format(self.pdb,self.molid_varname)
         _molidcounter_+=1
         fp.write(self.psfgen_loadstr+'\n')
-        
-    def __init__(self,pdb='',cif='',isgraft=False,userLinks=[]):
+    def ReadPDB(self,pdb):
+        with open(pdb) as pdbfile:
+            for line in pdbfile:
+                self.RawPDB.append(line)
+                if line[:4] == 'ATOM' or line[:6] == "HETATM":
+                    self.Atoms.append(Atom(line))
+                elif line[:4] == 'LINK':
+                    self.Links.append(Link(line))
+                elif line[:6] == 'CONECT':
+                    #self.Connect.append(Connect(line))
+                    pass
+                elif line[:6] == 'SSBOND':
+                    self.SSBonds.append(SSBond(line))
+                elif line[:6] == 'SEQADV':
+                    self.Seqadv.append(Seqadv(line))
+                elif line[:6] == 'REMARK':
+                    self.ParseRemark(line)
+                elif line[:5] == 'TITLE':
+                    self.ParseTitle(line)
+                elif line[:6] == 'KEYWDS':
+                    self.ParseKeywords(line)
+                elif line[:6] == 'MASTER':
+                    self.ParseMasterRecord(line)
+                elif line[:6] == 'HEADER':
+                    self.ParseHeader(line)
+                elif line[:6] == 'MDLTYP':
+                    self.ParseModelType(line)
+                elif line[:5] == 'DBREF':
+                    self.ParseDBRef(line)
+                elif line[:6] == 'SEQRES':
+                    self.ParseSeqRes(line)
+                elif line[:6] == 'REVDAT':
+                    self.ParseRevisionDate(line)
+                elif line[:6] == 'EXPDTA':
+                    self.ParseExpDta(line)
+
+    def __init__(self,pdb=None,cif=None,isgraft=False,userLinks=[]):
         self.source='RCSB' # default assume this is an actual PDB or CIF file from the RCSB
-        self.source_format='CIF' if cif!='' else 'PDB'
+        self.source_format='CIF' if cif!=None else 'PDB'
         self.molid=-1
         self.molid_varname='UNREGISTERED'
         self.RawPDB=[]
@@ -46,47 +81,17 @@ class Molecule:
         self.DBRef={} # outer dictionary referenced by chainID
         self.SeqRes={} # outer: chainID, inner: resnumber, value: resname(PDB)
         self.RevDat={}
-        if pdb!='':
-            with open(pdb) as pdbfile:
-                for line in pdbfile:
-                    self.RawPDB.append(line)
-                    if line[:4] == 'ATOM' or line[:6] == "HETATM":
-                        self.Atoms.append(Atom(line))
-                    elif line[:4] == 'LINK':
-                        self.Links.append(Link(line))
-                    elif line[:6] == 'CONECT':
-                        #self.Connect.append(Connect(line))
-                        pass
-                    elif line[:6] == 'SSBOND':
-                        self.SSBonds.append(SSBond(line))
-                    elif line[:6] == 'SEQADV':
-                        self.Seqadv.append(Seqadv(line))
-                    elif line[:6] == 'REMARK':
-                        self.ParseRemark(line)
-                    elif line[:5] == 'TITLE':
-                        self.ParseTitle(line)
-                    elif line[:6] == 'KEYWDS':
-                        self.ParseKeywords(line)
-                    elif line[:6] == 'MASTER':
-                        self.ParseMasterRecord(line)
-                    elif line[:6] == 'HEADER':
-                        self.ParseHeader(line)
-                    elif line[:6] == 'MDLTYP':
-                        self.ParseModelType(line)
-                    elif line[:5] == 'DBREF':
-                        self.ParseDBRef(line)
-                    elif line[:6] == 'SEQRES':
-                        self.ParseSeqRes(line)
-                    elif line[:6] == 'REVDAT':
-                        self.ParseRevisionDate(line)
-                    elif line[:6] == 'EXPDTA':
-                        self.ParseExpDta(line)
-        else:
+        if pdb!=None:
+            self.ReadPDB(pdb)
+        elif cif!=None:
             print('#### reading {}'.format(cif))
             cf=ReadCif(cif)
             print('#### done')
             db=cf.first_block()
             self.ParseCifDataBlock(db)
+        else:
+            print('Error: Molecule __init__ called without a record.')
+            return
         if 'CHARMM' in self.keywords:
             self.source='CHARMM'
         #print('### Read {:d} pdbrecords from {:s}'.format(len(self.RawPDB),pdb))
@@ -497,7 +502,7 @@ class Molecule:
             print("### {} chain ID's available:".format(len(self.chainIDs_available)),self.chainIDs_available)
             return -1
         for clv in Cleavages:
-            daughter_chain_ok=False
+            # daughter_chain_ok=False
             if clv.parent_chainID in self.Chains:
                 clv_c=self.Chains[clv.parent_chainID]
                 clv.daughter_chainID=self.chainIDs_available.pop(0)
