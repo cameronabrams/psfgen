@@ -161,7 +161,7 @@ if __name__=='__main__':
     PostMod['do_loop_mc']=False
     PostMod['Crot']=[]
 
-    parser.add_argument('pdb',nargs='+',metavar='<?.pdb>',type=str,help='name(s) of pdb file to parse; first is treated as the base molecule; others are not considered (for now)')
+    parser.add_argument('pdbcif',nargs='+',metavar='<?.pdb|cif>',type=str,help='name(s) of pdb or CIF file to parse; first is treated as the base molecule; others are not considered (for now)')
     parser.add_argument('-topo',metavar='<name>',action='append',default=[],help='additional CHARMM topology files')
     parser.add_argument('-prefix',metavar='<str>',default='x01_',help='output PDB/PSF prefix; each file name will have the format <prefix><pdbcode>.pdb/psf, where <pdbcode> is the 4-letter PDB code of the base molecule.')
     parser.add_argument('-psfgen',metavar='<name>',default='mkpsf.tcl',help='name of TcL script generated as input to VMD/psfgen')
@@ -215,11 +215,17 @@ if __name__=='__main__':
         PostMod['center_protein']=True
         PostMod['reorselstr']=args.ror.split(',')
 
-    PDBfiles=args.pdb
+    PDBfiles=args.pdbcif
     Molecules=[]
-    Molecules.append(Molecule(PDBfiles[0],userLinks=Usl))
+    if '.cif' in PDBFiles[0]:
+        Molecules.append(Molecule(cif=PDBFiles[0],userLinks=UsL))
+    elif '.pdb' in PDBFiles[0]:
+        Molecules.append(Molecule(pdb=PDBFiles[0],userLinks=UsL))
     for p in PDBfiles[1:]:
-        Molecules.append(Molecule(p))
+        if '.cif' in p:
+            Molecules.append(Molecule(cif=p))
+        elif '.pdb' in p:
+            Molecules.append(Molecule(pdb=p))
     Base=Molecules[0]
     Base.summarize()
 
