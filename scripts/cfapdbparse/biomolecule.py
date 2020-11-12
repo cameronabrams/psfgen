@@ -58,7 +58,10 @@ class Biomolecule:
         if ax==1:
             self.biomt.append(BiomT())
         self.biomt[-1].parseBIOMT(ax,words)
-
+    def CIFBiomT(self,cifdict):
+        self.biomt.append(BioMT())
+        biomt[-1].CIFBiomt(cifdict)
+        
 class BiomT:
     def __init__(self):
         self.index=-1
@@ -73,13 +76,12 @@ class BiomT:
            vals.append(float(w))
         self.tmat[ax-1]=vals
     def CIFBiomT(self,cifdict):
-        newbiomt=BiomT()
-        newbiomt.index=int(cifdict['id'])
+        self.index=int(cifdict['id'])
         for i in range(3):
             for j in range(3):
-                tmat[i][j]=float(cifdict['matrix[{}][{}]'.format(i+1,j+1)])
-            tmat[i][3]=float(cifdict['vector[{}]'.format(i+1)])
-        tmat[3][3]=0.0
+                self.tmat[i][j]=float(cifdict['matrix[{}][{}]'.format(i+1,j+1)])
+            self.tmat[i][3]=float(cifdict['vector[{}]'.format(i+1)])
+        self.tmat[3][3]=0.0
     def show(self):
         print('BIOMT {:d}'.format(self.index))
         print('    TMAT',self.tmat)
