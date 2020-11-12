@@ -16,7 +16,7 @@ class SSBond:
                 self.ssbond_from_commandline(record)
         elif cifdict!=None:
             self.ssbond_from_cifdict(cifdict)
-    def ssbond_from_cifdict(d):
+    def ssbond_from_cifdict(self,d):
         self.serial_number=int(d['id'].strip('disulf'))
         self.resname1='CYS'
         self.resname2='CYS'
