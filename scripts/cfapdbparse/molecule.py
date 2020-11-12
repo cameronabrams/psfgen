@@ -108,7 +108,7 @@ class Molecule:
             #print('All revisions: {}'.format(self.ShowRevisions(which='all',justdates=False)))
             print('Method: {}; Resolution: {} Ang.'.format(self.ExpDta,self.Resolution))
             print('{} ATOM or HETATOM records.'.format(len(self.Atoms)))
-            print('{} unique residues, {} missing.'.format(len(self.Residues),len(self.Missing)))
+            print('{} unique residues, {} missing.'.format(len(self.Residues),len(self.MissingRes)))
             if len(self.Chains)>0:
                print('Chains: {}'.format(", ".join(c.chainID for c in self.Chains.values())))
             print('Biomolecules:')
@@ -766,7 +766,7 @@ class Molecule:
 
     def CIFParseMissing(self,mlist):
         for m in mlist:
-            self.Missing.append(Missing(cifdict=m))
+            self.MissingRes.append(Missing(cifdict=m))
 
     
 
