@@ -106,6 +106,7 @@ class Molecule:
             print('Last revision: {}'.format(self.ShowRevisions(which='latest',justdates=True)))
             #print('All revisions: {}'.format(self.ShowRevisions(which='all',justdates=False)))
             print('Method: {}; Resolution: {} Ang.'.format(self.ExpDta,self.Resolution))
+            print('{} ATOM or HETATOM records.'.format(len(self.Atoms)))
             if len(self.Chains)>0:
                print('Chains: {}'.format(", ".join(c.chainID for c in self.Chains.values())))
             print('Biomolecules:')
@@ -706,6 +707,7 @@ class Molecule:
         psfgen_script.write('exec cat {} {} > {}\n'.format(hdr,newpdb,_tmpfile_))
         psfgen_script.write('exec mv {} {}\n'.format(_tmpfile_,newpdb))
         psfgen_script.write('exec rm -f {}\n'.format(_tmpfile_))
+
     def ParseCifDataBlock(self,db):
         structs={}
         for k in db.keys():
