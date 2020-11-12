@@ -17,6 +17,7 @@ class SSBond:
         elif cifdict!=None:
             self.ssbond_from_cifdict(cifdict)
     def ssbond_from_cifdict(self,d):
+        self.record_name='SSBOND'
         self.serial_number=int(d['id'].strip('disulf'))
         self.resname1='CYS'
         self.resname2='CYS'
@@ -29,7 +30,8 @@ class SSBond:
         self.sym1=d['ptnr1_symmetry']
         self.sym2=d['ptnr2_symmetry']
         self.length=float(d['pdbx_dist_value'])
-    def ssbond_from_commandline(self,record):
+        self.pdbrecord=self.pdb_line()
+   def ssbond_from_commandline(self,record):
         self.record_name='SSBOND'
         self.serial_number=0
         self.resname1='CYS'
