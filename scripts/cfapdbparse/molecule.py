@@ -108,6 +108,7 @@ class Molecule:
             #print('All revisions: {}'.format(self.ShowRevisions(which='all',justdates=False)))
             print('Method: {}; Resolution: {} Ang.'.format(self.ExpDta,self.Resolution))
             print('{} ATOM or HETATOM records.'.format(len(self.Atoms)))
+            print('{} unique residues.'.format(len(self.Residues)))
             if len(self.Chains)>0:
                print('Chains: {}'.format(", ".join(c.chainID for c in self.Chains.values())))
             print('Biomolecules:')
@@ -360,15 +361,11 @@ class Molecule:
         for a in self.Atoms:
             if a.chainID not in chainIDs_detected:
                 chainIDs_detected.append(a.chainID)
-#            chainIDs_detected.add(a.chainID)
-        print(chainIDs_detected)
-        self.chainIDs_available=sorted(list(self.chainIDs_allowed.difference(chainIDs_detected)))
-#        chainIDs_detected=[_ for _ in reversed(list(chainIDs_detected))]  # preserves ordering implied by atom list
+        self.chainIDs_available=sorted(list(self.chainIDs_allowed.difference(set(chainIDs_detected))))
         if len(self.Biomolecules)==0:
             self.Biomolecules.append(Biomolecule('IDENTITY'))
             for c in chainIDs_detected:
                 self.Biomolecules[0].chains.append(c)
-            #print('#### added identity biomt to pdb without any',self.Biomolecules[0].chains)
         for b in self.Biomolecules:
             # chain ID's listed for this biomol/assembly
             # may contain id's not implied by the atom list
