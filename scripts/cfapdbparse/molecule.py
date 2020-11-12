@@ -68,7 +68,7 @@ class Molecule:
         self.titlelines=[]
         self.Title=''
         self.pdb=pdb if pdb!=None else cif
-    #    self.cif=cif
+        self.cif=cif
         self.Atoms=[]
         self.Links=userLinks
         self.Chains={} # keyed by chain id 'A', 'B', 'C', etc.
