@@ -747,7 +747,7 @@ class Molecule:
                     print('Error: oper index {} not found in oper_list'.format(i))
                 else:
                     self.Biomolecules[index].CIFBiomT(useme)
-                    self.Biomolecules.chains=chains[:]
+                    self.Biomolecules[index].chains=chains[:]
 
     def CIFParseAtoms(self,alist):
         for a in alist:
