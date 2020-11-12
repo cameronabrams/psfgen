@@ -1,12 +1,12 @@
 class Biomolecule:
     ''' Container for handling info for "REMARK 350 BIOMOLECULE: #" stanzas in RCSB PDB files
         or _pdbx_struct blocks in RCSB CIF files '''
-    def __init__(self,pdbrecord=None,cifdb=None,cifdict=None):
+    def __init__(self,pdbrecord=None,cifdict=None):
         #print('__init__ with {}'.format(pdbrecord))
         self.chains=[]
         self.biomt=[]
         self.pdbx_struct={}
-        if pdbrecord!=None and cifdb!=None:
+        if pdbrecord!=None and cifdict!=None:
            print('Warning: Biomolecule.__init__ called with both a pdbrecord and cifdb; using pdbrecord')
         if pdbrecord!=None:
             if 'BIOMOLECULE:' in pdbrecord:
@@ -16,10 +16,6 @@ class Biomolecule:
                 # BIOMOLECULE or PDBX_STRUCT was in the input file
                 self.index=1
                 self.biomt.append(BiomT())
-        elif cifdb!=None:
-            self.index=int(cifdb['_pdbx_struct_assembly.id'])
-            for k in ['method_details','oligomeric_details','oligomeric_count']:
-                self.pdbx_struct[k]=cifdb['_pdbx_struct_assembly.{}'.format(k)]
         elif cifdict!=None:
             self.index=int(cifdict['id'])
             for k in ['method_details','oligomeric_details','oligomeric_count']:

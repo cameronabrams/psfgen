@@ -706,7 +706,7 @@ class Molecule:
         psfgen_script.write('exec mv {} {}\n'.format(_tmpfile_,newpdb))
         psfgen_script.write('exec rm -f {}\n'.format(_tmpfile_))
 
-    def ParseCifDataBlock(self,db):
+    def CIFMakeStructs(db):
         structs={}
         for k in db.keys():
             kk=k.split('.')
@@ -718,29 +718,42 @@ class Molecule:
                 i=0
                 structs[s]={}
                 structs[s][kk[1]]=i
+        return structs
+
+    def GetCIFStructDictList(db,structs,struk):
+        keys=[_ for _ in structs[struk].keys()]
+        dlist=[]
+        chek=struk+'.'+keys[0]
+        isloop=True if db.FindLoop(chek)!=-1 else False
+        if isloop:
+            x=db.GetLoop(chek)
+            for y in x:
+                d={}
+                for v in keys:
+                    d[v]=y[structs[struk][v]]
+                dlist.append(d)
+        else:
+            d={}
+            for v in keys:
+                d[v]=db[struk+'.'+v]
+            dlist.append(d)
+        return dlist
+
+    def ParseCifDataBlock(self,db):
+        structs=CIFMakeStructs(db)
         self.Title=db['_struct.title']
         self.keywords=[_.strip() for _ in db['_struct_keywords.text'].split(',')]
         self.cif_dict_version=db['_audit_conform.dict_version']
         self.ExpDta=db['_exptl.method'].title()
         self.Resolution=db['_refine.ls_d_res_high']
-        x=db.GetLoop('_pdbx_audit_revision_history.ordinal')
-        keys=[_ for _ in structs['_pdbx_audit_revision_history'].keys()]
-        for y in x:
-            d={}
-            for v in keys:
-                d[v]=y[structs['_pdbx_audit_revision_history'][v]]
+        
+        struk='_pdbx_audit_revision_history'
+        dlist=GetCIFStructDictList(db,structs,struk)
+        for d in dlist:
             self.RevDat[int(d['ordinal'])]=RevDat(d,fmt='CIF')
-        isloop=True if db.FindLoop('_pdbx_struct_assembly.id')!=-1 else False
-        if isloop:
-            x=db.GetLoop('_pdbx_struct_assembly.id')
-            keys=[_ for _ in structs['_pdbx_struct_assembly'].keys()]
-            for y in x:
-                d={}
-                for v in keys:
-                    d[v]=y[structs['_pdbx_struct_assembly'][v]]
-                print('### init biomolecule with',d)
-                self.Biomolecules.append(Biomolecule(cifdict=d))
-        else:
-            self.Biomolecules=[Biomolecule(cifdb=db)]
+        struk='_pdbx_struct_assembly'
+        dlist=GetCIFStructDictList(db,structs,struk)
+        for d in dlist:
+            self.Biomolecules.append(Biomolecule(cifdict=d))
 
 
