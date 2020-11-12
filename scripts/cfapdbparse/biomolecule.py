@@ -20,6 +20,7 @@ class Biomolecule:
             self.index=int(cifdict['id'])
             for k in ['method_details','oligomeric_details','oligomeric_count']:
                 self.pdbx_struct[k]=cifdict[k]
+            self.chains=cifdict['asym_id_list'].split(',')
     def parsePDBrecordwords(self,words):
         if len(words)>2:
             phrase=' '.join(words[2:])

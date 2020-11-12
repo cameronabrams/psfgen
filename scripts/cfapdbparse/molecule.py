@@ -367,12 +367,13 @@ class Molecule:
                 self.Biomolecules[0].chains.append(c)
             #print('#### added identity biomt to pdb without any',self.Biomolecules[0].chains)
         for b in self.Biomolecules:
-            for c in b.chains:
-                for t in b.biomt:
-                    new_chainID=c
-                    if not t.isidentity():
-                        new_chainID=self.chainIDs_available.pop(0)
-                    t.mapchains(c,new_chainID)
+            for c in b.chains:  # may have extra if CIF
+                if c in chainIDs_detected:
+                    for t in b.biomt:
+                        new_chainID=c
+                        if not t.isidentity():
+                            new_chainID=self.chainIDs_available.pop(0)
+                        t.mapchains(c,new_chainID)
     def GetBiomoleculeByChain(self,c):
         for b in self.Biomolecules:
             if c in b.chains:
@@ -749,7 +750,7 @@ class Molecule:
     def CIFParseAtoms(self,alist):
         for a in alist:
             self.Atoms.append(Atom(cifdict=a))
-            
+
     
 
 
