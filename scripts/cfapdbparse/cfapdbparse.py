@@ -218,9 +218,9 @@ if __name__=='__main__':
     PDBfiles=args.pdbcif
     Molecules=[]
     if '.cif' in PDBfiles[0]:
-        Molecules.append(Molecule(cif=PDBfiles[0],userLinks=UsL))
+        Molecules.append(Molecule(cif=PDBfiles[0],userLinks=Usl))
     elif '.pdb' in PDBfiles[0]:
-        Molecules.append(Molecule(pdb=PDBfiles[0],userLinks=UsL))
+        Molecules.append(Molecule(pdb=PDBfiles[0],userLinks=Usl))
     for p in PDBfiles[1:]:
         if '.cif' in p:
             Molecules.append(Molecule(cif=p))
