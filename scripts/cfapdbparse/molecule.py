@@ -742,7 +742,7 @@ class Molecule:
                 if len(useme)==0:
                     print('Error: oper index {} not found in oper_list'.format(i))
                 else:
-                    self.Biomolecules[index].CIFBiomT(d)
+                    self.Biomolecules[index].biomt.append(CIFBiomT(d))
     
 
 
