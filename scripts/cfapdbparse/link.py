@@ -49,6 +49,7 @@ class Link:
             self.empty=False
         elif cifdict!=None:
             d=cifdict
+            self.record_name='LINK'
             self.name1=d['ptnr1_label_atom_id']
             al=d['pdbx_ptnr1_label_alt_id']
             self.altloc1=' ' if al=='?' else al
@@ -76,6 +77,7 @@ class Link:
             self.atom2=''
 #            self.biomt=0
             self.empty=False
+            self.pdbrecord=self.pdb_line()
         else:
             self.empty=True
     def pdb_line(self):
