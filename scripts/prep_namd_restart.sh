@@ -1,4 +1,19 @@
 #!/bin/bash
+#
+# this function accepts as an argument a NAMD config file, the log from a run generated
+# by namd2 run on that config file, and the name of a new config file to create that
+# restarts the existing simulation from the last checkpoint, if it did not complete.
+#
+# some assumptions are made about the syntax of the input config file; read output carefully.
+#
+# example:
+#
+# prep_namd_restart first_run.conf run.log restart_run.conf
+#
+# to use this function in your own script, just source this file
+#
+# Cameron Abrams cfa22@drexel.edu
+# 2020
 
 function prep_namd_restart {
     CONF=$1
