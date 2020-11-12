@@ -356,12 +356,14 @@ class Molecule:
 
     def MakeBiomolecules(self):
         self.chainIDs_allowed=set(['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'])
-        chainIDs_detected=set()
+        chainIDs_detected=[]
         for a in self.Atoms:
-            chainIDs_detected.add(a.chainID)
-        print(list(chainIDs_detected))
+            if a.chainID not in chainIDs_detected:
+                chainIDs_detected.append(a.chainID)
+#            chainIDs_detected.add(a.chainID)
+        print(chainIDs_detected)
         self.chainIDs_available=sorted(list(self.chainIDs_allowed.difference(chainIDs_detected)))
-        chainIDs_detected=[_ for _ in reversed(list(chainIDs_detected))]  # preserves ordering implied by atom list
+#        chainIDs_detected=[_ for _ in reversed(list(chainIDs_detected))]  # preserves ordering implied by atom list
         if len(self.Biomolecules)==0:
             self.Biomolecules.append(Biomolecule('IDENTITY'))
             for c in chainIDs_detected:
