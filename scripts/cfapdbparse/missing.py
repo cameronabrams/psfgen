@@ -15,7 +15,7 @@ class Missing:
             self.cifdict=cifdict
             self.model=int(cifdict['pdb_model_num'])
             self.resname=cifdict['auth_comp_id']
-            self.chainID=cifdcit['auth_asym_id']
+            self.chainID=cifdict['auth_asym_id']
             self.resseqnum=int(cifdict['auth_seq_id'])
             ic=cifdict['pdb_ins_code']
             self.insertion=' ' if ic=='?' else ic
