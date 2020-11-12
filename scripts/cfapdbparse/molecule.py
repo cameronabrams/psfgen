@@ -109,6 +109,7 @@ class Molecule:
             print('Method: {}; Resolution: {} Ang.'.format(self.ExpDta,self.Resolution))
             print('{} ATOM or HETATOM records.'.format(len(self.Atoms)))
             print('{} unique residues, {} missing.'.format(len(self.Residues),len(self.MissingRes)))
+            print('{} disulfides; {} covalent links.'.format(len(self.SSBonds),len(self.Links)))
             if len(self.Chains)>0:
                print('Chains: {}'.format(", ".join(c.chainID for c in self.Chains.values())))
             print('Biomolecules:')
