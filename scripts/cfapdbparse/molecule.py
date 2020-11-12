@@ -367,7 +367,16 @@ class Molecule:
                 self.Biomolecules[0].chains.append(c)
             #print('#### added identity biomt to pdb without any',self.Biomolecules[0].chains)
         for b in self.Biomolecules:
-            for c in b.chains:  # may have extra if CIF
+            # chain ID's listed for this biomol/assembly
+            # may contain id's not implied by the atom list
+            # so we'll get rid of those and use our own
+            # scheme for replicating chainIDs
+            savchains=[]
+            for c in chainIDs_detected:
+                if c in b.chains:
+                    savchains.append(c)
+            b.chains=savchains[:]    
+            for c in b.chains:
                 if c in chainIDs_detected:
                     for t in b.biomt:
                         new_chainID=c
