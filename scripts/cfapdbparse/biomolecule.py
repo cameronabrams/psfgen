@@ -60,51 +60,59 @@ class Biomolecule:
         self.biomt[-1].parseBIOMT(ax,words)
 
 class BiomT:
-     def __init__(self):
-         self.index=-1
-         self.tmat=[[1, 0, 0, 0],[0, 1, 0, 0],[0, 0, 1, 0]]
-         self.replicachainID_from_sourcechainID={}
-         self.sourcechainID_from_replicachainID={}
-     def parseBIOMT(self,ax,words):
-         if self.index==-1:
-             self.index=int(words[3])
-         vals=[]
-         for w in words[4:]:
-            vals.append(float(w))
-         self.tmat[ax-1]=vals
-     def show(self):
-         print('BIOMT {:d}'.format(self.index))
-         print('    TMAT',self.tmat)
-         print('    REPC',self.replicachainID_from_sourcechainID)
-     def isidentity(self):
-         t=self.tmat
-         if t[0][0]==1.0 and t[1][1]==1.0 and t[2][2]==1.0:
-             return True
-         else:
-             return False 
-     def mapchains(self,c,newc):
-         self.replicachainID_from_sourcechainID[c]=newc
-         self.sourcechainID_from_replicachainID[newc]=c
-     def get_replica_chainID(self,c):
-         if c in self.replicachainID_from_sourcechainID:
-             return self.replicachainID_from_sourcechainID[c]
-         else:
-             return c
-     def report_chain_replicas(self):
-         for k,v in self.replicachainID_from_sourcechainID.items():
-             print('#### {} -> {}'.format(k,v))
-     def get_base_chainID(self,newc):
-         if newc in self.sourcechainID_from_replicachainID:
-             return self.sourcechainID_from_replicachainID[newc]
-         else:
-             return newc
-     def OneLiner(self):
-         retstr=r'{ '
-         for i in range(3):
-             retstr+=r'{ '
-             for j in range(4):
-                retstr+='{} '.format(self.tmat[i][j])
-             retstr+=r' } '
-         retstr+='{ 0 0 0 1 } }'
-         return retstr
+    def __init__(self):
+        self.index=-1
+        self.tmat=[[1, 0, 0, 0],[0, 1, 0, 0],[0, 0, 1, 0]]
+        self.replicachainID_from_sourcechainID={}
+        self.sourcechainID_from_replicachainID={}
+    def parseBIOMT(self,ax,words):
+        if self.index==-1:
+            self.index=int(words[3])
+        vals=[]
+        for w in words[4:]:
+           vals.append(float(w))
+        self.tmat[ax-1]=vals
+    def CIFBiomT(self,cifdict):
+        newbiomt=BiomT()
+        newbiomt.index=int(cifdict['id'])
+        for i in range(3):
+            for j in range(3):
+                tmat[i][j]=float(cifdict['matrix[{}][{}]'.format(i+1,j+1)])
+            tmat[i][3]=float(cifdict['vector[{}]'.format(i+1)])
+        tmat[3][3]=0.0
+    def show(self):
+        print('BIOMT {:d}'.format(self.index))
+        print('    TMAT',self.tmat)
+        print('    REPC',self.replicachainID_from_sourcechainID)
+    def isidentity(self):
+        t=self.tmat
+        if t[0][0]==1.0 and t[1][1]==1.0 and t[2][2]==1.0:
+            return True
+        else:
+            return False 
+    def mapchains(self,c,newc):
+        self.replicachainID_from_sourcechainID[c]=newc
+        self.sourcechainID_from_replicachainID[newc]=c
+    def get_replica_chainID(self,c):
+        if c in self.replicachainID_from_sourcechainID:
+           return self.replicachainID_from_sourcechainID[c]
+        else:
+            return c
+    def report_chain_replicas(self):
+        for k,v in self.replicachainID_from_sourcechainID.items():
+            print('#### {} -> {}'.format(k,v))
+    def get_base_chainID(self,newc):
+        if newc in self.sourcechainID_from_replicachainID:
+            return self.sourcechainID_from_replicachainID[newc]
+        else:
+            return newc
+    def OneLiner(self):
+        retstr=r'{ '
+        for i in range(3):
+            retstr+=r'{ '
+            for j in range(4):
+               retstr+='{} '.format(self.tmat[i][j])
+            retstr+=r' } '
+        retstr+='{ 0 0 0 1 } }'
+        return retstr
 

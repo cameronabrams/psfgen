@@ -728,6 +728,20 @@ class Molecule:
         self.CIFParseBiomolecules(GetCIFStructDictList(db,structs,'_pdbx_struct_assembly_gen'),GetCIFStructDictList(db,structs,'_pdbx_struct_oper_list'))
         
     def CIFParseBiomolecules(self,genl,operl):
-        pass
+        # for each gen, associate with a biomoleculr  
+
+        for g in genl:
+            index=int(g['assembly_id'])-1
+            operids=g['oper_expressions'].split(',')
+            for i in operids:
+                useme={}
+                for od in operl:
+                    if od['id']==i:
+                        useme=od
+                if len(useme)==0:
+                    print('Error: oper index {} not found in oper_list'.format(i))
+                else:
+                    self.Biomolecules[index].CIFBiomT(d)
+    
 
 
