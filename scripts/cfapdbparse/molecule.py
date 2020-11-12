@@ -729,7 +729,8 @@ class Molecule:
         
     def CIFParseBiomolecules(self,genl,operl):
         # for each gen, associate with a biomoleculr  
-
+        print(genl)
+        print(operl)
         for g in genl:
             index=int(g['assembly_id'])-1
             operids=g['oper_expressions'].split(',')
