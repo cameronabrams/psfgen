@@ -733,7 +733,7 @@ class Molecule:
         isloop=True if db.FindLoop('_pdbx_struct_assembly.id')!=-1 else False
         if isloop:
             pass
-        else
+        else:
             self.Biomolecules.append(Biomolecule(cifdb=db))
 
 
