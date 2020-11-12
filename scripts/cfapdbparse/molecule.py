@@ -360,7 +360,7 @@ class Molecule:
         for a in self.Atoms:
             chainIDs_detected.add(a.chainID)
         self.chainIDs_available=sorted(list(self.chainIDs_allowed.difference(chainIDs_detected)))
-        chainIDs_detected=list(chainIDs_detected)  # preserves ordering implied by atom list
+        chainIDs_detected=[_ for _ in reversed(list(chainIDs_detected))]  # preserves ordering implied by atom list
         if len(self.Biomolecules)==0:
             self.Biomolecules.append(Biomolecule('IDENTITY'))
             for c in chainIDs_detected:
