@@ -737,7 +737,7 @@ class Molecule:
         for g in genl:
             index=int(g['assembly_id'])-1
             operids=g['oper_expression'].split(',')
-            chains=g['asum_id_list'].split(',')
+            chains=g['asym_id_list'].split(',')
             for i in operids:
                 useme={}
                 for od in operl:
