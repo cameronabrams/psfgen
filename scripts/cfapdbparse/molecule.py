@@ -19,6 +19,10 @@ class Molecule:
         self.molid_varname='m{}'.format(self.molid)
         #print('#### Registered instance of {:s} as molid {:d} with variable name {:s}'.format(self.pdb,self.molid,self.molid_varname))
         self.psfgen_loadstr='mol new {} waitfor all\nset {} [molinfo top get id]\n'.format(self.pdb,self.molid_varname)
+        if self.cif!=None:
+            # need to renumber and rechain to user specs
+            self.psfgen_loadstr+='set ciftmp [atomselect ${} all]\n'.format(self.molid_varname)
+            self.psfgen_loadstr+='$ciftmp set chain [list {}]\n'.format(" ".join([_.chainID for _ in self.Atoms]))
         _molidcounter_+=1
         fp.write(self.psfgen_loadstr+'\n')
     def ReadPDB(self,pdb):
