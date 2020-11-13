@@ -23,6 +23,7 @@ class Molecule:
             # need to renumber and rechain to user specs
             self.psfgen_loadstr+='set ciftmp [atomselect ${} all]\n'.format(self.molid_varname)
             self.psfgen_loadstr+='$ciftmp set chain [list {}]\n'.format(" ".join([_.chainID for _ in self.Atoms]))
+            self.psfgen_loadstr+='$ciftmp set resid [list {}]\n'.format(" ".join([_.resseqnum for _ in self.Atoms]))
         _molidcounter_+=1
         fp.write(self.psfgen_loadstr+'\n')
     def ReadPDB(self,pdb):
