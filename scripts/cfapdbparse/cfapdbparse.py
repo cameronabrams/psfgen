@@ -1,5 +1,13 @@
+"""
+    Parses PDB/mmCIF file(s) to build input file for VMD/psfgen
+    Cameron F Abrams
+    cfa22@drexel.edu
+
+"""
+
 import sys
 import operator
+import argparse
 from datetime import date 
 from molecule import Molecule
 from cleavage import Cleavage
@@ -11,18 +19,12 @@ from attach import Attach
 from link import Link
 from atom import _PDBAtomNameDict_
 from residue import Residue, _PDBResName123_, _pdb_glycans_, _pdb_ions_, _ResNameDict_PDB_to_CHARMM_, _ResNameDict_CHARMM_to_PDB_, get_residue
-import argparse
-''' 
-    Parses PDB file(s) to build input file for VMD/psfgen
-    Cameron F Abrams
-    cfa22@drexel.edu
-'''
-
-#class PostMod:
-#    def __init__(self,center_protein=False,reorient_protein=False,reorselstr='',do_loop_mc=False,Loops=[]):
-#        self.ctr=center_protein
 
 def WritePostMods(fp,psf,pdb,PostMod,Loops):
+    """ Writes TcL/VMD commands that encode modifications once the
+        the base psfgen structure has been written.  'PostMods' include
+        things like commands to center the protein, relax model-built loops, etc.
+    """
     prefix=pdb[:]
     prefix=prefix.replace('.pdb','')
     fp.write('### Post modifications follow:\n')
