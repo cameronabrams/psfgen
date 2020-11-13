@@ -175,7 +175,6 @@ class Link:
             elif self.name1=='O6' and self.name2=='C2':
                 #return 'patch SA26E {}:{} {}:{}\n'.format(self.segname1,self.resseqnum1,self.segname2,self.resseqnum2)
                 return 'patch SA26AT {}:{} {}:{}\n'.format(self.segname1,self.resseqnum1,self.segname2,self.resseqnum2)
-                pass
             else:
                 return '### patch unknown for '+str(self)+'\n'
 

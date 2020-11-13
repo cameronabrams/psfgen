@@ -18,10 +18,9 @@ import argparse
     cfa22@drexel.edu
 '''
 
-class PostMod:
-    def __init__(self,center_protein=False,reorient_protein=False,reorselstr='',do_loop_mc=False,Loops=[]):
-        self.ctr=center_protein
-        return self
+#class PostMod:
+#    def __init__(self,center_protein=False,reorient_protein=False,reorselstr='',do_loop_mc=False,Loops=[]):
+#        self.ctr=center_protein
 
 def WritePostMods(fp,psf,pdb,PostMod,Loops):
     prefix=pdb[:]

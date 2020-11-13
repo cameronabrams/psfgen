@@ -174,13 +174,6 @@ class Molecule:
         short=pdbrecord[10:80].strip()
         self.titlelines.append(short)
         self.Title=short if len(self.Title)==0 else (self.Title+short)
-    def ShowTitleLines(self):
-        if len(self.titlelines)>0:
-            print('### TITLE records:')
-            for i,l in enumerate(self.title):
-                print('-> {:1s} {}'.format(' ' if i==0 else str(i),self.titlelines[i]))
-        else:
-            print('### {} contains no TITLE record'.format(self.pdb))
     def TitleRecord(self):
         retstr=''
         if len(self.titlelines)>0:
@@ -553,8 +546,8 @@ class Molecule:
         self.load(fp)
         for g in userGrafts:
             g.load(fp)
-        for a in userAttach:
-            pass # a.load(fp)
+#        for a in userAttach:
+ #           pass # a.load(fp)
 
         fp.write('mol top ${}\n'.format(self.molid_varname))
 
