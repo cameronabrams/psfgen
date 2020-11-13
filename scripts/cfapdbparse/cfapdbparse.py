@@ -63,6 +63,7 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops):
         if PostMod['do_loop_mc']:
            dlmc=True
     if dlmc:
+        # here is a comment
         fp.write('set loops {\n')
         for l in Loops:
             if l.term and len(l.residues)>1:
