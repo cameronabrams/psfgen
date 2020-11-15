@@ -40,10 +40,10 @@ if [[ -z "${PSFGEN_BASEDIR}" ]]; then
     PSFGEN_BASEDIR=${HOME}/research/psfgen
 fi
 if [[ -z "${PYTHON3}" ]]; then
-    if [[ -f /usr/bin/python3 ]]; then
-        PYTHON3=/usr/bin/python3
-    else
+    if [[ -f ${HOME}/anaconda/bin/python3 ]]; then
         PYTHON3=${HOME}/anaconda3/bin/python3
+    else
+        PYTHON3=/usr/bin/python3
     fi
     if [[ ! -f $PYTHON3 ]]; then
         echo "No python3 found at $PYTHON3"
