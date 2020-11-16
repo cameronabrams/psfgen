@@ -214,6 +214,7 @@ if __name__=='__main__':
         CTopo.extend(args.topo)
     prefix=args.prefix
     PostMod['do_loop_mc']=args.rmi
+    PostMod['do_gly_mc']=args.grel
     PostMod['Crot']=MrgCmdLineAndFileContents(args.crot,args.crotfile,Crot)
     fixConflicts=not args.kc
     fixEngineeredMutations=args.rem
