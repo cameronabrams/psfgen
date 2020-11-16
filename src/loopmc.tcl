@@ -771,7 +771,7 @@ proc check_pierced_rings { molid TOL } {
         set ra4 [expr $ir + 3]
         set ra5 [expr $ir + 4]
         set ra5i [list [lindex $r5x $ra1] [lindex $r5x $ra2] [lindex $r5x $ra3] [lindex $r5x $ra4] [lindex $r5x $ra5]]
-        puts "  5-ring [expr $ir/5] ([lindex $r5i $ra1]-[lindex $r5i $ra2]-[lindex $r5i $ra3]-[lindex $r5i $ra4]-[lindex $r5i $ra5])"
+    #   puts "  5-ring [expr $ir/5] ([lindex $r5i $ra1]-[lindex $r5i $ra2]-[lindex $r5i $ra3]-[lindex $r5i $ra4]-[lindex $r5i $ra5])"
         set r5comx [expr (1.0/5.0)*([lindex $r5x $ra1] + [lindex $r5x $ra2] + [lindex $r5x $ra3] + [lindex $r5x $ra4] + [lindex $r5x $ra5])]
         set r5comy [expr (1.0/5.0)*([lindex $r5y $ra1] + [lindex $r5y $ra2] + [lindex $r5y $ra3] + [lindex $r5y $ra4] + [lindex $r5y $ra5])]
         set r5comz [expr (1.0/5.0)*([lindex $r5z $ra1] + [lindex $r5z $ra2] + [lindex $r5z $ra3] + [lindex $r5z $ra4] + [lindex $r5z $ra5])]
@@ -790,9 +790,9 @@ proc check_pierced_rings { molid TOL } {
         foreach j $b {
           set atj [lsearch $ai $j]
           set atjpos [list [lindex $aix $atj] [lindex $aiy $atj] [lindex $aiz $atj]]
-          puts "   bond $i $j ($ati $atj)"
-          puts "   atipos $atipos"
-          puts "   atjpos $atjpos"
+     #     puts "   bond $i $j ($ati $atj)"
+     #     puts "   atipos $atipos"
+     #     puts "   atjpos $atjpos"
           # i-j bond pierces ring if 
           # 1. bond com and ring com are less than TOL from each other
           # 2. i and j are on opposite sides of the ring:
@@ -811,6 +811,7 @@ proc check_pierced_rings { molid TOL } {
         }
       }
     }
+    delete $r5
     set r6 [atomselect $molid "ringsize 6 from (same residue as within 5 of index $i)"]
     if {[expr [$r6 num] > 0]} {
       set r6i [$r6 get index]
@@ -827,7 +828,7 @@ proc check_pierced_rings { molid TOL } {
         set ra4 [expr $ir + 3]
         set ra5 [expr $ir + 4]
         set ra6 [expr $ir + 5]
-        puts "    6-ring [expr $ir/6]: ([lindex $r6i $ra1]-[lindex $r6i $ra2]-[lindex $r6i $ra3]-[lindex $r6i $ra4]-[lindex $r6i $ra5]-[lindex $r6i $ra6])"
+    #    puts "    6-ring [expr $ir/6]: ([lindex $r6i $ra1]-[lindex $r6i $ra2]-[lindex $r6i $ra3]-[lindex $r6i $ra4]-[lindex $r6i $ra5]-[lindex $r6i $ra6])"
         set r6comx [expr (1.0/5.0)*([lindex $r6x $ra1] + [lindex $r6x $ra2] + [lindex $r6x $ra3] + [lindex $r6x $ra4] + [lindex $r6x $ra5] + [lindex $r6x $ra6])]
         set r6comy [expr (1.0/5.0)*([lindex $r6y $ra1] + [lindex $r6y $ra2] + [lindex $r6y $ra3] + [lindex $r6y $ra4] + [lindex $r6y $ra5] + [lindex $r6y $ra6])]
         set r6comz [expr (1.0/5.0)*([lindex $r6z $ra1] + [lindex $r6z $ra2] + [lindex $r6z $ra3] + [lindex $r6z $ra4] + [lindex $r6z $ra5] + [lindex $r6z $ra6])]
@@ -846,9 +847,9 @@ proc check_pierced_rings { molid TOL } {
         foreach j $b {
           set atj [lsearch $ai $j]
           set atjpos [list [lindex $aix $atj] [lindex $aiy $atj] [lindex $aiz $atj]]
-          puts "   bond $i $j ($ati $atj)"
-          puts "   atipos $atipos"
-          puts "   atjpos $atjpos"
+    #      puts "   bond $i $j ($ati $atj)"
+    #      puts "   atipos $atipos"
+    #      puts "   atjpos $atjpos"
           # i-j bond pierces ring if 
           # 1. bond com and ring com are less than TOL from each other
           # 2. i and j are on opposite sides of the ring:
@@ -867,6 +868,7 @@ proc check_pierced_rings { molid TOL } {
         }
       }
     }
+    delete $r6
   }
 }
 
