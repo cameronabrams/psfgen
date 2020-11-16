@@ -106,10 +106,10 @@ proc make_bondstruct { molid sel rot_il rot_jl } {
         set partners [list]
         foreach pp $ibl {
             if { [lsearch $il $pp] != -1 } {
-                lappend $partners $pp
+                lappend partners $pp
             }
         }
-        puts "#### $a $ibl partners $partners"
+        puts "#### $a bonds with $ibl partners $partners"
         set ta [intListToArray $partners]
         bondstruct_addbonds $bs $a $ta [llength $ibl]
 #     }
