@@ -763,6 +763,7 @@ proc check_pierced_rings { molid TOL } {
         set ra3 [expr $ir + 2]
         set ra4 [expr $ir + 3]
         set ra5 [expr $ir + 4]
+        set ra5i [list [lindex $r5x $ra1] [lindex $r5x $ra2] [lindex $r5x $ra3] [lindex $r5x $ra4] [lindex $r5x $ra5]]
         puts "  5-ring [expr $ir/5] ([lindex $r5i $ra1]-[lindex $r5i $ra2]-[lindex $r5i $ra3]-[lindex $r5i $ra4]-[lindex $r5i $ra5])"
         set r5comx [expr (1.0/5.0)*([lindex $r5x $ra1] + [lindex $r5x $ra2] + [lindex $r5x $ra3] + [lindex $r5x $ra4] + [lindex $r5x $ra5])]
         set r5comy [expr (1.0/5.0)*([lindex $r5y $ra1] + [lindex $r5y $ra2] + [lindex $r5y $ra3] + [lindex $r5y $ra4] + [lindex $r5y $ra5])]
@@ -782,7 +783,7 @@ proc check_pierced_rings { molid TOL } {
         foreach j $b {
           set atj [lsearch $ai $j]
           set atjpos [list [lindex $aix $atj] [lindex $aiy $atj] [lindex $aiz $atj]]
-          puts "   bond $i $j"
+          puts "   bond $i $j ($ati $atj)"
           puts "   atipos $atipos"
           puts "   atjpos $atjpos"
           # i-j bond pierces ring if 
