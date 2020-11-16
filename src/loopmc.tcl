@@ -772,7 +772,7 @@ proc check_pierced_rings { molid TOL } {
         set ra5 [expr $ir + 4]
         set ra5i [list [lindex $r5x $ra1] [lindex $r5x $ra2] [lindex $r5x $ra3] [lindex $r5x $ra4] [lindex $r5x $ra5]]
     #   puts "  5-ring [expr $ir/5] ([lindex $r5i $ra1]-[lindex $r5i $ra2]-[lindex $r5i $ra3]-[lindex $r5i $ra4]-[lindex $r5i $ra5])"
-        if { [lesearch $ra5i $i] == -1] } {
+        if { [lesearch $ra5i $i] == -1 } {
           set r5comx [expr (1.0/5.0)*([lindex $r5x $ra1] + [lindex $r5x $ra2] + [lindex $r5x $ra3] + [lindex $r5x $ra4] + [lindex $r5x $ra5])]
           set r5comy [expr (1.0/5.0)*([lindex $r5y $ra1] + [lindex $r5y $ra2] + [lindex $r5y $ra3] + [lindex $r5y $ra4] + [lindex $r5y $ra5])]
           set r5comz [expr (1.0/5.0)*([lindex $r5z $ra1] + [lindex $r5z $ra2] + [lindex $r5z $ra3] + [lindex $r5z $ra4] + [lindex $r5z $ra5])]
@@ -789,7 +789,7 @@ proc check_pierced_rings { molid TOL } {
           set lcbr123 [veclength $cbr123]
           set cbr123 [vecscale [expr 1.0/$lcbr123] $cbr123]
           foreach j $b {
-            if { [lsearch $ra5i $j] == -1] } {
+            if { [lsearch $ra5i $j] == -1 } {
               set atj [lsearch $ai $j]
               set atjpos [list [lindex $aix $atj] [lindex $aiy $atj] [lindex $aiz $atj]]
      #     puts "   bond $i $j ($ati $atj)"
