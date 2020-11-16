@@ -107,6 +107,7 @@ proc make_bondstruct { molid sel rot_il rot_jl } {
      }
    }
    bondstruct_makerotatablebondlist $bs [intListToArray $rot_il] [llength $rot_il] [intListToArray $rot_jl] [llength $rot_jl]
+   puts "make_bondstruct returns"
    return $bs
 }
 
