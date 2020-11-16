@@ -757,13 +757,13 @@ proc check_pierced_rings { molid TOL } {
 
 # MUCH WORK IS TO DO HERE
       for {set ir 0} {$ir < [$r5 num]} {incr ir 5} {
-        puts "    5-ring [expr $ir/5]"
         # approximate ring normal vector by crossing first two bond vectors
         set ra1 $ir
         set ra2 [expr $ir + 1]
         set ra3 [expr $ir + 2]
         set ra4 [expr $ir + 3]
         set ra5 [expr $ir + 4]
+        puts "  5-ring [$expr $ir/5] ([lindex $r5i $ra1]-[lindex $r5i $ra2]-[lindex $r5i $ra3]-[lindex $r5i $ra4]-[lindex $r5i $ra5])"
         set r5comx [expr (1.0/5.0)*([lindex $r5x $ra1] + [lindex $r5x $ra2] + [lindex $r5x $ra3] + [lindex $r5x $ra4] + [lindex $r5x $ra5])]
         set r5comy [expr (1.0/5.0)*([lindex $r5y $ra1] + [lindex $r5y $ra2] + [lindex $r5y $ra3] + [lindex $r5y $ra4] + [lindex $r5y $ra5])]
         set r5comz [expr (1.0/5.0)*([lindex $r5z $ra1] + [lindex $r5z $ra2] + [lindex $r5z $ra3] + [lindex $r5z $ra4] + [lindex $r5z $ra5])]
@@ -812,7 +812,6 @@ proc check_pierced_rings { molid TOL } {
 
 # MUCH WORK IS TO DO HERE
       for {set ir 0} {$ir < [$r6 num]} {incr ir 6} {
-        puts "    6-ring [expr $ir/6]: ([lindex $r6i $ra1]-[lindex $r6i $ra2]-[lindex $r6i $ra3]-[lindex $r6i $ra4]-[lindex $r6i $ra5]-[lindex $r6i $ra6])"
           # approximate ring normal vector by crossing first two bond vectors
         set ra1 $ir
         set ra2 [expr $ir + 1]
