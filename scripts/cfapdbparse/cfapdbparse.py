@@ -99,10 +99,11 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
         fp.write('   set lr [glycan_rotatables $molid "segname $g"]\n')
         fp.write('   set li [lindex $lr 0]\n')
         fp.write('   set ri [lindex $lr 1]\n')
-        fp.write('   set rid [[atomselect $molid "segname $g"] get resid]\n')
+        fp.write('   set sel [atomelect $molid "segname $g"]\n')
+        fp.write('   set rid [$sel get resid]\n')
         fp.write('   set root [lindex [lsort -unique -real $rid] 0]\n')
         fp.write('   set fa [[atomselect $molid "segname $g and name C1 and resid $root"] get index]\n')
-        fp.write('   do_flex_mc $molid $rid $li $ri $fa 0 -1 -1 $bg $rcut $nc $temperature [irand_dom 1000 9999] $logid\n')
+        fp.write('   do_flex_mc $molid $sel $li $ri $fa 0 -1 -1 $bg $rcut $nc $temperature [irand_dom 1000 9999] $logid\n')
         fp.write('}\n')
     new_pdb_out=prefix+'_mod.pdb'
     fp.write('$a writepdb {}\n'.format(new_pdb_out))
