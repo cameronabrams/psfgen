@@ -964,7 +964,7 @@ proc check_pierced_rings { molid TOL } {
       foreach b $bl {
         if { [lsearch $na $b] != -1 } {
           set bi $ord($b)
-          set bpos [list [lindex $nax $bi] [lindex $nay $bi] [lindex $naz $ci]]
+          set bpos [list [lindex $nax $bi] [lindex $nay $bi] [lindex $naz $bi]]
           set avpos [vecscale [vecadd $apos $bpos] 0.5]
           set avec [vecsub $avpos $apos]
           set bvec [vecsub $avpos $bpos]
