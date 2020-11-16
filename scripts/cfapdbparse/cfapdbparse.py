@@ -95,7 +95,6 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
         fp.write('set bg [atomselect $molid "noh"]\n')
         fp.write('set glycan_segs [list '+' '.join(GlycanSegs)+']\n')
         fp.write('foreach g $glycan_segs {\n')
-        fp.write('   puts "Relaxing glycan $g..."\n')
         fp.write('   set lr [glycan_rotatables $molid "segname $g"]\n')
         fp.write('   set li [lindex $lr 0]\n')
         fp.write('   set ri [lindex $lr 1]\n')
@@ -103,6 +102,7 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
         fp.write('   set rid [$sel get resid]\n')
         fp.write('   set root [lindex [lsort -unique -real $rid] 0]\n')
         fp.write('   set fa [[atomselect $molid "segname $g and name C1 and resid $root"] get index]\n')
+        fp.write('   puts "Relaxing glycan $g root $root fa $fa..."\n')
         fp.write('   do_flex_mc $molid $sel $li $ri $fa 0 -1 -1 $bg $rcut $nc $temperature [irand_dom 1000 9999] $logid\n')
         fp.write('}\n')
     new_pdb_out=prefix+'_mod.pdb'

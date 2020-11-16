@@ -780,13 +780,13 @@ proc glycan_rotatables { molid selstr } {
             }
         }
         if { $inring == 1 } {
-            puts "$i $j is a ring edge"
+           # puts "$i $j is a ring edge"
         } elseif { $i_in == 0 } {
-            puts "$j is a ring vertex but $i is not"
+            #puts "$j is a ring vertex but $i is not"
             lappend lefts $j
             lappend rights $i
         } elseif { $j_in == 0 } {
-            puts "$i is a ring vertex but $j is not"
+            #puts "$i is a ring vertex but $j is not"
             lappend lefts $j
             lappend rights $i
         }
