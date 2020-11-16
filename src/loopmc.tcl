@@ -917,7 +917,7 @@ proc check_pierced_rings { molid TOL } {
   #set r6 [atomselect $molid "ringsize 6 from all"]
 
   for { set ri 0 } { $ri < [llength $r6i] } { incr ri 6 } {
-    puts "ring $ri"
+    #puts "ring $ri"
     set this_ri {}
     set this_rx {}
     set this_ry {}
@@ -928,12 +928,12 @@ proc check_pierced_rings { molid TOL } {
       lappend this_ry [lindex $r6y [expr $ri + $t]]
       lappend this_rz [lindex $r6z [expr $ri + $t]]
     }
-    puts "this_ri $this_ri"
+    #puts "this_ri $this_ri"
     set this_rr {}
     foreach x $this_rx y $this_ry z $this_rz {
       lappend this_rr [list $x $y $z]
     }
-    puts "this_rr $this_rr"
+    #puts "this_rr $this_rr"
     set this_com [list [ladd $this_rx] [ladd $this_ry] [ladd $this_rz]]
     set this_com [vecscale $this_com [expr 1./6.]]
     set this_b12 [vecsub [lindex $this_rr 0] [lindex $this_rr 1]]
@@ -941,7 +941,7 @@ proc check_pierced_rings { molid TOL } {
     set c123 [veccross $this_b12 $this_b23]
     set lc123 [veclength $c123]
     set chat123 [vecscale $c123 [expr 1.0/$lc123]]
-    puts "ring $this_ri : $this_com : $chat123"
+    #puts "ring $this_ri : $this_com : $chat123"
     set neigh [atomselect $molid "(protein or glycan) and same residue as (exwithin 4.0 of index $this_ri)"]
     set nb [$neigh getbonds]
     set na [$neigh get index]
@@ -955,7 +955,7 @@ proc check_pierced_rings { molid TOL } {
     }
     set ln 0
     foreach a $na bl $nb {
-      if { [expr $ln%100 = 0] } {
+      if { [expr $ln%100 == 0] } {
         puts -nonewline "."
       }
       incr ln
