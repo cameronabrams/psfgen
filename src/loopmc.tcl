@@ -646,8 +646,8 @@ proc do_flex_mc { molid msel ri rj fa k i j envsel rcut maxcycles temperature is
    set bl [$msel getbonds]
    set il [$msel get index]
    set bs [make_bondstruct $molid $msel $ri $rj]
-   bondstruct_deactivate_by_fixed $bs $fa
    print_bondlist $bs
+   bondstruct_deactivate_by_fixed $bs $fa
 
 #   puts "ri $ri"
 #   puts "rj $rj"
