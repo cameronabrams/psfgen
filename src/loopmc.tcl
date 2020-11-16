@@ -797,7 +797,7 @@ proc check_pierced_rings { molid TOL } {
           set v1 [vecsub $r5com $atipos]
           set v2 [vecsub $r5com $atjpos]
           set dot1 [vecdot $v1 $v2]
-          if { $d1 < $TOL and $dot1 < 0 } {
+          if { $d1 < $TOL && $dot1 < 0 } {
             puts "5-ring ([lindex $r5i $ra1]-[lindex $r5i $ra2]-[lindex $r5i $ra3]-[lindex $r5i $ra4]-[lindex $r5i $ra5]) pierced by bond $i $j"
           }
         }
@@ -853,7 +853,7 @@ proc check_pierced_rings { molid TOL } {
           set v1 [vecsub $r6com $atipos]
           set v2 [vecsub $r6com $atjpos]
           set dot1 [vecdot $v1 $v2]
-          if { $d1 < $TOL and $dot1 < 0 } {
+          if { $d1 < $TOL && $dot1 < 0 } {
             puts "6-ring ([lindex $r6i $ra1]-[lindex $r6i $ra2]-[lindex $r6i $ra3]-[lindex $r6i $ra4]-[lindex $r6i $ra5]-[lindex $r6i $ra6]) pierced by bond $i $j"
           }
         }
