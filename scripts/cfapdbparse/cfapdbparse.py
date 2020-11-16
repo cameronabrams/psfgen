@@ -87,10 +87,11 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
         fp.write('   set loopindex [expr $loopindex + 1]\n')
         fp.write('}\n')
 
-    if 'do_gly_mc' in PostMod and Postmod['do_gly_mc']:
+    if 'do_gly_mc' in PostMod and PostMod['do_gly_mc']:
         fp.write('set glycan_segs [list '+' '.join(GlycanSegs)+']\n')
         fp.write('foreach g $glycan_segs {\n')
-        fp.write('}')
+        fp.write('   puts "Relaxing glycan $g..."\n')
+        fp.write('}\n')
     new_pdb_out=prefix+'_mod.pdb'
     fp.write('$a writepdb {}\n'.format(new_pdb_out))
     return new_pdb_out
