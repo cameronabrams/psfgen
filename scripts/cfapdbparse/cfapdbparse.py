@@ -88,9 +88,21 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
         fp.write('}\n')
 
     if 'do_gly_mc' in PostMod and PostMod['do_gly_mc']:
+        fp.write('set nc 1000\n')
+        fp.write('set rcut 3.0\n')
+        fp.write('set r0 1.5\n')
+        fp.write('set temperature 3.0\n')
+        fp.write('set bg [atomselect $molid "noh"]\n')
         fp.write('set glycan_segs [list '+' '.join(GlycanSegs)+']\n')
         fp.write('foreach g $glycan_segs {\n')
         fp.write('   puts "Relaxing glycan $g..."\n')
+        fp.write('   set lr [glycan_rotatables $molid "segname $g"]\n')
+        fp.write('   set li [lindex $lr 0]\n')
+        fp.write('   set ri [lindex $lr 1]\n')
+        fp.write('   set rid [[atomselect $molid "segname $g"] get resid]\n')
+        fp.write('   set root [lindex [lsort -unique -real $rid] 0]\n')
+        fp.write('   set fa [[atomselect $molid "segname $g and name C1 and resid $root"] get index]\n')
+        fp.write('   do_flex_mc $molid $rid $li $ri $fa 0 -1 -1 $bg $rcut $nc $temperature [irand_com 1000 9999] $logid\n')
         fp.write('}\n')
     new_pdb_out=prefix+'_mod.pdb'
     fp.write('$a writepdb {}\n'.format(new_pdb_out))
