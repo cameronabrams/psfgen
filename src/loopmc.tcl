@@ -646,8 +646,8 @@ proc do_flex_mc { molid msel ri rj fa k i j envsel rcut maxcycles temperature is
    set bl [$msel getbonds]
    set il [$msel get index]
    set bs [make_bondstruct $molid $msel $ri $rj]
-   print_bondlist $bs
    bondstruct_deactivate_by_fixed $bs $fa
+   print_bondlist $bs
 
 #   puts "ri $ri"
 #   puts "rj $rj"
@@ -671,7 +671,7 @@ proc do_flex_mc { molid msel ri rj fa k i j envsel rcut maxcycles temperature is
    set EE [roughenergy $msel $envsel $rcut]
    set E [expr $SE + $EE]
    set E0 $E
-#   puts "CFAFLEXMC) E0 $E0"
+   puts "CFAFLEXMC) E0 $E0"
    for {set cyc 0} { $cyc < $maxcycles } { incr cyc } {
       # save coordinates
       set SAVEPOS [$msel get {x y z}]

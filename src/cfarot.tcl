@@ -1,7 +1,7 @@
 # tcl library for bond rotation
 # cameron f abrams
 # cfa22@drexel.edu
-# 2018
+# 2018-2020
 
 set CFAROT_VERSION 0.10
 
@@ -95,8 +95,8 @@ proc intArrayToList {a n} {
 # rot_jl is a list of atom indices that define rotatable bond "right" partners
 proc make_bondstruct { molid sel rot_il rot_jl } {
 
-   puts "#### rot_il $rot_il"
-   puts "#### roj_jl $rot_jl"
+   #puts "#### rot_il $rot_il"
+   #puts "#### roj_jl $rot_jl"
    set il [$sel get index]
    set bl [$sel getbonds]
 
@@ -113,13 +113,13 @@ proc make_bondstruct { molid sel rot_il rot_jl } {
                 lappend partners $pp
             }
         }
-        puts "#### $a bonds with $ibl partners $partners"
+        #puts "#### $a bonds with $ibl partners $partners"
         set ta [intListToArray $partners]
         bondstruct_addbonds $bs $a $ta [llength $partners]
 #     }
    }
    bondstruct_makerotatablebondlist $bs [intListToArray $rot_il] [llength $rot_il] [intListToArray $rot_jl] [llength $rot_jl]
-   puts "make_bondstruct returns"
+   #puts "make_bondstruct returns"
    return $bs
 }
 
