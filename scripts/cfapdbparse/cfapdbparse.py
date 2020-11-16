@@ -25,6 +25,11 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
         the base psfgen structure has been written.  'PostMods' include
         things like commands to center the protein, relax model-built loops, etc.
     """
+    logfile=''
+    if 'log_dcd_file' in PostMod:
+        logfile=PostMod['log_dcd_file']
+    logdcd=len(logfile)>0
+    
     prefix=pdb[:]
     prefix=prefix.replace('.pdb','')
     fp.write('### Post modifications follow:\n')
@@ -32,17 +37,22 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
     fp.write('mol new {}\n'.format(psf))
     fp.write('set molid [molinfo top get id]\n')
     fp.write('mol addfile {}\n'.format(pdb))
-    ctr=False
-    if 'center_protein' in PostMod:
-       ctr=PostMod['center_protein']
-    if ctr:
-        fp.write('set a [atomselect top "all"]\n')
+    if logdcd:
+        fp.write('### logging enabled\n')
+        fp.write('mol new {}\n'.format(psf))
+        fp.write('mol addfile {}\n'.format(pdb))
+        fp.write('set logid [molinfo top get id]\n')
+        fp.write('mol top $molid\n')
+    else:
+        fp.write('set logid -1\n')
+    if 'center_protein' in PostMod and PostMod['center_protein']:
+        fp.write('set a [atomselect $molid "all"]\n')
         fp.write('set or [measure center $a weight mass]\n')
         fp.write('$a moveby [vecscale -1 $or]\n')
-        reor=False
-        if 'reorient_protein' in PostMod:
-            reor=PostMod['reorient_protein']
-        if reor:
+        if logdcd:
+            fp.write('set la [atomselect $logid "all"]\n')
+            fp.write('$la moveby [vecscale -1 $or]\n')
+        if 'reorient_protein' in PostMod and PostMod['reorient_protein']:
             fp.write('set ca [measure center [atomselect top "protein and {}"] weight mass]\n'.format(PostMod['reorselstr'][0]))
             fp.write('set cb [measure center [atomselect top "protein and {}"] weight mass]\n'.format(PostMod['reorselstr'][1]))
             fp.write('set pi 3.415928\n')
@@ -58,14 +68,14 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
             fp.write('set t [expr acos($ct)]\n')
             fp.write('$a move [transaxis z [expr -1 * $p] rad]\n')
             fp.write('$a move [transaxis y [expr -1 * $t] rad]\n')
-    dlmc=False
+            if logdcd:
+                fp.write('$la move [transaxis z [expr -1 * $p] rad\n')
+                fp.write('$la move [transaxis y [expr -1 & $t] rad\n')
     for crot in PostMod['Crot']:
         fp.write(crot.psfgen_str())
-    if 'do_loop_mc' in PostMod:
-        if PostMod['do_loop_mc']:
-           dlmc=True
-    if dlmc:
-        # here is a comment
+        if logdcd:
+            fp.write('log_addframe $molid $logid\n')
+    if 'do_loop_mc' in PostMod and PostMod['do_loop_mc']:
         fp.write('set loops {\n')
         for l in Loops:
             if l.term and len(l.residues)>1:
@@ -90,7 +100,6 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
     if 'do_gly_mc' in PostMod and PostMod['do_gly_mc']:
         fp.write('set nc 1000\n')
         fp.write('set rcut 3.0\n')
-        fp.write('set r0 1.5\n')
         fp.write('set temperature 3.0\n')
         fp.write('set bg [atomselect $molid "noh"]\n')
         fp.write('set glycan_segs [list '+' '.join(GlycanSegs)+']\n')
@@ -102,11 +111,17 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
         fp.write('   set rid [$sel get resid]\n')
         fp.write('   set root [lindex [lsort -unique -real $rid] 0]\n')
         fp.write('   set fa [[atomselect $molid "segname $g and name C1 and resid $root"] get index]\n')
-        fp.write('   puts "Relaxing glycan $g root $root fa $fa li $li ri $ri..."\n')
+        fp.write('   puts "Relaxing glycan $g rootres $root rootatom $fa..."\n')
         fp.write('   do_flex_mc $molid $sel $li $ri $fa 0 -1 -1 $bg $rcut $nc $temperature [irand_dom 1000 9999] $logid\n')
         fp.write('}\n')
     new_pdb_out=prefix+'_mod.pdb'
-    fp.write('$a writepdb {}\n'.format(new_pdb_out))
+    fp.write('$a writepdb {}\n'.format(new_pdb_out)
+    if logdcd:
+        fp.write('set loga [atomselect $logid all]\n')
+        fp.write('animate write dcd {} waitfor all sel $loga $logid\n'.logfile)
+        fp.write('mol delete $logid\n'
+}
+
     return new_pdb_out
 
 def WriteHeaders(fp,charmm_topologies,local_topologies):
@@ -152,7 +167,7 @@ def WriteHeaders(fp,charmm_topologies,local_topologies):
     for k,v in _PDBAtomNameDict_.items():
         fp.write('set ANAMEDICT({}) {}\n'.format(k,v))
 
-    fp.write('set logid -1\n')
+    fp.write('set logid {:d}\n'.format(logid))
 
 def MrgCmdLineAndFileContents(cl_list,filename,typ):
     if filename!='':

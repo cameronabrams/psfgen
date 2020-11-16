@@ -759,7 +759,7 @@ proc glycan_rotatables { molid selstr } {
   foreach i $at b $bl {
     foreach j $b {
       if { [expr $j > $i] } {
-        puts "considering $i - $j"
+        #puts "considering $i - $j"
         set inring 0
         for { set r 0 } { $r < [llength $ri6] } { incr r 6 } {
             #puts "   considering ring [expr $r/6]"
