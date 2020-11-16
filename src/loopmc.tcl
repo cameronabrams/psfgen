@@ -671,7 +671,7 @@ proc do_flex_mc { molid msel ri rj fa k i j envsel rcut maxcycles temperature is
    set EE [roughenergy $msel $envsel $rcut]
    set E [expr $SE + $EE]
    set E0 $E
-   puts "CFAFLEXMC) E0 $E0"
+   #puts "CFAFLEXMC) E0 $E0"
    for {set cyc 0} { $cyc < $maxcycles } { incr cyc } {
       # save coordinates
       set SAVEPOS [$msel get {x y z}]
