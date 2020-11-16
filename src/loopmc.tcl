@@ -8,7 +8,7 @@
 # cfa22@drexel.edu
 #
 # some C functions that help with quick bond rotations
-source ${PSFGEN_BASEDIR}/src/cfarot.tcl
+source $env(PSFGEN_BASEDIR)/src/cfarot.tcl
 
 # generates a sequence of integers; use as [.. $i $j]
 proc .. {from to} {
