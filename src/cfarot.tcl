@@ -94,12 +94,16 @@ proc intArrayToList {a n} {
 # rol_il is a list of atom indices that define rotatable bond "left" partners
 # rot_jl is a list of atom indices that define rotatable bond "right" partners
 proc make_bondstruct { molid sel rot_il rot_jl } {
+
+   puts "#### rot_il $rot_il"
+   puts "#### roj_jl $rot_jl"
    set il [$sel get index]
    set bl [$sel getbonds]
 
    set ia [intListToArray $il]
    set bs [new_bondstruct $ia [llength $il]]
    
+
    foreach a $il ibl $bl {
 #     if { [llength $ibl] > 0 } {
         # fix: do not add a partner atom that is not internal to the selection
