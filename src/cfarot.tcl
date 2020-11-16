@@ -115,7 +115,7 @@ proc make_bondstruct { molid sel rot_il rot_jl } {
         }
         puts "#### $a bonds with $ibl partners $partners"
         set ta [intListToArray $partners]
-        bondstruct_addbonds $bs $a $ta [llength $ibl]
+        bondstruct_addbonds $bs $a $ta [llength $partners]
 #     }
    }
    bondstruct_makerotatablebondlist $bs [intListToArray $rot_il] [llength $rot_il] [intListToArray $rot_jl] [llength $rot_jl]

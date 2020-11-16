@@ -93,6 +93,9 @@ void bondstruct_addbonds ( bondstruct * bs, int a, int * bl, int nb ) {
        return;
     } else {
       for (i=0;i<nb;i++) {
+         if (bl[i]==0) {
+            printf("ERROR: position %i of atom %i neighbor list is zero!\n",i,a)
+         }
          bs->ba[ia][i]=bl[i];
       }
     }
