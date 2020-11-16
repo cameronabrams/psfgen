@@ -917,6 +917,7 @@ proc check_pierced_rings { molid TOL } {
   #set r6 [atomselect $molid "ringsize 6 from all"]
 
   for { set ri 0 } { $ri < [llength $r6i] } { incr ri 6 } {
+    puts "ring $ri"
     set this_ri {}
     set this_rx {}
     set this_ry {}
