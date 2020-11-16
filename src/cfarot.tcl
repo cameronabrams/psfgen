@@ -101,10 +101,17 @@ proc make_bondstruct { molid sel rot_il rot_jl } {
    set bs [new_bondstruct $ia [llength $il]]
    
    foreach a $il ibl $bl {
-     if { [llength $ibl] > 0 } {
-        set ta [intListToArray $ibl]
+#     if { [llength $ibl] > 0 } {
+        # fix: do not add a partner atom that is not internal to the selection
+        set partners [list]
+        foreach pp $ibl {
+            if { [lsearch il $pp] != -1 } {
+                lappend partners $pp
+            }
+        }
+        set ta [intListToArray $partners]
         bondstruct_addbonds $bs $a $ta [llength $ibl]
-     }
+#     }
    }
    bondstruct_makerotatablebondlist $bs [intListToArray $rot_il] [llength $rot_il] [intListToArray $rot_jl] [llength $rot_jl]
    puts "make_bondstruct returns"
