@@ -815,7 +815,7 @@ proc check_pierced_rings { molid TOL } {
         }
       }
     }
-    delete $r5
+    $r5 delete
     set r6 [atomselect $molid "ringsize 6 from (same residue as within 5 of index $i)"]
     if {[expr [$r6 num] > 0]} {
       set r6i [$r6 get index]
@@ -877,7 +877,7 @@ proc check_pierced_rings { molid TOL } {
         }
       }
     }
-    delete $r6
+    $r6 delete
   }
 }
 
