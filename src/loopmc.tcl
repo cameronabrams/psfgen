@@ -738,14 +738,14 @@ proc do_flex_mc { molid msel ri rj fa k i j envsel rcut maxcycles temperature is
         }
       }
    }
-   if { $i != $j } {
-     puts -nonewline "attr dst: [format "%.2f" [measure bond [list $i $j]]] [format "attr-pnlty %.2f " $SE]"
-   }
-   puts "[format "strc-pnlty %.2f" $EE]"
+   #if { $i != $j } {
+   #  puts -nonewline "attr dst: [format "%.2f" [measure bond [list $i $j]]] [format "attr-pnlty %.2f " $SE]"
+   #}
+   #puts "[format "strc-pnlty %.2f" $EE]"
    free_bondstruct $bs
 }
 
-proc check_pierced_rings { molid TOL } {
+proc check_pierced_rings_dies { molid TOL } {
   # molid is a molecule assumed to have some residues with rings and perhaps glycans
 
   # this will search the list of bonds and for each, it will search all rings within 5.0 
@@ -888,6 +888,97 @@ proc check_pierced_rings { molid TOL } {
     $r6 delete
   }
 }
+
+proc ladd {l} {
+    set total 0
+    foreach nxt $l {
+        incr total $nxt
+    }
+    return $total
+}
+
+proc check_pierced_rings { molid TOL } {
+  # molid is a molecule assumed to have some residues with rings and perhaps glycans
+
+  # this will search the list of bonds and for each, it will search all rings within 5.0 
+  # angstroms of the bond to determine if the bond pierces one of those rings.
+
+  set r6 [atomselect $molid "ringsize 6 from all"]
+  set r6i [$r6 get index]
+  set i 0
+  foreach ii $r6i {
+    set r6o($ii) $i
+    incr i
+  }
+  set r6x [$r6 get x]
+  set r6y [$r6 get y]
+  set r6z [$r6 get z]
+
+  #set r6 [atomselect $molid "ringsize 6 from all"]
+
+  for { set ri 0 } { $ri < [llength $r6i] } { incr ri 6 } {
+    set this_ri {}
+    set this_rx {}
+    set this_ry {}
+    set this_rz {}
+    for { set t 0 } { $t < 6 } { incr t } {
+      lappend this_ri [lindex $r5i [expr $ri + $t]]
+      lappend this_rx [lindex $r5x [expr $ri + $t]]
+      lappend this_ry [lindex $r5y [expr $ri + $t]]
+      lappend this_rz [lindex $r5z [expr $ri + $t]]
+    }
+    set this_rr {}
+    foreach x $this_rx y $this_ry z $this_rz {
+      lappend this_rr [list $x $y $z]
+    }
+    set this_com [list [ladd $this_rx] [ladd $this_ry] [ladd $this_rz]]
+    set this_com [vecscale $this_com [expr 1./6.]]
+    set this_b12 [vecsub [lindex $this_rr 0] [lindex $this_rr 1]]
+    set this_b23 [vecsub [lindex $this_rr 1] [lindex $this_rr 3]]
+    set c123 [veccross $this_b12 $this_b23]
+    set lc123 [veclength $c123]
+    set chat123 [vecscale $c123 [expr 1.0/$lc123]]
+
+    set neigh [atomselect $molid "same residue as (exwithin 4.0 of index $this_ri)"]
+    set nb [$neigh getbonds]
+    set na [$neigh get index]
+    set nax [$neigh get x]
+    set nay [$neigh get y]
+    set naz [$neigh get z]
+    set i 0
+    foreach a $na {
+      set ord($a) $i
+      incr i
+    }
+    set ln 0
+    foreach a $na bl $nb {
+      if { [expr $ln%100 != 0] } {
+        puts -nonewline "."
+      }
+      set ai $ord($a)
+      set apos [list [lindex $nax $ai] [lindex $nay $ai] [lindex $naz $ai]]
+      foreach b $bl {
+        if { [lsearch $na $b] != -1 } {
+          set bi $ord($b)
+          set bpos [list [lindex $nax $bi] [lindex $nay $bi] [lindex $naz $ci]]
+          set avpos [vecscale [vecadd $apos $bpos] 0.5]
+          set avec [vecsub $avpos $apos]
+          set bvec [vecsub $avpos $bpos]
+          set crit1 [expr [veclength [vecsub $avpos $this_com]] < $TOL]
+          set d1 [vecdot $avec $chat123]
+          set d2 [vecdot $bvec $chat123]
+          set crit2 [expr ($d1*$d2)<0]
+          if { $crit1 && $crit2 } {
+            puts ""
+            puts "Bond $a $b pierces $this_ri"
+          }
+        }
+      }
+    }
+    $neigh delete
+  }
+}
+
 
 proc glycan_rotatables { molid selstr } {
   set a [atomselect $molid "$selstr"]
