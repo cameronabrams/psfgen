@@ -747,7 +747,7 @@ proc check_pierced_rings { molid TOL } {
     set ati [lsearch $ai $i]
     set atipos [list [lindex $aix $ati] [lindex $aiy $ati] [lindex $aiz $ati]]
 
-    set r5 [atomselect $molid "ringsize 5 from (same residue as within 5 of index $i):"]
+    set r5 [atomselect $molid "ringsize 5 from (same residue as within 5 of index $i)"]
     if {[expr [$r5 num] > 0]} {
       set r5i [$r5 get index]
       set r5x [$r5 get x]
