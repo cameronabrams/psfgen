@@ -105,11 +105,11 @@ proc make_bondstruct { molid sel rot_il rot_jl } {
         # fix: do not add a partner atom that is not internal to the selection
         set partners [list]
         foreach pp $ibl {
-            if { [lsearch il $pp] != -1 } {
+            if { [lsearch $il $pp] != -1 } {
                 lappend $partners $pp
             }
         }
-        puts "#### $a $bl partners $partners"
+        puts "#### $a $ibl partners $partners"
         set ta [intListToArray $partners]
         bondstruct_addbonds $bs $a $ta [llength $ibl]
 #     }
