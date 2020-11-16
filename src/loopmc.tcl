@@ -793,9 +793,9 @@ proc check_pierced_rings { molid TOL } {
           set b12comy [expr (1.0/2.0)*([lindex $atipos 1]+[lindex $atjpos 1])]
           set b12comz [expr (1.0/2.0)*([lindex $atipos 2]+[lindex $atjpos 2])]
           set b12com [list $b12comx $b12comy $b12comz]
-          set d1 [veclength [vecdiff $r5com $b12com]]
-          set v1 [vecdiff $r5com $atipos]
-          set v2 [vecdiff $r5com $atjpos]
+          set d1 [veclength [vecsub $r5com $b12com]]
+          set v1 [vecsub $r5com $atipos]
+          set v2 [vecsub $r5com $atjpos]
           set dot1 [vecdot $v1 $v2]
           if { $d1 < $TOL and $dot1 < 0 } {
             puts "5-ring ([lindex $r5i $ra1]-[lindex $r5i $ra2]-[lindex $r5i $ra3]-[lindex $r5i $ra4]-[lindex $r5i $ra5]) pierced by bond $i $j"
@@ -849,9 +849,9 @@ proc check_pierced_rings { molid TOL } {
           set b12comy [expr (1.0/2.0)*([lindex $atipos 1]+[lindex $atjpos 1])]
           set b12comz [expr (1.0/2.0)*([lindex $atipos 2]+[lindex $atjpos 2])]
           set b12com [list $b12comx $b12comy $b12comz]
-          set d1 [veclength [vecdiff $r6com $b12com]]
-          set v1 [vecdiff $r6com $atipos]
-          set v2 [vecdiff $r6com $atjpos]
+          set d1 [veclength [vecsub $r6com $b12com]]
+          set v1 [vecsub $r6com $atipos]
+          set v2 [vecsub $r6com $atjpos]
           set dot1 [vecdot $v1 $v2]
           if { $d1 < $TOL and $dot1 < 0 } {
             puts "6-ring ([lindex $r6i $ra1]-[lindex $r6i $ra2]-[lindex $r6i $ra3]-[lindex $r6i $ra4]-[lindex $r6i $ra5]-[lindex $r6i $ra6]) pierced by bond $i $j"
