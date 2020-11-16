@@ -939,7 +939,7 @@ proc check_pierced_rings { molid TOL } {
     set lc123 [veclength $c123]
     set chat123 [vecscale $c123 [expr 1.0/$lc123]]
 
-    set neigh [atomselect $molid "same residue as (exwithin 4.0 of index $this_ri)"]
+    set neigh [atomselect $molid "(protein or glycan) and same residue as (exwithin 4.0 of index $this_ri)"]
     set nb [$neigh getbonds]
     set na [$neigh get index]
     set nax [$neigh get x]
