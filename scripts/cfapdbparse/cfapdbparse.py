@@ -165,8 +165,6 @@ def WriteHeaders(fp,charmm_topologies,local_topologies):
     for k,v in _PDBAtomNameDict_.items():
         fp.write('set ANAMEDICT({}) {}\n'.format(k,v))
 
-    fp.write('set logid {:d}\n'.format(logid))
-
 def MrgCmdLineAndFileContents(cl_list,filename,typ):
     if filename!='':
         with open(filename,'r') as f:
