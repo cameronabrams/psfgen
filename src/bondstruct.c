@@ -208,6 +208,7 @@ void bondstruct_makerotatablebondlist ( bondstruct * bs, int * rot_i, int ni, in
        }
      }
    }  
+   printf('#### calling bondstruct_makerightsides');fflush(stdout);
    bondstruct_makerightsides(bs);
 }
 
