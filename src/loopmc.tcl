@@ -741,7 +741,7 @@ proc check_pierced_rings { molid TOL } {
   set aix [$a get x]
   set aiy [$a get y]
   set aiz [$a get z]
-  set bl [$a get bonds]
+  set bl [$a getbonds]
   set ii 0
   foreach i $ai b $bl {
     set ati [lsearch $ai $i]
