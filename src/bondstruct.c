@@ -221,7 +221,7 @@ void bondstruct_makerotatablebondlist ( bondstruct * bs, int * rot_i, int ni, in
 }
 
 int bondstruct_isactive ( bondstruct * bs, int b ) {
-   return bs->isactive[b];
+   return bs->isactive[b] && bs->bran[b]>0;
 }
 
 void bondstruct_deactivate_by_fixed ( bondstruct * bs, int fa ) {
