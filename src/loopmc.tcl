@@ -922,10 +922,10 @@ proc check_pierced_rings { molid TOL } {
     set this_ry {}
     set this_rz {}
     for { set t 0 } { $t < 6 } { incr t } {
-      lappend this_ri [lindex $r5i [expr $ri + $t]]
-      lappend this_rx [lindex $r5x [expr $ri + $t]]
-      lappend this_ry [lindex $r5y [expr $ri + $t]]
-      lappend this_rz [lindex $r5z [expr $ri + $t]]
+      lappend this_ri [lindex $r6i [expr $ri + $t]]
+      lappend this_rx [lindex $r6x [expr $ri + $t]]
+      lappend this_ry [lindex $r6y [expr $ri + $t]]
+      lappend this_rz [lindex $r6z [expr $ri + $t]]
     }
     set this_rr {}
     foreach x $this_rx y $this_ry z $this_rz {
