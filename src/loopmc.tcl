@@ -779,7 +779,7 @@ proc check_pierced_rings { molid TOL } {
         set cbr123 [veccross $br12 $br23]
         set lcbr123 [veclength $cbr123]
         set cbr123 [vecscale [expr 1.0/$lcbr123] $cbr123]
-        foreach j $b:we {
+        foreach j $b {
           set atj [lsearch $ai $j]
           set atjpos [list [lindex $aix $atj] [lindex $aiy $atj] [lindex $aiz $atj]]
           puts "   bond $i $j"
@@ -835,9 +835,12 @@ proc check_pierced_rings { molid TOL } {
         set cbr123 [veccross $br12 $br23]
         set lcbr123 [veclength $cbr123]
         set cbr123 [vecscale [expr 1.0/$lcbr123] $cbr123]
-        foreach j $bl {
+        foreach j $b {
           set atj [lsearch $ai $j]
           set atjpos [list [lindex $aix $atj] [lindex $aiy $atj] [lindex $aiz $atj]]
+          puts "   bond $i $j"
+          puts "   atipos $atipos"
+          puts "   atjpos $atjpos"
           # i-j bond pierces ring if 
           # 1. bond com and ring com are less than TOL from each other
           # 2. i and j are on opposite sides of the ring:
