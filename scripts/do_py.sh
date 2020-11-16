@@ -9,7 +9,7 @@
 # simplest usage, the user needs only to specify 
 # a four-byte PDB code and this script does the rest.
 # 
-# The most important arguments are '-pyparserargs'
+# The most important arguments are '-pyparser-args'
 # which you can learn more about in the help for
 # cfapdbparse.py.
 #
@@ -151,8 +151,8 @@ for pi in `seq 0 $((nparse-1))`; do
    $PYTHON3 $PYPARSER ${pyparser_args[$pi]} -psfgen ${CURRPSFGEN} ${CURRPDB}
    CURRPSF=`grep ^writepsf ${CURRPSFGEN} | tail -1 | awk '{print $2}'`
    CURRPDB=`grep writepdb ${CURRPSFGEN} | tail -1 | awk '{print $NF}'`
-   echo "TASK $TASK: Generating vacuum system ${CURRPSF} + ${CURRPDB}..."
-   $VMD -dispdev text -e ${CURRPSFGEN} > ${CURRPSFLOG}
+   echo "TASK $TASK: Generating system ${CURRPSF}/${CURRPDB}..."
+   $VMD -dispdev text -e ${CURRPSFGEN} > ${CURRPSFLOG} 2>&1
    echo "structure ${CURRPSF}" > namd_header.${TASK}
    echo "coordinates ${CURRPDB}" >> namd_header.${TASK}
    cat namd_header.${TASK} $PSFGEN_BASEDIR/templates/vac.namd | \
@@ -162,7 +162,7 @@ for pi in `seq 0 $((nparse-1))`; do
    rm namd_header.${TASK}
    echo "        ->  Running namd2 on vacuum system ${CURRPSF}+${CURRPDB}..."
    $CHARMRUN +p${NPE} $NAMD2 run${TASK}.namd > run${TASK}.log
-   $VMD -dispdev text -e $PSFGEN_BASEDIR/scripts/namdbin2pdb.tcl -args ${CURRPSF} config${TASK}.coor tmp.pdb
+   $VMD -dispdev text -e $PSFGEN_BASEDIR/scripts/namdbin2pdb.tcl -args ${CURRPSF} config${TASK}.coor tmp.pdb 2&>1
    cat charmm_header.pdb tmp.pdb > config${TASK}.pdb
    rm charmm_header.pdb tmp.pdb
    CURRPDB=config${TASK}.pdb
@@ -170,8 +170,8 @@ done
 
 # solvate
 TASK=$((TASK+1))
-echo "TASK $TASK: Generating solvated system from ${CURRPSF}+${CURRPDB}..."
-$VMD -dispdev text -e $PSFGEN_BASEDIR/scripts/solv.tcl -args -psf $CURRPSF -pdb $CURRPDB -outpre config${TASK}  > mysolv.log
+echo "TASK $TASK: Generating solvated system config${TASK}.psf/.pdb from ${CURRPSF}+${CURRPDB}..."
+$VMD -dispdev text -e $PSFGEN_BASEDIR/scripts/solv.tcl -args -psf $CURRPSF -pdb $CURRPDB -outpre config${TASK}  > mysolv.log 2>&1
 CURRPSF=config${TASK}.psf
 CURRPDB=config${TASK}.pdb
 

@@ -20,7 +20,7 @@ from link import Link
 from atom import _PDBAtomNameDict_
 from residue import Residue, _PDBResName123_, _pdb_glycans_, _pdb_ions_, _ResNameDict_PDB_to_CHARMM_, _ResNameDict_CHARMM_to_PDB_, get_residue
 
-def WritePostMods(fp,psf,pdb,PostMod,Loops):
+def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
     """ Writes TcL/VMD commands that encode modifications once the
         the base psfgen structure has been written.  'PostMods' include
         things like commands to center the protein, relax model-built loops, etc.
@@ -87,6 +87,10 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops):
         fp.write('   set loopindex [expr $loopindex + 1]\n')
         fp.write('}\n')
 
+    if 'do_gly_mc' in PostMod and Postmod['do_gly_mc']:
+        fp.write('set glycan_segs [list '+' '.join(GlycanSegs)+']\n')
+        fp.write('foreach g $glycan_segs {\n')
+        fp.write('}')
     new_pdb_out=prefix+'_mod.pdb'
     fp.write('$a writepdb {}\n'.format(new_pdb_out))
     return new_pdb_out
@@ -161,6 +165,7 @@ if __name__=='__main__':
     prefix='x01_'
     fixConflicts=True
     PostMod['do_loop_mc']=False
+    PostMod['do_gly_mc']=False
     PostMod['Crot']=[]
 
     parser.add_argument('pdbcif',nargs='+',metavar='<?.pdb|cif>',type=str,help='name(s) of pdb or CIF file to parse; first is treated as the base molecule; others are not considered (for now)')
@@ -184,6 +189,7 @@ if __name__=='__main__':
     parser.add_argument('-linkfile',metavar='<name>',default='',help='input file with PDB-format LINK records the user would like to enforce that are not in the RCSB PDB file')
     # booleans
     parser.add_argument('-rmi',action='store_true',help='asks psfgen to use the loopMC module to relax modeled-in loops of residues missing from PDB')
+    parser.add_argument('-grel',action='store_true',help='asks psfgen to use the loopMC module to relax modeled-in glycans missing from PDB')
     parser.add_argument('-kc',action='store_true',help='ignores SEQADV records indicating conflicts; if unset, residues in conflict are mutated to their proper identities')
     parser.add_argument('-rem',action='store_true',help='revert engineered mutations listed in SEQADV records')
     parser.add_argument('-noc',action='store_true',help='do not center the protein at the origin of the coordinate system')
@@ -248,7 +254,14 @@ if __name__=='__main__':
         Base.CleaveChains(Clv)
 
     Loops=Base.WritePsfgenInput(psfgen_fp,userMutations=Mut,fixConflicts=fixConflicts,fixEngineeredMutations=fixEngineeredMutations,prefix=prefix,userGrafts=Gra,userAttach=Att,userSSBonds=Uss,userIgnoreChains=UIC,removePDBs=True)
-   
+
+    ''' identify glycan segments '''
+    glycan_segs=[]
+    for c in Base.Chains:
+        for s in c.Segments:
+            if s.segtype=="GLYCAN":
+                glycan_segs.append(s.segname)
+
     ''' fix crot replicas '''
     newcrots=[]
     for b in Base.Biomolecules:
@@ -257,7 +270,7 @@ if __name__=='__main__':
                 for c in PostMod['Crot']:
                     newcrots.append(c.replicate(t.get_replica_chainID(c.chainID)))
     PostMod['Crot'].extend(newcrots)
-    post_pdb=WritePostMods(psfgen_fp,Base.psf_outfile,Base.pdb_outfile,PostMod,Loops)
+    post_pdb=WritePostMods(psfgen_fp,Base.psf_outfile,Base.pdb_outfile,PostMod,Loops,glycan_segs)
 
     Base.Tcl_PrependHeaderToPDB(post_pdb,psfgen_fp)
 

@@ -4,7 +4,7 @@
 # segment stanzas.  The main procedure is "do_loop_mc" which
 # uses a monte-carlo calculation to close loops.
 #
-# cameron f abrams, drexel u., 2017-2018
+# cameron f abrams, drexel u., 2017-2020
 # cfa22@drexel.edu
 #
 # some C functions that help with quick bond rotations
@@ -728,4 +728,23 @@ proc do_flex_mc { molid msel ri rj fa k i j envsel rcut maxcycles temperature is
    }
    puts "[format "strc-pnlty %.2f" $EE]"
    free_bondstruct $bs
+}
+
+proc check_pierced_rings molid {
+  # molid is a molecule assumed to have some residues with rings and perhaps glycans
+
+  # this will search the list of bonds and for each, it will search all rings within 5.0 
+  # angstroms of the bond to determine if the bond pierces one of those rings.
+
+  set a [atomselect $molid "protein or glycan"]
+  set ai [$a get index]
+  set bl [$a get bonds]
+  foreach i $ai b $bl {
+    set r5 [atomselect $molid "(same residue as within 5 of index $i) and ringsize 5"]
+    if {[expr [$r5 num] > 0]} {
+
+    }
+  }
+
+
 }
