@@ -118,7 +118,7 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
     fp.write('$a writepdb {}\n'.format(new_pdb_out))
     if logdcd:
         fp.write('set loga [atomselect $logid all]\n')
-        fp.write('animate write dcd {} waitfor all sel $loga $logid\n'.logfile)
+        fp.write('animate write dcd {} waitfor all sel $loga $logid\n'.format(logfile))
         fp.write('mol delete $logid\n')
     return new_pdb_out
 
