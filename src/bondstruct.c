@@ -145,10 +145,11 @@ void bondstruct_makerightsides ( bondstruct * bs ) {
    // allocate array of right-side counts
    bs->bran=(int*)malloc(bs->nb*sizeof(int));
    // for each bond, identify and save all right-side atoms
+   printf("#### in makerightsides processing %i bonds\n",bs->nb);fflush(stdout);
    for (k=0;k<bs->nb;k++) {
      a=bs->b[k][0];
      b=bs->b[k][1];
-     printf("#### in makerightsides at bond %i : %i %i\n",k,a,b);
+     printf("#### in makerightsides at bond %i : %i %i\n",k,a,b);fflush(stdout);
      la=bondstruct_getlocalindex(bs,a);
      lb=bondstruct_getlocalindex(bs,b);
      // put all atoms b is bonded to on the right-side list _except_ atom a
