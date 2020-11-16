@@ -109,6 +109,7 @@ proc make_bondstruct { molid sel rot_il rot_jl } {
                 lappend partners $pp
             }
         }
+        puts "#### $a $bl partners $partners"
         set ta [intListToArray $partners]
         bondstruct_addbonds $bs $a $ta [llength $ibl]
 #     }
