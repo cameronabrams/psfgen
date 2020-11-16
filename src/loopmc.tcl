@@ -787,8 +787,8 @@ proc glycan_rotatables { molid selstr } {
             lappend rights $i
         } elseif { $j_in == 0 } {
             #puts "$i is a ring vertex but $j is not"
-            lappend lefts $j
-            lappend rights $i
+            lappend lefts $i
+            lappend rights $j
         }
       }
     }
