@@ -730,21 +730,68 @@ proc do_flex_mc { molid msel ri rj fa k i j envsel rcut maxcycles temperature is
    free_bondstruct $bs
 }
 
-proc check_pierced_rings molid {
+#proc check_pierced_rings molid {
   # molid is a molecule assumed to have some residues with rings and perhaps glycans
 
   # this will search the list of bonds and for each, it will search all rings within 5.0 
   # angstroms of the bond to determine if the bond pierces one of those rings.
 
-  set a [atomselect $molid "protein or glycan"]
-  set ai [$a get index]
-  set bl [$a get bonds]
-  foreach i $ai b $bl {
-    set r5 [atomselect $molid "(same residue as within 5 of index $i) and ringsize 5"]
-    if {[expr [$r5 num] > 0]} {
+#  set a [atomselect $molid "protein or glycan"]
+#  set ai [$a get index]
+#  set bl [$a get bonds]
+# foreach i $ai b $bl {
+#    set r5 [atomselect $molid "(same residue as within 5 of index $i) and ringsize 5"]
+#    if {[expr [$r5 num] > 0]} {
+# MUCH WORK IS TO DO HERE
+#    }
+#  }
+#}
 
+proc glycan_rotatables { molid selstr } {
+  set a [atomselect $molid "$selstr"]
+  set bl [$a getbonds]
+  set at [$a get index]
+  set r6 [atomselect $molid "ringsize 6 from ($selstr)"]
+  set ri6 [$r6 get index]
+  puts "ringsize sel has [$r6 num] atoms"
+  set lefts [list]
+  set rights [list]
+  foreach i $at b $bl {
+    foreach j $b {
+      if { [expr $j > $i] } {
+        puts "considering $i - $j"
+        set inring 0
+        for { set r 0 } { $r < [llength $ri6] } { incr r 6 } {
+            #puts "   considering ring [expr $r/6]"
+            set i_in 0
+            set j_in 0
+            for { set ri $r } { $ri < [expr $r + 6] } { incr ri } {
+               if { $i == [lindex $ri6 $ri] } {
+                  set i_in 1
+               }
+               if { $j == [lindex $ri6 $ri] } {
+                  set j_in 1
+               }
+            }
+            if { $i_in == 1 && $j_in == 1 } {
+              #puts "bond $i - $j lives in ring [expr $r/6]"
+              set inring 1
+              break
+            }
+        }
+        if { $inring == 1 } {
+            puts "$i $j is a ring edge"
+        } elseif { $i_in == 0 } {
+            puts "$j is a ring vertex but $i is not"
+            lappend lefts $j
+            lappend rights $i
+        } elseif { $j_in == 0 } {
+            puts "$i is a ring vertex but $j is not"
+            lappend lefts $j
+            lappend rights $i
+        }
+      }
     }
   }
-
-
+  return [list $lefts $rights]
 }
