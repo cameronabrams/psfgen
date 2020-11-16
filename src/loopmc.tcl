@@ -938,7 +938,7 @@ proc check_pierced_rings { molid TOL } {
     set c123 [veccross $this_b12 $this_b23]
     set lc123 [veclength $c123]
     set chat123 [vecscale $c123 [expr 1.0/$lc123]]
-
+    puts "ring $this_ri : $this_com : $chat123"
     set neigh [atomselect $molid "(protein or glycan) and same residue as (exwithin 4.0 of index $this_ri)"]
     set nb [$neigh getbonds]
     set na [$neigh get index]
@@ -952,9 +952,10 @@ proc check_pierced_rings { molid TOL } {
     }
     set ln 0
     foreach a $na bl $nb {
-      if { [expr $ln%100 != 0] } {
+      if { [expr $ln%100 = 0] } {
         puts -nonewline "."
       }
+      incr ln
       set ai $ord($a)
       set apos [list [lindex $nax $ai] [lindex $nay $ai] [lindex $naz $ai]]
       foreach b $bl {
