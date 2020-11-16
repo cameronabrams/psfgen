@@ -96,7 +96,7 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
         fp.write('   set chain [lindex $l 0]\n')
         fp.write('   puts "Relaxing loop $loopindex out of $nloops"\n')
         fp.write('   set residueList [[atomselect $molid "chain $chain and resid [lindex $l 1] to [lindex $l 2] and name CA"] get residue]\n')
-        fp.write('   do_loop_mc $residueList $chain $molid $k $r0 $bg $rcut $nc $temperature [irand_dom 1000 9999] $logid\n')
+        fp.write('   do_loop_mc $residueList $chain $molid $k $r0 $bg $rcut $nc $temperature [irand_dom 1000 9999] $logid {}\n'.format(logevery))
         fp.write('   set loopindex [expr $loopindex + 1]\n')
         fp.write('}\n')
 
@@ -115,7 +115,7 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
         fp.write('   set root [lindex [lsort -unique -real $rid] 0]\n')
         fp.write('   set fa [[atomselect $molid "segname $g and name C1 and resid $root"] get index]\n')
         fp.write('   puts "Relaxing glycan $g rootres $root rootatom $fa..."\n')
-        fp.write('   do_flex_mc $molid $sel $li $ri $fa 0 -1 -1 $bg $rcut $nc $temperature [irand_dom 1000 9999] $logid\n')
+        fp.write('   do_flex_mc $molid $sel $li $ri $fa 0 -1 -1 $bg $rcut $nc $temperature [irand_dom 1000 9999] $logid {}\n'.format(logevery))
         fp.write('}\n')
     new_pdb_out=prefix+'_mod.pdb'
     fp.write('$a writepdb {}\n'.format(new_pdb_out))
