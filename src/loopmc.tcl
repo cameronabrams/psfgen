@@ -890,9 +890,9 @@ proc check_pierced_rings_dies { molid TOL } {
 }
 
 proc ladd {l} {
-    set total 0
+    set total 0.0
     foreach nxt $l {
-        incr total $nxt
+        set total [expr $total + $nxt]
     }
     return $total
 }
@@ -933,6 +933,7 @@ proc check_pierced_rings { molid TOL } {
     foreach x $this_rx y $this_ry z $this_rz {
       lappend this_rr [list $x $y $z]
     }
+    puts "this_rr $this_rr"
     set this_com [list [ladd $this_rx] [ladd $this_ry] [ladd $this_rz]]
     set this_com [vecscale $this_com [expr 1./6.]]
     set this_b12 [vecsub [lindex $this_rr 0] [lindex $this_rr 1]]
