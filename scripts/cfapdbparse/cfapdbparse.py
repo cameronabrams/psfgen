@@ -26,8 +26,11 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
         things like commands to center the protein, relax model-built loops, etc.
     """
     logfile=''
+    logevery=1
     if 'log_dcd_file' in PostMod:
         logfile=PostMod['log_dcd_file']
+    if 'log_every' in PostMod:
+        logevery=PostMod['log_every']
     logdcd=len(logfile)>0
 
     prefix=pdb[:]
@@ -213,6 +216,7 @@ if __name__=='__main__':
     parser.add_argument('-link',metavar='string',default=[],action='append',type=Link,help='PDB-format LINK record; must have exact spacing')
     parser.add_argument('-linkfile',metavar='<name>',default='',help='input file with PDB-format LINK records the user would like to enforce that are not in the RCSB PDB file')
     parser.add_argument('-logdcd',metavar='<name>.dcd',default='',help='name of dcd logging file')
+    parser.add_argument('-logevery',metavar='<int>',default=1,help='number of MC accepts between successive frame logging')
     # booleans
     parser.add_argument('-rmi',action='store_true',help='asks psfgen to use the loopMC module to relax modeled-in loops of residues missing from PDB')
     parser.add_argument('-grel',action='store_true',help='asks psfgen to use the loopMC module to relax modeled-in glycans missing from PDB')
@@ -242,6 +246,7 @@ if __name__=='__main__':
     PostMod['do_gly_mc']=args.grel
     PostMod['Crot']=MrgCmdLineAndFileContents(args.crot,args.crotfile,Crot)
     PostMod['log_dcd_file']=args.logdcd
+    PostMod['log_every']=args.logevery
     fixConflicts=not args.kc
     fixEngineeredMutations=args.rem
     psfgen=args.psfgen

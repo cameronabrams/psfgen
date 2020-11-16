@@ -232,7 +232,7 @@ proc log_addframe { molid logid } {
 # are not allowed to overlap, where the overlap distance
 # is "rcut" (A).
 # "logid" is the optional molecule id of a logging molecule (-1 means do nothing)
-proc do_loop_mc { residueList c molid k r0 env rcut maxcycles temperature iseed logid } {
+proc do_loop_mc { residueList c molid k r0 env rcut maxcycles temperature iseed logid logevery } {
 
   set msel [atomselect $molid "chain $c and residue $residueList"]
   set mselnoh [atomselect $molid "chain $c and residue $residueList and noh"]
@@ -298,7 +298,9 @@ proc do_loop_mc { residueList c molid k r0 env rcut maxcycles temperature iseed 
       set E0 $E
       incr nacc
       puts "CFALOOPMC) ($rend) cyc $cyc na $nacc ([format "%.5f" [expr (1.0*$nacc)/($cyc+1)]]) CA-C: [format "%.2f" [measure bond $idx]] [format "lnk-pnlty %.2f strc-pnlty %.2f" $SE $EE]"
-      log_addframe $molid $logid
+      if { [expr $nacc % $logevery == 0 ] } {
+        log_addframe $molid $logid
+      }
     }
   }
   puts "CFALOOPMC) ($rend) cyc $cyc na $nacc ([format "%.5f" [expr (1.0*$nacc)/($cyc+1)]]) CA-C: [format "%.2f" [measure bond $idx]]"
@@ -652,7 +654,7 @@ proc random_loop { molid sel } {
 #   bonds by random amounts. 
 # temperature is the Metropolis temperature.
 # iseed is the rng seed.
-proc do_flex_mc { molid msel ri rj fa k i j envsel rcut maxcycles temperature iseed logid } {
+proc do_flex_mc { molid msel ri rj fa k i j envsel rcut maxcycles temperature iseed logid logevery } {
 
    set bl [$msel getbonds]
    set il [$msel get index]
@@ -731,7 +733,9 @@ proc do_flex_mc { molid msel ri rj fa k i j envsel rcut maxcycles temperature is
           puts -nonewline "attr dst: [format "%.2f" [measure bond [list $i $j]]] [format "attr-pnlty %.2f " $SE]"
         }
         puts "[format "strc-pnlty %.2f" $EE]"
-        log_addframe $molid $logid
+        if { [expr $nacc % $logevery == 0 ] } {
+          log_addframe $molid $logid
+        }
       }
    }
    if { $i != $j } {
