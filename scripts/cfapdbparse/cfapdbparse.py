@@ -257,7 +257,7 @@ if __name__=='__main__':
 
     ''' identify glycan segments '''
     glycan_segs=[]
-    for c in Base.Chains:
+    for c in Base.Chains.values():
         for s in c.Segments:
             if s.segtype=="GLYCAN":
                 glycan_segs.append(s.segname)
