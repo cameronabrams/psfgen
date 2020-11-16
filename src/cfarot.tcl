@@ -5,6 +5,13 @@
 
 set CFAROT_VERSION 0.10
 
+if {![info exists PSFGEN_BASEDIR]} {
+    if {[info exists env(PSFGEN_BASEDIR)]} {
+        set PSFGEN_BASEDIR $env(PSFGEN_BASEDIR)
+    } else {
+        set PSFGEN_BASEDIR $env(HOME)/research/psfgen
+    }
+}
 load ${PSFGEN_BASEDIR}/lib/bondstruct.so cfa_bondstruct
 
 ###########################################################
