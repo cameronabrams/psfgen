@@ -148,6 +148,7 @@ void bondstruct_makerightsides ( bondstruct * bs ) {
    for (k=0;k<bs->nb;k++) {
      a=bs->b[k][0];
      b=bs->b[k][1];
+     printf("#### in makerightsides at bond %i : %i %i\n",k,a,b);
      la=bondstruct_getlocalindex(bs,a);
      lb=bondstruct_getlocalindex(bs,b);
      // put all atoms b is bonded to on the right-side list _except_ atom a
