@@ -730,22 +730,128 @@ proc do_flex_mc { molid msel ri rj fa k i j envsel rcut maxcycles temperature is
    free_bondstruct $bs
 }
 
-#proc check_pierced_rings molid {
+proc check_pierced_rings { molid TOL } {
   # molid is a molecule assumed to have some residues with rings and perhaps glycans
 
   # this will search the list of bonds and for each, it will search all rings within 5.0 
   # angstroms of the bond to determine if the bond pierces one of those rings.
 
-#  set a [atomselect $molid "protein or glycan"]
-#  set ai [$a get index]
-#  set bl [$a get bonds]
-# foreach i $ai b $bl {
-#    set r5 [atomselect $molid "(same residue as within 5 of index $i) and ringsize 5"]
-#    if {[expr [$r5 num] > 0]} {
+  set a [atomselect $molid "protein or glycan"]
+  set ai [$a get index]
+  set aix [$a get x]
+  set aiy [$a get y]
+  set aiz [$a get z]
+  set bl [$a get bonds]
+  set ii 0
+  foreach i $ai b $bl {
+    set ati [lsearch $ai $i]
+    set atipos [list [lindex $aix $ati] [lindex $aiy $ati] [lindex $aiz $ati]]
+
+    set r5 [atomselect $molid "(same residue as within 5 of index $i) and ringsize 5"]
+    if {[expr [$r5 num] > 0]} {
+      set r5i [$r5 get index]
+      set r5x [$r5 get x]
+      set r5y [$r5 get y]
+      set r5z [$r5 get z]
+
 # MUCH WORK IS TO DO HERE
-#    }
-#  }
-#}
+      for {set ir 0} {$ir < [$r5 num]} {incr ir 5} {
+        # approximate ring normal vector by crossing first two bond vectors
+        set ra1 $ir
+        set ra2 [expr $ir + 1]
+        set ra3 [expr $ir + 2]
+        set ra4 [expr $ir + 3]
+        set ra5 [expr $ir + 4]
+        set r5comx [expr (1.0/5.0)*([lindex $r5x $ra1] + [lindex $r5x $ra2] + [lindex $r5x $ra3] + [lindex $r5x $ra4] + [lindex $r5x $ra5])]
+        set r5comy [expr (1.0/5.0)*([lindex $r5y $ra1] + [lindex $r5y $ra2] + [lindex $r5y $ra3] + [lindex $r5y $ra4] + [lindex $r5y $ra5])]
+        set r5comz [expr (1.0/5.0)*([lindex $r5z $ra1] + [lindex $r5z $ra2] + [lindex $r5z $ra3] + [lindex $r5z $ra4] + [lindex $r5z $ra5])]
+        set r5com [list $r5comx $r5comy $r5comz]
+        set br12x [expr [lindex $r5x $ra1]-[lindex $r5x $ra2]]
+        set br12y [expr [lindex $r5y $ra1]-[lindex $r5y $ra2]]
+        set br12z [expr [lindex $r5z $ra1]-[lindex $r5z $ra2]]
+        set br23x [expr [lindex $r5x $ra2]-[lindex $r5x $ra3]]
+        set br23y [expr [lindex $r5y $ra2]-[lindex $r5y $ra3]]
+        set br23z [expr [lindex $r5z $ra2]-[lindex $r5z $ra3]]
+        set br12 [list $br12x $br12y $br12z]
+        set br23 [list $br23x $br23y $br23z]
+        set cbr123 [veccross $br12 $br23]
+        set lcbr123 [veclength $cbr123]
+        set cbr123 [vecscale [expr 1.0/$lcbr123] $cbr123]
+        foreach j $bl {
+          set atj [lsearch $ai $j]
+          set atjpos [list [lindex $aix $atj] [lindex $aiy $atj] [lindex $aiz $atj]]
+          # i-j bond pierces ring if 
+          # 1. bond com and ring com are less than TOL from each other
+          # 2. i and j are on opposite sides of the ring:
+          #      i-ringcom dot j-ringcom is negative
+          set b12comx [expr (1.0/2.0)*([lindex $aix $ati]+[lindex $aix $atj])]
+          set b12comy [expr (1.0/2.0)*([lindex $aiy $ati]+[lindex $aiy $atj])]
+          set b12comz [expr (1.0/2.0)*([lindex $aiz $ati]+[lindex $aiz $atj])]
+          set b12com [list $b12comx $b12comy $b12comz]
+          set d1 [veclength [vecdiff $r5com $b12com]]
+          set v1 [vecdiff $r5com $atipos]
+          set v2 [vecdiff $r5com $atjpos]
+          set dot1 [vecdot $v1 $v2]
+          if { $d1 < $TOL and $dot1 < 0 } {
+            puts "5-ring ([lindex $r5i $ra1]-[lindex $r5i $ra2]-[lindex $r5i $ra3]-[lindex $r5i $ra4]-[lindex $r5i $ra5]) pierced by bond $i $j"
+          }
+        }
+      }
+    }
+    set r6 [atomselect $molid "(same residue as within 5 of index $i) and ringsize 6"]
+    if {[expr [$r6 num] > 0]} {
+      set r6i [$r6 get index]
+      set r6x [$r6 get x]
+      set r6y [$r6 get y]
+      set r6z [$r6 get z]
+
+# MUCH WORK IS TO DO HERE
+      for {set ir 0} {$ir < [$r6 num]} {incr ir 6} {
+          # approximate ring normal vector by crossing first two bond vectors
+          set ra1 $ir
+          set ra2 [expr $ir + 1]
+          set ra3 [expr $ir + 2]
+          set ra4 [expr $ir + 3]
+          set ra5 [expr $ir + 4]
+          set ra6 [expr $ir + 5]
+          set r6comx [expr (1.0/5.0)*([lindex $r6x $ra1] + [lindex $r6x $ra2] + [lindex $r6x $ra3] + [lindex $r6x $ra4] + [lindex $r6x $ra5] + [lindex $r6x $ra6])]
+          set r6comy [expr (1.0/5.0)*([lindex $r6y $ra1] + [lindex $r6y $ra2] + [lindex $r6y $ra3] + [lindex $r6y $ra4] + [lindex $r6y $ra5] + [lindex $r6y $ra6]))]
+          set r6comz [expr (1.0/5.0)*([lindex $r6z $ra1] + [lindex $r6z $ra2] + [lindex $r6z $ra3] + [lindex $r6z $ra4] + [lindex $r6z $ra5] + [lindex $r6z $ra6]))]
+          set r6com [list $r6comx $r6comy $r6comz]
+          set br12x [expr [lindex $r6x $ra1]-[lindex $r6x $ra2]]
+          set br12y [expr [lindex $r6y $ra1]-[lindex $r6y $ra2]]
+          set br12z [expr [lindex $r6z $ra1]-[lindex $r6z $ra2]]
+          set br23x [expr [lindex $r6x $ra2]-[lindex $r6x $ra3]]
+          set br23y [expr [lindex $r6y $ra2]-[lindex $r6y $ra3]]
+          set br23z [expr [lindex $r6z $ra2]-[lindex $r6z $ra3]]
+          set br12 [list $br12x $br12y $br12z]
+          set br23 [list $br23x $br23y $br23z]
+          set cbr123 [veccross $br12 $br23]
+          set lcbr123 [veclength $cbr123]
+          set cbr123 [vecscale [expr 1.0/$lcbr123] $cbr123]
+          foreach j $bl {
+            set atj [lsearch $ai $j]
+            set atjpos [list [lindex $aix $atj] [lindex $aiy $atj] [lindex $aiz $atj]]
+            # i-j bond pierces ring if 
+            # 1. bond com and ring com are less than TOL from each other
+            # 2. i and j are on opposite sides of the ring:
+            #      i-ringcom dot j-ringcom is negative
+            set b12comx [expr (1.0/2.0)*([lindex $aix $ati]+[lindex $aix $atj])]
+            set b12comy [expr (1.0/2.0)*([lindex $aiy $ati]+[lindex $aiy $atj])]
+            set b12comz [expr (1.0/2.0)*([lindex $aiz $ati]+[lindex $aiz $atj])]
+            set b12com [list $b12comx $b12comy $b12comz]
+            set d1 [veclength [vecdiff $r6com $b12com]]
+            set v1 [vecdiff $r6com $atipos]
+            set v2 [vecdiff $r6com $atjpos]
+            set dot1 [vecdot $v1 $v2]
+            if { $d1 < $TOL and $dot1 < 0 } {
+              puts "6-ring ([lindex $r6i $ra1]-[lindex $r6i $ra2]-[lindex $r6i $ra3]-[lindex $r6i $ra4]-[lindex $r6i $ra5]-[lindex $r6i $ra6]) pierced by bond $i $j"
+            }
+          }
+      }
+    }
+  }
+}
 
 proc glycan_rotatables { molid selstr } {
   set a [atomselect $molid "$selstr"]
