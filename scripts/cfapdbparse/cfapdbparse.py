@@ -120,8 +120,6 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
         fp.write('set loga [atomselect $logid all]\n')
         fp.write('animate write dcd {} waitfor all sel $loga $logid\n'.logfile)
         fp.write('mol delete $logid\n')
-}
-
     return new_pdb_out
 
 def WriteHeaders(fp,charmm_topologies,local_topologies):
