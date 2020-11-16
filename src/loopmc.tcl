@@ -782,6 +782,9 @@ proc check_pierced_rings { molid TOL } {
         foreach j $bl {
           set atj [lsearch $ai $j]
           set atjpos [list [lindex $aix $atj] [lindex $aiy $atj] [lindex $aiz $atj]]
+          puts "   bond $i $j"
+          puts "   atipos $atipos"
+          puts "   atjpos $atjpos"
           # i-j bond pierces ring if 
           # 1. bond com and ring com are less than TOL from each other
           # 2. i and j are on opposite sides of the ring:
