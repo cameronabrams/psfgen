@@ -812,7 +812,7 @@ proc check_pierced_rings { molid TOL } {
 
 # MUCH WORK IS TO DO HERE
       for {set ir 0} {$ir < [$r6 num]} {incr ir 6} {
-        puts "    6-ring [expr $ir/6]"
+        puts "    6-ring [expr $ir/6]: ([lindex $r6i $ra1]-[lindex $r6i $ra2]-[lindex $r6i $ra3]-[lindex $r6i $ra4]-[lindex $r6i $ra5]-[lindex $r6i $ra6])"
           # approximate ring normal vector by crossing first two bond vectors
         set ra1 $ir
         set ra2 [expr $ir + 1]
@@ -820,6 +820,7 @@ proc check_pierced_rings { molid TOL } {
         set ra4 [expr $ir + 3]
         set ra5 [expr $ir + 4]
         set ra6 [expr $ir + 5]
+        puts "    6-ring [expr $ir/6]: ([lindex $r6i $ra1]-[lindex $r6i $ra2]-[lindex $r6i $ra3]-[lindex $r6i $ra4]-[lindex $r6i $ra5]-[lindex $r6i $ra6])"
         set r6comx [expr (1.0/5.0)*([lindex $r6x $ra1] + [lindex $r6x $ra2] + [lindex $r6x $ra3] + [lindex $r6x $ra4] + [lindex $r6x $ra5] + [lindex $r6x $ra6])]
         set r6comy [expr (1.0/5.0)*([lindex $r6y $ra1] + [lindex $r6y $ra2] + [lindex $r6y $ra3] + [lindex $r6y $ra4] + [lindex $r6y $ra5] + [lindex $r6y $ra6])]
         set r6comz [expr (1.0/5.0)*([lindex $r6z $ra1] + [lindex $r6z $ra2] + [lindex $r6z $ra3] + [lindex $r6z $ra4] + [lindex $r6z $ra5] + [lindex $r6z $ra6])]
@@ -838,7 +839,7 @@ proc check_pierced_rings { molid TOL } {
         foreach j $b {
           set atj [lsearch $ai $j]
           set atjpos [list [lindex $aix $atj] [lindex $aiy $atj] [lindex $aiz $atj]]
-          puts "   bond $i $j"
+          puts "   bond $i $j ($ati $atj)"
           puts "   atipos $atipos"
           puts "   atjpos $atjpos"
           # i-j bond pierces ring if 
