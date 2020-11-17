@@ -153,7 +153,6 @@ for pi in `seq 0 $((nparse-1))`; do
    CURRPDB=`grep writepdb ${CURRPSFGEN} | tail -1 | awk '{print $NF}'`
    echo "TASK $TASK: Generating system ${CURRPSF}/${CURRPDB}..."
    $VMD -dispdev text -e ${CURRPSFGEN} > ${CURRPSFLOG} 2>&1
-      
    echo "structure ${CURRPSF}" > namd_header.${TASK}
    echo "coordinates ${CURRPDB}" >> namd_header.${TASK}
    cat namd_header.${TASK} $PSFGEN_BASEDIR/templates/vac.namd | \
@@ -174,7 +173,7 @@ mol addfile $CURRPDB
 check_pierced_rings 0 1.5
 exit
 EOF
-   echo "Checking for pierced rings..."
+   echo "        ->  Checking for pierced rings in system ${CURRPSF}+${CURRPDB}..."
    $VMD -dispdev text -e ringp.tcl > ringp.log 2>&1
    npiercings=`grep -c pierces ringp.log`
    if [[ $npiercings -gt 0 ]]; then
