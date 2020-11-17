@@ -153,13 +153,6 @@ for pi in `seq 0 $((nparse-1))`; do
    CURRPDB=`grep writepdb ${CURRPSFGEN} | tail -1 | awk '{print $NF}'`
    echo "TASK $TASK: Generating system ${CURRPSF}/${CURRPDB}..."
    $VMD -dispdev text -e ${CURRPSFGEN} > ${CURRPSFLOG} 2>&1
-   cat > ringp.tcl << EOF
-source $PSFGEN_BASEDIR/src/loopmc.tcl
-mol new $CURRPSF
-mol addfile $CURRPDB
-check_pierced_rings 0 1.5
-exit
-EOF
    echo "Checking for pierced rings..."
    $VMD -dispdev text -e ringp.tcl > ringp.log 2>&1
    npiercings=`grep -c pierces ringp.log`
@@ -182,6 +175,13 @@ EOF
    cat charmm_header.pdb tmp.pdb > config${TASK}.pdb
    rm charmm_header.pdb tmp.pdb
    CURRPDB=config${TASK}.pdb
+   cat > ringp.tcl << EOF
+source $PSFGEN_BASEDIR/src/loopmc.tcl
+mol new $CURRPSF
+mol addfile $CURRPDB
+check_pierced_rings 0 1.5
+exit
+EOF
 done
 
 # solvate
