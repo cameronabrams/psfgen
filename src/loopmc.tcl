@@ -52,7 +52,7 @@ proc roughenergy { sel1 sel2 cut sigma epsilon bs }  {
    set r1 [intListToArray [$sel1 get residue]]
    set r2 [intListToArray [$sel2 get residue]]
    if { $_x1 == "UNSET" } { set _x1 [ListToArray [$sel1 get x]] }
-   else ListToArray $_x1 [$sel1 get x]
+   else ListToArray_Data $_x1 [$sel1 get x]
    set x1 [ListToArray [$sel1 get x]]
    set x2 [ListToArray [$sel2 get x]]
    set y1 [ListToArray [$sel1 get y]]
