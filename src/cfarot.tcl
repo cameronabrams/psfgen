@@ -39,8 +39,8 @@ proc ListToArray {l} {
 proc ListToArray_Data { a l } {
     set i 0
     foreach item $l {
-	array_setitem $a $i $item
-	incr i 1
+	   array_setitem $a $i $item
+	   incr i 1
     }
     return $a
 }

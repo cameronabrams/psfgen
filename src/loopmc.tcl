@@ -43,12 +43,16 @@ proc my_increment { numlet } {
 
 # computes overlap energy between atoms in sel1 and sel2.  The "my_roughenergy" function (implemented in C)
 # uses a repulsive WCA pair potential.  Residue index lists are
-# sent so the my_roughenergy does not compute pair interactions for atoms in the same residue 
+# sent so the my_roughenergy does not compute pair interactions for atoms in the same residue
+set _x1 "UNSET"
 proc roughenergy { sel1 sel2 cut sigma epsilon bs }  {
   set E 0.0
+  global _x1
   if { [$sel1 num] > 0 && [$sel2 num] > 0 } {
    set r1 [intListToArray [$sel1 get residue]]
    set r2 [intListToArray [$sel2 get residue]]
+   if { $_x1 == "UNSET" } { set _x1 [ListToArray [$sel1 get x]] }
+   else ListToArray $_x1 [$sel1 get x]
    set x1 [ListToArray [$sel1 get x]]
    set x2 [ListToArray [$sel2 get x]]
    set y1 [ListToArray [$sel1 get y]]
