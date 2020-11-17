@@ -109,7 +109,7 @@ proc bond_in_ring { a b ri ringsize } {
     for { set i 0 } { $i < [llength $ri] } { incr i $ringsize } {
         set this_ring {}
         for {set j 0} {$j<$ringsize} {incr j} {
-            lappend this_ring [expr [lindex $ri $i] + $j]
+            lappend this_ring [expr [lindex $ri [expr $i + $j]]
         }
 #       puts "searching ($this_ring) for $a-$b"
 #        flush stdout
@@ -184,12 +184,13 @@ proc make_bondstruct { molid sel } {
     puts "Considering [llength $ci] peptide bonds"
     foreach a $il ibl $bl {
         foreach b $ibl {
-    #        puts "Considering $a-$b"
+            puts "Considering $a-$b"
             flush stdout
             set rotatable 1
             set in5ring [bond_in_ring $a $b $r5i 5]
             set in6ring [bond_in_ring $a $b $r6i 6]
             set ispeptidebond [bond_is_peptide $a $b $ni $ci]
+            puts " -> 5 $in5ring 6 $in6ring p $ispeptidebond"
             if { $in5ring == 1 || $in6ring == 1 || $ispeptidebond == 1 } {
                 set rotatable 0
             }
