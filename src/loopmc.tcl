@@ -954,7 +954,12 @@ proc check_pierced_rings { molid TOL } {
       incr i
     }
     set ln 0
+    # fix to exclude atoms in the ring from bond definition!
     foreach a $na bl $nb {
+      if { [lsearch $this_ri $a] !=  -1 } {
+        $neigh delete
+        continue
+      }
       if { [expr $ln%100 == 0] } {
         puts -nonewline "."
       }
@@ -962,6 +967,9 @@ proc check_pierced_rings { molid TOL } {
       set ai $ord($a)
       set apos [list [lindex $nax $ai] [lindex $nay $ai] [lindex $naz $ai]]
       foreach b $bl {
+        if { [lsearch $this_ri $b] != -1 } {
+          continue
+        }
         if { [lsearch $na $b] != -1 } {
           set bi $ord($b)
           set bpos [list [lindex $nax $bi] [lindex $nay $bi] [lindex $naz $bi]]
