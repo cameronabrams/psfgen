@@ -136,6 +136,7 @@ proc make_bondstruct { molid sel } {
     for { set i 0 } { $i < $na } { incr i } {
         set a [lindex $il $i]
         set ibl [lindex $bl $i]
+        puts "$a : $ibl"
         set bb {}
         for pp $ibl {
             if { [lsearch $il $pp] != -1] } {
