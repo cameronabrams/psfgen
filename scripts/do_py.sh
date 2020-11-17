@@ -181,7 +181,8 @@ EOF
       grep pierces ringp.log
       echo "Change your relaxation parameters and try again."
       exit
-   fidone
+   fi
+done
 
 # solvate
 TASK=$((TASK+1))
