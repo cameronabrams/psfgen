@@ -42,9 +42,9 @@ proc my_increment { numlet } {
 }
 
 # computes overlap energy between atoms in sel1 and sel2.  The "my_roughenergy" function (implemented in C)
-# uses a repulsive pair potential of the form A*(x-cut)^2 for x<cut.  Residue index lists are
+# uses a repulsive WCA pair potential.  Residue index lists are
 # sent so the my_roughenergy does not compute pair interactions for atoms in the same residue 
-proc roughenergy { sel1 sel2 cut }  {
+proc roughenergy { sel1 sel2 cut sigma epsilon }  {
   set E 0.0
   if { [$sel1 num] > 0 && [$sel2 num] > 0 } {
    set r1 [intListToArray [$sel1 get residue]]
@@ -55,7 +55,7 @@ proc roughenergy { sel1 sel2 cut }  {
    set y2 [ListToArray [$sel2 get y]]
    set z1 [ListToArray [$sel1 get z]]
    set z2 [ListToArray [$sel2 get z]]
-   set E [my_roughenergy $r1 $x1 $y1 $z1 [$sel1 num] $r2 $x2 $y2 $z2 [$sel2 num] $cut]
+   set E [my_roughenergy $r1 $x1 $y1 $z1 [$sel1 num] $r2 $x2 $y2 $z2 [$sel2 num] $cut $sigma $epsilon]
    delete_arrayint $r1
    delete_arrayint $r2
    delete_array $x1
@@ -232,7 +232,7 @@ proc log_addframe { molid logid } {
 # are not allowed to overlap, where the overlap distance
 # is "rcut" (A).
 # "logid" is the optional molecule id of a logging molecule (-1 means do nothing)
-proc do_loop_mc { residueList c molid k r0 env rcut maxcycles temperature iseed logid logevery } {
+proc do_loop_mc { residueList c molid k r0 env sigma epsilon rcut maxcycles temperature iseed logid logevery } {
 
   set msel [atomselect $molid "chain $c and residue $residueList"]
   set mselnoh [atomselect $molid "chain $c and residue $residueList and noh"]
@@ -254,7 +254,7 @@ proc do_loop_mc { residueList c molid k r0 env rcut maxcycles temperature iseed 
 
   set SE [expr 0.5*$k*pow([measure bond $idx]-$r0,2)]
   #set EE [roughenergy $mselnoh $env $rcut]
-  set EE [roughenergy $mselca $envca $rcut]
+  set EE [roughenergy $mselca $envca $rcut $sigma $epsilon]
   set E [expr $SE + $EE]
   set E0 $E
 
@@ -276,7 +276,7 @@ proc do_loop_mc { residueList c molid k r0 env rcut maxcycles temperature iseed 
     }
     set SE [expr 0.5*$k*pow([measure bond $idx]-$r0,2)]
     #set EE [roughenergy $mselnoh $env $rcut]
-    set EE [roughenergy $mselca $envca $rcut]
+    set EE [roughenergy $mselca $envca $rcut $sigma $epsilon]
     set E [expr $SE + $EE]
     # decide to accept or reject this new conformation using a 
     # metropolis criterion
@@ -681,7 +681,7 @@ proc do_flex_mc { molid msel ri rj fa k i j envsel rcut maxcycles temperature is
    if { $i != $j } {
      set SE [expr 0.5*$k*pow([measure bond [list $i $j]],2)]
    }
-   set EE [roughenergy $msel $envsel $rcut]
+   set EE [roughenergy $msel $envsel $rcut $sigma $epsilon]
    set E [expr $SE + $EE]
    set E0 $E
    #puts "CFAFLEXMC) E0 $E0"
@@ -708,7 +708,7 @@ proc do_flex_mc { molid msel ri rj fa k i j envsel rcut maxcycles temperature is
       } else {
         set SE 0.0
       }
-      set EE [roughenergy $msel $envsel $rcut]
+      set EE [roughenergy $msel $envsel $rcut $sigma $epsilon]
       set E [expr $SE + $EE]
      # puts " ... E $E"
       set X [expr rand()]
@@ -745,150 +745,6 @@ proc do_flex_mc { molid msel ri rj fa k i j envsel rcut maxcycles temperature is
    free_bondstruct $bs
 }
 
-proc check_pierced_rings_dies { molid TOL } {
-  # molid is a molecule assumed to have some residues with rings and perhaps glycans
-
-  # this will search the list of bonds and for each, it will search all rings within 5.0 
-  # angstroms of the bond to determine if the bond pierces one of those rings.
-
-  set a [atomselect $molid "protein or glycan"]
-  set ai [$a get index]
-  set aix [$a get x]
-  set aiy [$a get y]
-  set aiz [$a get z]
-  set bl [$a getbonds]
-  set ii 0
-  foreach i $ai b $bl {
-    puts "cpr: at $i b $b"
-    set ati [lsearch $ai $i]
-    set atipos [list [lindex $aix $ati] [lindex $aiy $ati] [lindex $aiz $ati]]
-
-    set r5 [atomselect $molid "ringsize 5 from (same residue as within 5 of index $i)"]
-    if {[expr [$r5 num] > 0]} {
-      set r5i [$r5 get index]
-      set r5x [$r5 get x]
-      set r5y [$r5 get y]
-      set r5z [$r5 get z]
-
-# MUCH WORK IS TO DO HERE
-      for {set ir 0} {$ir < [$r5 num]} {incr ir 5} {
-        # approximate ring normal vector by crossing first two bond vectors
-        set ra1 $ir
-        set ra2 [expr $ir + 1]
-        set ra3 [expr $ir + 2]
-        set ra4 [expr $ir + 3]
-        set ra5 [expr $ir + 4]
-        set ra5i [list [lindex $r5x $ra1] [lindex $r5x $ra2] [lindex $r5x $ra3] [lindex $r5x $ra4] [lindex $r5x $ra5]]
-    #   puts "  5-ring [expr $ir/5] ([lindex $r5i $ra1]-[lindex $r5i $ra2]-[lindex $r5i $ra3]-[lindex $r5i $ra4]-[lindex $r5i $ra5])"
-        if { [lsearch $ra5i $i] == -1 } {
-          set r5comx [expr (1.0/5.0)*([lindex $r5x $ra1] + [lindex $r5x $ra2] + [lindex $r5x $ra3] + [lindex $r5x $ra4] + [lindex $r5x $ra5])]
-          set r5comy [expr (1.0/5.0)*([lindex $r5y $ra1] + [lindex $r5y $ra2] + [lindex $r5y $ra3] + [lindex $r5y $ra4] + [lindex $r5y $ra5])]
-          set r5comz [expr (1.0/5.0)*([lindex $r5z $ra1] + [lindex $r5z $ra2] + [lindex $r5z $ra3] + [lindex $r5z $ra4] + [lindex $r5z $ra5])]
-          set r5com [list $r5comx $r5comy $r5comz]
-          set br12x [expr [lindex $r5x $ra1]-[lindex $r5x $ra2]]
-          set br12y [expr [lindex $r5y $ra1]-[lindex $r5y $ra2]]
-          set br12z [expr [lindex $r5z $ra1]-[lindex $r5z $ra2]]
-          set br23x [expr [lindex $r5x $ra2]-[lindex $r5x $ra3]]
-          set br23y [expr [lindex $r5y $ra2]-[lindex $r5y $ra3]]
-          set br23z [expr [lindex $r5z $ra2]-[lindex $r5z $ra3]]
-          set br12 [list $br12x $br12y $br12z]
-          set br23 [list $br23x $br23y $br23z]
-          set cbr123 [veccross $br12 $br23]
-          set lcbr123 [veclength $cbr123]
-          set cbr123 [vecscale [expr 1.0/$lcbr123] $cbr123]
-          foreach j $b {
-            if { [lsearch $ra5i $j] == -1 } {
-              set atj [lsearch $ai $j]
-              set atjpos [list [lindex $aix $atj] [lindex $aiy $atj] [lindex $aiz $atj]]
-     #     puts "   bond $i $j ($ati $atj)"
-     #     puts "   atipos $atipos"
-     #     puts "   atjpos $atjpos"
-          # i-j bond pierces ring if 
-          # 1. bond com and ring com are less than TOL from each other
-          # 2. i and j are on opposite sides of the ring:
-          #      i-ringcom dot j-ringcom is negative
-              set b12comx [expr (1.0/2.0)*([lindex $atipos 0]+[lindex $atjpos 0])]
-              set b12comy [expr (1.0/2.0)*([lindex $atipos 1]+[lindex $atjpos 1])]
-              set b12comz [expr (1.0/2.0)*([lindex $atipos 2]+[lindex $atjpos 2])]
-              set b12com [list $b12comx $b12comy $b12comz]
-              set d1 [veclength [vecsub $r5com $b12com]]
-              set v1 [vecsub $r5com $atipos]
-              set v2 [vecsub $r5com $atjpos]
-              set dot1 [vecdot $v1 $v2]
-              if { $d1 < $TOL && $dot1 < 0 } {
-                puts "5-ring ([lindex $r5i $ra1]-[lindex $r5i $ra2]-[lindex $r5i $ra3]-[lindex $r5i $ra4]-[lindex $r5i $ra5]) pierced by bond $i $j"
-              }
-            }
-          }
-        }
-      }
-    }
-    $r5 delete
-    set r6 [atomselect $molid "ringsize 6 from (same residue as within 5 of index $i)"]
-    if {[expr [$r6 num] > 0]} {
-      set r6i [$r6 get index]
-      set r6x [$r6 get x]
-      set r6y [$r6 get y]
-      set r6z [$r6 get z]
-
-# MUCH WORK IS TO DO HERE
-      for {set ir 0} {$ir < [$r6 num]} {incr ir 6} {
-          # approximate ring normal vector by crossing first two bond vectors
-        set ra1 $ir
-        set ra2 [expr $ir + 1]
-        set ra3 [expr $ir + 2]
-        set ra4 [expr $ir + 3]
-        set ra5 [expr $ir + 4]
-        set ra6 [expr $ir + 5]
-        set ra6i [list [lindex $ai $ra1] [lindex $ai $ra2] [lindex $ai $ra3] [lindex $ai $ra4] [lindex $ai $ra5] [lindex $ai $ra6]]
-        if { [lsearch $ra6i $i] != -1 } {
-    #    puts "    6-ring [expr $ir/6]: ([lindex $r6i $ra1]-[lindex $r6i $ra2]-[lindex $r6i $ra3]-[lindex $r6i $ra4]-[lindex $r6i $ra5]-[lindex $r6i $ra6])"
-          set r6comx [expr (1.0/5.0)*([lindex $r6x $ra1] + [lindex $r6x $ra2] + [lindex $r6x $ra3] + [lindex $r6x $ra4] + [lindex $r6x $ra5] + [lindex $r6x $ra6])]
-          set r6comy [expr (1.0/5.0)*([lindex $r6y $ra1] + [lindex $r6y $ra2] + [lindex $r6y $ra3] + [lindex $r6y $ra4] + [lindex $r6y $ra5] + [lindex $r6y $ra6])]
-          set r6comz [expr (1.0/5.0)*([lindex $r6z $ra1] + [lindex $r6z $ra2] + [lindex $r6z $ra3] + [lindex $r6z $ra4] + [lindex $r6z $ra5] + [lindex $r6z $ra6])]
-          set r6com [list $r6comx $r6comy $r6comz]
-          set br12x [expr [lindex $r6x $ra1]-[lindex $r6x $ra2]]
-          set br12y [expr [lindex $r6y $ra1]-[lindex $r6y $ra2]]
-          set br12z [expr [lindex $r6z $ra1]-[lindex $r6z $ra2]]
-          set br23x [expr [lindex $r6x $ra2]-[lindex $r6x $ra3]]
-          set br23y [expr [lindex $r6y $ra2]-[lindex $r6y $ra3]]
-          set br23z [expr [lindex $r6z $ra2]-[lindex $r6z $ra3]]
-          set br12 [list $br12x $br12y $br12z]
-          set br23 [list $br23x $br23y $br23z]
-          set cbr123 [veccross $br12 $br23]
-          set lcbr123 [veclength $cbr123]
-          set cbr123 [vecscale [expr 1.0/$lcbr123] $cbr123]
-          foreach j $b {
-            if { [lsearch $ra6i $j] != -1 } {
-              set atj [lsearch $ai $j]
-              set atjpos [list [lindex $aix $atj] [lindex $aiy $atj] [lindex $aiz $atj]]
-    #      puts "   bond $i $j ($ati $atj)"
-    #      puts "   atipos $atipos"
-    #      puts "   atjpos $atjpos"
-          # i-j bond pierces ring if 
-          # 1. bond com and ring com are less than TOL from each other
-          # 2. i and j are on opposite sides of the ring:
-          #      i-ringcom dot j-ringcom is negative
-              set b12comx [expr (1.0/2.0)*([lindex $atipos 0]+[lindex $atjpos 0])]
-              set b12comy [expr (1.0/2.0)*([lindex $atipos 1]+[lindex $atjpos 1])]
-              set b12comz [expr (1.0/2.0)*([lindex $atipos 2]+[lindex $atjpos 2])]
-              set b12com [list $b12comx $b12comy $b12comz]
-              set d1 [veclength [vecsub $r6com $b12com]]
-              set v1 [vecsub $r6com $atipos]
-              set v2 [vecsub $r6com $atjpos]
-              set dot1 [vecdot $v1 $v2]
-              if { $d1 < $TOL && $dot1 < 0 } {
-                puts "6-ring ([lindex $r6i $ra1]-[lindex $r6i $ra2]-[lindex $r6i $ra3]-[lindex $r6i $ra4]-[lindex $r6i $ra5]-[lindex $r6i $ra6]) pierced by bond $i $j"
-              }
-            }
-          }
-        }
-      }
-    }
-    $r6 delete
-  }
-}
-
 proc ladd {l} {
     set total 0.0
     foreach nxt $l {
@@ -898,11 +754,6 @@ proc ladd {l} {
 }
 
 proc check_pierced_rings { molid TOL } {
-  # molid is a molecule assumed to have some residues with rings and perhaps glycans
-
-  # this will search the list of bonds and for each, it will search all rings within 5.0 
-  # angstroms of the bond to determine if the bond pierces one of those rings.
-
   set r6 [atomselect $molid "ringsize 6 from all"]
   set r6i [$r6 get index]
   set i 0
@@ -913,8 +764,6 @@ proc check_pierced_rings { molid TOL } {
   set r6x [$r6 get x]
   set r6y [$r6 get y]
   set r6z [$r6 get z]
-
-  #set r6 [atomselect $molid "ringsize 6 from all"]
 
   for { set ri 0 } { $ri < [llength $r6i] } { incr ri 6 } {
     #puts "ring $ri"
