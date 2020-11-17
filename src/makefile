@@ -22,7 +22,7 @@ OBJ += bondstruct.o linkcell.o
 all: bondstruct.so 
 
 bondstruct.so:  $(OBJ) bondstruct_wrap.o
-	$(CC) $(CFLAGS) -shared -o $@ $^ $(LIBS)
+	$(CC) $(CFLAGS) -fPIC -shared -o $@ $^ $(LIBS)
 	cp $@ ../lib/
 
 %.o: %.c %.h
