@@ -76,19 +76,21 @@ void bondstruct_print ( bondstruct * bs ) {
    if (bs->b && bs->nb) {
       for (i=0;i<bs->nb;i++) {
          if (bs->isrotatable[i]) {
-            printf("%c%i-%i : rs(%i)[",(bs->isactive[i]?'+':'-'),bs->b[i][0],bs->b[i][1],bs->bran[i]);
+            printf("[%i] %c%i-%i : rs(%i)[",i,(bs->isactive[i]?'+':'-'),bs->b[i][0],bs->b[i][1],bs->bran[i]);
             for (j=0;j<bs->bran[i];j++) printf("%i ",bs->bra[i][j]);
             printf("]\n");
          }
       }
    }
-   printf("CFABOND/C) Atom bondlists:\n");
+/*    printf("CFABOND/C) Atom bondlists:\n");
    for (i=0;i<bs->na;i++) {
       printf("%i : ",bs->ia[i]);
       for (j=0;j<bs->mb&&bs->ba[i][j]!=-1;j++) printf("%i ",bs->ba[i][j]);
       printf("\n");
    }
-}
+ */
+ }
+
 
 int bondstruct_getbondindex ( bondstruct * bs, int i, int j ) {
    int k=0;

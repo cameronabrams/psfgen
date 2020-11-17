@@ -145,7 +145,7 @@ proc make_bondstruct { molid sel } {
     for { set i 0 } { $i < $na } { incr i } {
         set a [lindex $il $i]
         set ibl [lindex $bl $i]
-        puts "$a : $ibl"
+#        puts "$a : $ibl"
         set bb {}
         foreach pp $ibl {
             if { [lsearch $il $pp] != -1 } {
@@ -159,7 +159,7 @@ proc make_bondstruct { molid sel } {
     # set up an empty bondstruct and populate it atomwise
     set ia [intListToArray $il]
     set bs [new_bondstruct $ia [llength $il] $bondcount]
-    puts "created bs with $bondcount total bonds"
+#    puts "created bs with $bondcount total bonds"
     for { set i 0 } { $i < $na } { incr i } {
         set a [lindex $il $i]
         set ibl [lindex $bl $i]
@@ -173,18 +173,18 @@ proc make_bondstruct { molid sel } {
     # is not rotatable
     set r5 [atomselect $molid "ringsize 5 from ([$sel text])"]
     set r5i [$r5 get index]
-    puts "Considering [expr [llength $r5i]/5] 5-membered rings"
+#    puts "Considering [expr [llength $r5i]/5] 5-membered rings"
     set r6 [atomselect $molid "ringsize 6 from ([$sel text])"]
     set r6i [$r6 get index]
-    puts "Considering [expr [llength $r6i]/6] 6-membered rings"
+#    puts "Considering [expr [llength $r6i]/6] 6-membered rings"
     set c [atomselect $molid "protein and name C and ([$sel text])"]
     set ci [$c get index]
     set n [atomselect $molid "protein and name N and ([$sel text])"]
     set ni [$n get index]
-    puts "Considering [llength $ci] peptide bonds"
+#    puts "Considering [llength $ci] peptide bonds"
     foreach a $il ibl $bl {
         foreach b $ibl {
-            puts "Considering $a-$b"
+#            puts "Considering $a-$b"
             flush stdout
             set rotatable 1
             set in5ring [bond_in_ring $a $b $r5i 5]
@@ -205,13 +205,13 @@ proc make_bondstruct { molid sel } {
             puts "-> $a $b $rotatable"
         }
     }
-    puts "mapping rotatables..."
+#    puts "mapping rotatables..."
     # generate the count of rotatable bonds and the map to the bond array
     bondstruct_maprotatables $bs
-    puts "making right-sides..."
+#    puts "making right-sides..."
     # make the right-side lists for each bond
     bondstruct_makerightsides $bs
-    puts "printing..."
+#    puts "printing..."
     bondstruct_print $bs
 
     #puts "make_bondstruct returns"
@@ -226,8 +226,8 @@ proc bondrot_by_index { bs molid b deg } {
    set l [lindex $pair 0]
    set r [lindex $pair 1]
    set alist [intArrayToList [bondstruct_getrightside_pointer $bs $b] [bondstruct_getrightside_count $bs $b]]
-   #puts "#### bondrot_by_index attempting $b: $l - $r by $deg deg"
-   #puts "####    rightside: $alist"
+   puts "#### bondrot_by_index attempting $b: $l - $r by $deg deg"
+   puts "####    rightside: $alist"
    set ls [atomselect $molid "index $l"]
    set rs [atomselect $molid "index $r"]
    set lr [lindex [$ls get {x y z}] 0]
