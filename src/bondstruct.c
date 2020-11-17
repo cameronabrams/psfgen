@@ -105,7 +105,7 @@ int bondstruct_getrightside_count ( bondstruct * bs, int b ) {
    return bs->bran[b];
 }
 
-void bondstruct_addbond(bs,i,j) {
+void bondstruct_addbond( bondstruct * bs, int i, int j) {
    if (bs->bctr==nb) {
       printf("Error: too many bonds! (bug)\n")
       return;
@@ -122,7 +122,7 @@ void bondstruct_addbond(bs,i,j) {
 void bondstruct_importbonds ( bondstruct * bs, int a, int * bl, int nb ) {
   if (bs) {
     int i,ia;
-    ia=bondstruct_getlocalindex(bs,a);
+    ia=bondstruct_getlocalatomindex(bs,a);
     if (nb>bs->mb) {
        printf("ERROR: atom %i has too many bonds\n",a);
        return;
@@ -187,7 +187,6 @@ int bondstruct_getna ( bondstruct * bs ) {
    return bs->na;
 }
 
-
 // After making the rotatable bond list, this function 
 // is called to make, for _each_ rotatable bond, the
 // array of atom indices that are on the "right" side 
@@ -216,8 +215,8 @@ void bondstruct_makerightsides ( bondstruct * bs ) {
       b=bs->b[k][1];
       //printf("#### in makerightsides at bond %i : %i %i\n",k,a,b);fflush(stdout);
       // get the two local indices
-      la=bondstruct_getlocalindex(bs,a);
-      lb=bondstruct_getlocalindex(bs,b);
+      la=bondstruct_getlocalatomindex(bs,a);
+      lb=bondstruct_getlocalatomindex(bs,b);
       //printf("#### local indices %i %i\n",la,lb);fflush(stdout);
       // put all atoms b is bonded to on the right-side list _except_ atom a
       bs->bran[k]=0;
@@ -239,7 +238,7 @@ void bondstruct_makerightsides ( bondstruct * bs ) {
          // for each atom on this right-side array
          for (i=0;i<bs->bran[k];i++) {
             // get the local index
-            li=bondstruct_getlocalindex(bs,bs->bra[k][i]);
+            li=bondstruct_getlocalatomindex(bs,bs->bra[k][i]);
             // for each neighbor atom bonded to this atom
             for (j=0;j<bs->mb && bs->ba[li][j]!=-1;j++) {
                // as long as this neighbor is not atom a (which it should never be)
