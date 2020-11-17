@@ -150,7 +150,7 @@ proc make_bondstruct { molid sel } {
     # set up an empty bondstruct and populate it atomwise
     set ia [intListToArray $il]
     set bs [new_bondstruct $ia [llength $il] $bondcount]
-    puts "created bs"
+    puts "created bs with $bondcount total bonds"
     for { set i 0 } { $i < $na } { incr i } {
         set a [lindex $il $i]
         set ibl [lindex $bl $i]
