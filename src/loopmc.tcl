@@ -79,7 +79,7 @@ proc roughenergy { sel1 sel2 cut sigma epsilon bs }  {
 
   set E 0.0
 
-  if { [$sel1 num] == 0 && [$sel2 num] == 0 } return E
+  if { [$sel1 num] == 0 && [$sel2 num] == 0 } return $E
   # update positions in 1
   ListToArray_Data $_x1 [$sel1 get x]
   ListToArray_Data $_y1 [$sel1 get y]
