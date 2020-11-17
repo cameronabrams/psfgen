@@ -124,10 +124,10 @@ proc bond_is_peptide { a b ci ni } {
     if { [llength $ci] == 0 } {
         return 0
     }
-    if { [lsearch $ci $a] !=-1 and [lsearch $ni $b] != -1 } {
+    if { [lsearch $ci $a] !=-1 && [lsearch $ni $b] != -1 } {
         return 1
     }
-    if { [lsearch $ci $b] !=-1 and [lsearch $ni $a] != -1 } {
+    if { [lsearch $ci $b] !=-1 && [lsearch $ni $a] != -1 } {
         return 1
     }
     return 0
