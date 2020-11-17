@@ -24,7 +24,7 @@ double min ( double * a, int n ) {
 
 linkcell * linkcell_new ( double * x, double * y, double * z, int n, double cut ) {
     int i, j, k;
-    int icx, icy, icz, pi;
+    int icx, icy, icz, pi, lci;
     int * npl;
 
     linkcell * ls=malloc(sizeof(linkcell));
