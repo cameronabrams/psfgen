@@ -16,7 +16,7 @@ bondstruct * new_bondstruct ( int * ia, int na, int nb ) {
    // set up blank lists of bond partners for each atom
    bs->ba=(int**)malloc(na*sizeof(int*));
    for (i=0;i<na;i++) {
-     bs->ba[i]=(int*)malloc(4*sizeof(int));
+     bs->ba[i]=(int*)malloc(ba->mb*sizeof(int));
      for (j=0;j<bs->mb;j++) bs->ba[i][j]=-1;
    }
 
