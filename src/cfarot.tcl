@@ -138,7 +138,7 @@ proc make_bondstruct { molid sel } {
         set ibl [lindex $bl $i]
         puts "$a : $ibl"
         set bb {}
-        for pp $ibl {
+        foreach pp $ibl {
             if { [lsearch $il $pp] != -1] } {
                 lappend partners $pp
             }
