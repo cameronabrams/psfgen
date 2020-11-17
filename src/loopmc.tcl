@@ -235,8 +235,8 @@ proc log_addframe { molid logid } {
 proc do_loop_mc { residueList c molid k r0 env sigma epsilon rcut maxcycles temperature iseed logid logevery } {
 
   set msel [atomselect $molid "chain $c and residue $residueList"]
-  set bs [make_bondstruct $molid $msel {} {}]
   set mselnoh [atomselect $molid "chain $c and residue $residueList and noh"]
+  set bs [make_bondstruct $molid $mselnoh {} {}]
 #  set mselca [atomselect $molid "chain $c and residue $residueList and name CA"]
 #  set envca [atomselect $molid "([$env text]) and name CA"]
 
