@@ -237,7 +237,7 @@ proc do_loop_mc { residueList c molid k r0 env sigma epsilon rcut maxcycles temp
   set msel [atomselect $molid "chain $c and residue $residueList"]
   set mselnoh [atomselect $molid "chain $c and residue $residueList and noh"]
   set bs [make_bondstruct $molid $mselnoh]
-  bondstruct_print $bs
+  #bondstruct_print $bs
 #  set mselca [atomselect $molid "chain $c and residue $residueList and name CA"]
 #  set envca [atomselect $molid "([$env text]) and name CA"]
 
