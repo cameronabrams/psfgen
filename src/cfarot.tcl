@@ -113,7 +113,7 @@ proc bond_in_ring { a b ri ringsize } {
         }
         puts "searching ($this_ring) for $a-$b"
         flush stdout
-        if { [lsearch $this_ring $a] != -1 && [lsearch $this_ring $b] != -1] } {
+        if { [lsearch $this_ring $a] != -1 && [lsearch $this_ring $b] != -1 } {
             return 1
         }
     }
