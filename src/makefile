@@ -17,21 +17,23 @@ CFLAGS += -O3 -I/usr/include/tcl
 
 USER_FLAGS =
 
-OBJ += bondstruct.o linkcell.o
+OBJ += bondstruct.o 
+OBJ += linkcell.o
 
 all: bondstruct.so 
 
 bondstruct.so:  $(OBJ) bondstruct_wrap.o
-	$(CC) $(CFLAGS) -fPIC -shared -o $@ $^ $(LIBS)
+	$(CC) $(CFLAGS) -shared -o $@ $^ $(LIBS)
 	cp $@ ../lib/
 
 %.o: %.c %.h
-	$(CC) -c -fPIC $(CFLAGS) $< $(LIBS)
+	$(CC) -c -fpic $(CFLAGS) $< $(LIBS)
 
 %_wrap.c: %.i %.c %.h
 	swig -tcl8 $<
 
 bondstruct.o : bondstruct.h
+linkcell.o : linkcell.h
 
 .PHONY: clean force
 
