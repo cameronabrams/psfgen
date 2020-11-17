@@ -164,12 +164,15 @@ proc make_bondstruct { molid sel } {
     # is not rotatable
     set r5 [atomselect $molid "ringsize 5 from ([$sel text])"]
     set r5i [$r5 get index]
+    puts "Considering [expr [llength $r5i]/5] 5-membered rings"
     set r6 [atomselect $molid "ringsize 6 from ([$sel text])"]
     set r6i [$r6 get index]
+    puts "Considering [expr [llength $r6i]/6] 6-membered rings"
     set c [atomselect $molid "protein and name C and ([$sel text])"]
     set ci [$c get index]
     set n [atomselect $molid "protein and name N and ([$sel text])"]
     set ni [$n get index]
+    puts "Considering [llength $ci] peptide bonds"
     foreach a $il ibl $bl {
         foreach b $ibl {
             set rotatable 1
@@ -187,6 +190,7 @@ proc make_bondstruct { molid sel } {
             } else {
                 bondstruct_setbond_rotatable $bs $a $b 1
             }
+            puts " -> $a $b $rotatable"
         }
     }
     puts "mapping rotatables..."
