@@ -65,6 +65,7 @@ proc roughenergy_setup { sel1 sel2 sigma } {
   set _n1 [$sel1 num]
   set _n2 [$sel2 num]
 }
+
 proc roughenergy { sel1 sel2 cut sigma epsilon bs }  {
   global _r1
   global _r2
@@ -79,7 +80,7 @@ proc roughenergy { sel1 sel2 cut sigma epsilon bs }  {
 
   set E 0.0
 
-  if { [$sel1 num] == 0 && [$sel2 num] == 0 } return $E
+  if { $_n1 == 0 && $_n2 == 0 } return $E
   # update positions in 1
   ListToArray_Data $_x1 [$sel1 get x]
   ListToArray_Data $_y1 [$sel1 get y]
@@ -259,6 +260,11 @@ proc do_loop_mc { residueList c molid k r0 env sigma epsilon rcut maxcycles temp
   set mselnoh [atomselect $molid "chain $c and residue $residueList and noh"]
   set exind [$mselnoh get index]
   set envex [atomselect $molid "[$env text] and not index $exind"]
+
+  if { [$envex num] == 0 } {
+    puts "Error: environment minus loop has zero atoms."
+    return
+  }
 
   set bs [make_bondstruct $molid $mselnoh]
   #bondstruct_print $bs
