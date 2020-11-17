@@ -662,12 +662,6 @@ proc do_flex_mc { molid msel fa k i j envsel epsilon sigma rcut maxcycles temper
    set il [$msel get index]
    set bs [make_bondstruct $molid $msel]
    bondstruct_deactivate_by_fixed $bs $fa
-   #print_bondlist $bs
-
-#   puts "ri $ri"
-#   puts "rj $rj"
-#   puts "il [llength $il] : $il"
-#   puts "bl [llength $bl] : $bl"
    
    if { $i != $j } { 
      puts "CFAFLEXMC) Initial attractor distance [format "%.2f" [measure bond [list $i $j]]] A"
