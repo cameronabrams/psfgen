@@ -102,6 +102,7 @@ proc intArrayToList {a n} {
 # this procedure returns 1 if both a and b are located in any one 
 # ring
 proc bond_in_ring { a b ri ringsize } {
+    puts "$a $b $ri $ringsize"
     if { [llength $ri] == 0 } {
         return 0
     }
