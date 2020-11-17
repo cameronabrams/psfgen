@@ -297,6 +297,12 @@ void free_intarray ( int * a ) {
    free(a);
 }
 
+int isin ( int * arr, int n, int t ) {
+   int i;
+   for (i=0;i<n&&arr[i]!=t;i++);
+   if (i<n) return 1;
+   return 0;
+}
 double my_roughenergy ( int * i1, double * x1, double * y1, double * z1, int n1, int * i2, 
                         double * x2, double * y2, double * z2, int n2, double cut,
                         double sigma, double epsilon, bondstruct * bs ) {
@@ -312,7 +318,7 @@ double my_roughenergy ( int * i1, double * x1, double * y1, double * z1, int n1,
    for (i=0;i<n1;i++) {
       for (j=0;j<n2;j++) {
          if (i1[i]!=i2[j]) {
-//         if (i1[i]!=i2[j]&&!bondstruct_arebonded(bs,i1[i],i2[j])) {
+            if (isin(i1,n1,i2[j])&&bondstruct_arebonded(bs,i1[i],i2[j])) continue;
             d2 =(x1[i]-x2[j])*(x1[i]-x2[j]);
             d2+=(y1[i]-y2[j])*(y1[i]-y2[j]);
             d2+=(z1[i]-z2[j])*(z1[i]-z2[j]);
