@@ -304,10 +304,15 @@ int isin ( int * arr, int n, int t ) {
    if (i<n) return 1;
    return 0;
 }
-// set1-set1 and set1-set2 energies are to be calculated
-double my_roughenergy ( int * i1, double * x1, double * y1, double * z1, int n1, int * i2, 
-                        double * x2, double * y2, double * z2, int n2, double cut,
-                        double sigma, double epsilon, bondstruct * bs ) {
+
+linkcell * my_roughenergy_setup ( double * x2, double * y2, double * z2, int n2, double cut ) {
+   linkcell * ls = linkcell_new(x2,y2,z2,n2,cut);
+   return ls
+}
+
+double my_roughenergy ( int * i1, double * x1, double * y1, double * z1, int n1, 
+                        int * i2, int n2,
+                        double cut, double sigma, double epsilon, bondstruct * bs, linkcell * ls ) {
    int i,j,ij;
    double d2,E=0.0,di6,di12;
    double s6=sigma*sigma*sigma*sigma*sigma*sigma;
@@ -317,8 +322,10 @@ double my_roughenergy ( int * i1, double * x1, double * y1, double * z1, int n1,
    }
    rcut2=rcut*rcut;
    for (i=0;i<n1;i++) {
+      // pairwise sum over all sel1 pairs
+      a=i1[i];
       for (ij=i+1;ij<n1;ij++) {
-         if (bondstruct_arebonded(bs,i1[i],i1[ij])) continue;
+         if (bondstruct_arebonded(bs,a,a)) continue;
          d2 =(x1[i]-x1[ij])*(x1[i]-x1[ij]);
          d2+=(y1[i]-y1[ij])*(y1[i]-y1[ij]);
          d2+=(z1[i]-z1[ij])*(z1[i]-z1[ij]);
@@ -328,15 +335,37 @@ double my_roughenergy ( int * i1, double * x1, double * y1, double * z1, int n1,
             E+=4*(di12-di6)+1;
          }      
       }
-      for (j=0;j<n2;j++) {
-         if (bondstruct_arebonded(bs,i1[i],i2[j])) continue;
-         d2 =(x1[i]-x2[j])*(x1[i]-x2[j]);
-         d2+=(y1[i]-y2[j])*(y1[i]-y2[j]);
-         d2+=(z1[i]-z2[j])*(z1[i]-z2[j]);
-         if (d2<rcut2) {
-            di6=s6/(d2*d2*d2);
-            di12=di6*di6;
-            E+=4*(di12-di6)+1;
+      // linkcell sum over all sel1-sel2 pairs
+      icx=int((x1[i]-ls->xmin)/ls->dx);
+      icy=int((y1[i]-ls->ymin)/ls->dy);
+      icz=int((z1[i]-ls->zmin)/ls->dz);
+      for (dx=-1;dx<2;dx++) {
+         tx=icx+dx;
+         if (tx==ls->xnc||tx==-1) continue;
+         for (dy=-1;dy<2;dy++) {
+            ty=icy+dx;
+            if (ty==ls->ync||ty==-1) continue;
+            for (dz=-1;dz<2;dz++) {
+               tz=icy+dz;
+               if (tz==ls->znc||tz==-1) continue;
+               pa=ls->pa[tx][ty][tz];
+               np=ls->np[tx][ty][tz];
+               for (j=0;j<np;j++) {
+                  b=i2[pa[j]];
+                  if (bondstruct_arebonded(bs,a,b)) continue;
+                  bx=ls->x[pa[j]];
+                  by=ls->y[pa[j]];
+                  bz=ls->z[pa[j]];
+                  d2 =(x1[i]-bx)*(x1[i]-bx);
+                  d2+=(y1[i]-by)*(y1[i]-by);
+                  d2+=(z1[i]-bz)*(z1[i]-bz);
+                  if (d2<rcut2) {
+                     di6=s6/(d2*d2*d2);
+                     di12=di6*di6;
+                     E+=4*(di12-di6)+1;
+                  }
+               }
+            }
          }
       }
    }

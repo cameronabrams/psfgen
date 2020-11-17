@@ -43,7 +43,8 @@ proc my_increment { numlet } {
 
 # computes overlap energy between atoms in sel1 and sel2.  "sel2" is assumed to be a static background that
 # does not include the atoms in sel1.  Atom indices in sel1 are assumed not to change.
-proc roughenergy_setup { sel1 sel2 sigma } {
+proc roughenergy_setup { sel1 sel2 cut } {
+
   global _r1
   global _r2
   global _x1
@@ -64,9 +65,11 @@ proc roughenergy_setup { sel1 sel2 sigma } {
   set _z2 [ListToArray [$sel2 get z]]
   set _n1 [$sel1 num]
   set _n2 [$sel2 num]
+  set ls [my_roughenergy_setup $_x2 $_y2 $_z2 $_n2 $cut]
+  return $ls
 }
 
-proc roughenergy { sel1 sel2 cut sigma epsilon bs }  {
+proc roughenergy { sel1 cut sigma epsilon bs ls }  {
   global _r1
   global _r2
   global _x1
@@ -80,12 +83,12 @@ proc roughenergy { sel1 sel2 cut sigma epsilon bs }  {
 
   set E 0.0
 
-  if { $_n1 == 0 && $_n2 == 0 } { return $E }
+  if { $_n1 == 0 || $_n2 == 0 } { return $E }
   # update positions in 1
   ListToArray_Data $_x1 [$sel1 get x]
   ListToArray_Data $_y1 [$sel1 get y]
   ListToArray_Data $_z1 [$sel1 get z]
-  set E [my_roughenergy $_r1 $_x1 $_y1 $_z1 $_n1 $_r2 $_x2 $_y2 $_z2 $_n2 $cut $sigma $epsilon $bs]
+  set E [my_roughenergy $_r1 $_x1 $_y1 $_z1 $_n1 $cut $sigma $epsilon $bs $ls ]
   
   return $E
 }
