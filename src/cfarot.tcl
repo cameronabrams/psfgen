@@ -185,12 +185,12 @@ proc make_bondstruct { molid sel } {
     foreach a $il ibl $bl {
         foreach b $ibl {
 #            puts "Considering $a-$b"
-            flush stdout
+#            flush stdout
             set rotatable 1
             set in5ring [bond_in_ring $a $b $r5i 5]
             set in6ring [bond_in_ring $a $b $r6i 6]
             set ispeptidebond [bond_is_peptide $a $b $ni $ci]
-            puts " -> 5 $in5ring 6 $in6ring p $ispeptidebond"
+#            puts " -> 5 $in5ring 6 $in6ring p $ispeptidebond"
             if { $in5ring == 1 || $in6ring == 1 || $ispeptidebond == 1 } {
                 set rotatable 0
             }
@@ -202,7 +202,7 @@ proc make_bondstruct { molid sel } {
             } else {
                 bondstruct_setbond_rotatable $bs $a $b 1
             }
-            puts "-> $a $b $rotatable"
+    #        puts "-> $a $b $rotatable"
         }
     }
 #    puts "mapping rotatables..."
@@ -212,7 +212,7 @@ proc make_bondstruct { molid sel } {
     # make the right-side lists for each bond
     bondstruct_makerightsides $bs
 #    puts "printing..."
-    bondstruct_print $bs
+#    bondstruct_print $bs
 
     #puts "make_bondstruct returns"
     return $bs
@@ -226,8 +226,8 @@ proc bondrot_by_index { bs molid b deg } {
    set l [lindex $pair 0]
    set r [lindex $pair 1]
    set alist [intArrayToList [bondstruct_getrightside_pointer $bs $b] [bondstruct_getrightside_count $bs $b]]
-   puts "#### bondrot_by_index attempting $b: $l - $r by $deg deg"
-   puts "####    rightside: $alist"
+#   puts "#### bondrot_by_index attempting $b: $l - $r by $deg deg"
+#   puts "####    rightside: $alist"
    set ls [atomselect $molid "index $l"]
    set rs [atomselect $molid "index $r"]
    set lr [lindex [$ls get {x y z}] 0]
