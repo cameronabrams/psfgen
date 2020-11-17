@@ -40,19 +40,19 @@ linkcell * linkcell_new ( double * x, double * y, double * z, int n, double cut 
     ls->xmin=min(x,n)-cut;
     ls->xmax=max(x,n)+cut;
     ls->xspan=ls->xmax-ls->xmin;
-    ls->xnc=int(ls->xspan/ls->cut+1)
+    ls->xnc=(int)(ls->xspan/ls->cut+1)
     ls->dx=ls->xspan/ls->xnc
 
     ls->ymin=min(y,n)-cut;
     ls->ymax=max(y,n)+cut;
     ls->yspan=ls->ymax-ls->ymin;
-    ls->ync=int(ls->yspan/ls->cut+1)
+    ls->ync=(int)(ls->yspan/ls->cut+1)
     ls->dy=ls->yspan/ls->ync
 
     ls->zmin=min(z,n)-cut;
     ls->zmax=max(z,n)+cut;
     ls->zspan=ls->zmax-ls->zmin;
-    ls->znc=int(ls->zspan/ls->cut+1);
+    ls->znc=(int)(ls->zspan/ls->cut+1);
     ls->dz=ls->zspan/ls->znc;
 
     ls->nc=ls->xnc*ls->ync*ls->znc;
@@ -69,9 +69,9 @@ linkcell * linkcell_new ( double * x, double * y, double * z, int n, double cut 
     }
 
     for (i=0;i<n;i++) {
-        ls->cx[i]=int((ls->x[i]-ls->xmin)/ls->dx);
-        ls->cy[i]=int((ls->y[i]-ls->ymin)/ls->dy);
-        ls->cz[i]=int((ls->z[i]-ls->zmin)/ls->dz);
+        ls->cx[i]=(int)((ls->x[i]-ls->xmin)/ls->dx);
+        ls->cy[i]=(int)((ls->y[i]-ls->ymin)/ls->dy);
+        ls->cz[i]=(int)((ls->z[i]-ls->zmin)/ls->dz);
         ls->ci[i]=ls->cx[i]*ls->ync*ls->znc+ls->cy[i]*ls->znc+ls->cz[i];
         npl[ls->ci[i]]++;
     }

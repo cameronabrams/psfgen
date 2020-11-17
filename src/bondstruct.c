@@ -337,9 +337,9 @@ double my_roughenergy ( int * i1, double * x1, double * y1, double * z1, int n1,
          }      
       }
       // linkcell sum over all sel1-sel2 pairs
-      icx=int((x1[i]-ls->xmin)/ls->dx);
-      icy=int((y1[i]-ls->ymin)/ls->dy);
-      icz=int((z1[i]-ls->zmin)/ls->dz);
+      icx=(int)((x1[i]-ls->xmin)/ls->dx);
+      icy=(int)((y1[i]-ls->ymin)/ls->dy);
+      icz=(int)((z1[i]-ls->zmin)/ls->dz);
       for (dx=-1;dx<2;dx++) {
          tx=icx+dx;
          if (tx==ls->xnc||tx==-1) continue;
