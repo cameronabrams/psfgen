@@ -111,7 +111,7 @@ proc bond_in_ring { a b ri ringsize } {
         for {set j 0} {$j<$ringsize} {incr j} {
             lappend this_ring [expr [lindex $ri $i] + $j]
         }
-        puts "searching ($this_ring) for $a-$b"
+#       puts "searching ($this_ring) for $a-$b"
         flush stdout
         if { [lsearch $this_ring $a] != -1 && [lsearch $this_ring $b] != -1 } {
             return 1
@@ -165,7 +165,7 @@ proc make_bondstruct { molid sel } {
         set ibl [lindex $bl $i]
         set ta [intListToArray $ibl]
         bondstruct_importbonds $bs $a $ta [llength $ibl]
-        puts "imported bonds from $a"
+#        puts "imported bonds from $a"
     }
 
     # any bond in a 5- or 6-membered ring, or is a peptide bond, is tagged as non-rotatable
@@ -184,7 +184,7 @@ proc make_bondstruct { molid sel } {
     puts "Considering [llength $ci] peptide bonds"
     foreach a $il ibl $bl {
         foreach b $ibl {
-            puts "Considering $a-$b"
+    #        puts "Considering $a-$b"
             flush stdout
             set rotatable 1
             set in5ring [bond_in_ring $a $b $r5i 5]
@@ -201,7 +201,7 @@ proc make_bondstruct { molid sel } {
             } else {
                 bondstruct_setbond_rotatable $bs $a $b 1
             }
-            puts " -> $a $b $rotatable"
+            puts "-> $a $b $rotatable"
         }
     }
     puts "mapping rotatables..."
@@ -209,7 +209,7 @@ proc make_bondstruct { molid sel } {
     bondstruct_maprotatables $bs
     puts "making right-sides..."
     # make the right-side lists for each bond
-    bondstruct_makerightsides $bs
+    bondstruct_makerightsiSdes $bs
     puts "printing..."
     bondstruct_print $bs
 

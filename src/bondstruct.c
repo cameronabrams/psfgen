@@ -138,7 +138,7 @@ void bondstruct_importbonds ( bondstruct * bs, int a, int * bl, int nb ) {
          }
          bs->ba[ia][i]=bl[i];
          //printf("adding bond %i %i...\n",a,bl[i]);fflush(stdout);
-         bondstruct_addbond(bs,ia,bl[i]);
+         bondstruct_addbond(bs,a,bl[i]);
       }
     }
   }
