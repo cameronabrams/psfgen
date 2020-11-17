@@ -153,6 +153,22 @@ for pi in `seq 0 $((nparse-1))`; do
    CURRPDB=`grep writepdb ${CURRPSFGEN} | tail -1 | awk '{print $NF}'`
    echo "TASK $TASK: Generating system ${CURRPSF}/${CURRPDB}..."
    $VMD -dispdev text -e ${CURRPSFGEN} > ${CURRPSFLOG} 2>&1
+   cat > ringp.tcl << EOF
+source $PSFGEN_BASEDIR/src/loopmc.tcl
+mol new $CURRPSF
+mol addfile $CURRPDB
+check_pierced_rings 0 1.5
+exit
+EOF
+   echo "Checking for pierced rings..."
+   $VMD -dispdev text -e ringp.tcl > ringp.log 2>&1
+   npiercings=`grep -c pierces ringp.log`
+   if [[ $npiercings -gt 0 ]]; then
+      echo "Error: There are $npiercings piercings in $CURRPDB"
+      grep pierces ringp.log
+      echo "Change your relaxation parameters and try again."
+      exit
+   fi   
    echo "structure ${CURRPSF}" > namd_header.${TASK}
    echo "coordinates ${CURRPDB}" >> namd_header.${TASK}
    cat namd_header.${TASK} $PSFGEN_BASEDIR/templates/vac.namd | \

@@ -44,7 +44,7 @@ proc my_increment { numlet } {
 # computes overlap energy between atoms in sel1 and sel2.  The "my_roughenergy" function (implemented in C)
 # uses a repulsive WCA pair potential.  Residue index lists are
 # sent so the my_roughenergy does not compute pair interactions for atoms in the same residue 
-proc roughenergy { sel1 sel2 cut sigma epsilon }  {
+proc roughenergy { sel1 sel2 cut sigma epsilon bs }  {
   set E 0.0
   if { [$sel1 num] > 0 && [$sel2 num] > 0 } {
    set r1 [intListToArray [$sel1 get residue]]
@@ -55,7 +55,7 @@ proc roughenergy { sel1 sel2 cut sigma epsilon }  {
    set y2 [ListToArray [$sel2 get y]]
    set z1 [ListToArray [$sel1 get z]]
    set z2 [ListToArray [$sel2 get z]]
-   set E [my_roughenergy $r1 $x1 $y1 $z1 [$sel1 num] $r2 $x2 $y2 $z2 [$sel2 num] $cut $sigma $epsilon]
+   set E [my_roughenergy $r1 $x1 $y1 $z1 [$sel1 num] $r2 $x2 $y2 $z2 [$sel2 num] $cut $sigma $epsilon $bs]
    delete_arrayint $r1
    delete_arrayint $r2
    delete_array $x1
@@ -235,9 +235,10 @@ proc log_addframe { molid logid } {
 proc do_loop_mc { residueList c molid k r0 env sigma epsilon rcut maxcycles temperature iseed logid logevery } {
 
   set msel [atomselect $molid "chain $c and residue $residueList"]
+  set bs [make_bondstruct $molid $msel [] []]
   set mselnoh [atomselect $molid "chain $c and residue $residueList and noh"]
-  set mselca [atomselect $molid "chain $c and residue $residueList and name CA"]
-  set envca [atomselect $molid "([$env text]) and name CA"]
+#  set mselca [atomselect $molid "chain $c and residue $residueList and name CA"]
+#  set envca [atomselect $molid "([$env text]) and name CA"]
 
   set rend [lindex $residueList end]
   set nres [llength $residueList]
@@ -254,7 +255,7 @@ proc do_loop_mc { residueList c molid k r0 env sigma epsilon rcut maxcycles temp
 
   set SE [expr 0.5*$k*pow([measure bond $idx]-$r0,2)]
   #set EE [roughenergy $mselnoh $env $rcut]
-  set EE [roughenergy $mselca $envca $rcut $sigma $epsilon]
+  set EE [roughenergy $mselnoh $env $rcut $sigma $epsilon $bs]
   set E [expr $SE + $EE]
   set E0 $E
 
@@ -276,7 +277,7 @@ proc do_loop_mc { residueList c molid k r0 env sigma epsilon rcut maxcycles temp
     }
     set SE [expr 0.5*$k*pow([measure bond $idx]-$r0,2)]
     #set EE [roughenergy $mselnoh $env $rcut]
-    set EE [roughenergy $mselca $envca $rcut $sigma $epsilon]
+    set EE [roughenergy $mselnoh $env $rcut $sigma $epsilon $bs]
     set E [expr $SE + $EE]
     # decide to accept or reject this new conformation using a 
     # metropolis criterion
@@ -681,7 +682,7 @@ proc do_flex_mc { molid msel ri rj fa k i j envsel epsilon sigma rcut maxcycles 
    if { $i != $j } {
      set SE [expr 0.5*$k*pow([measure bond [list $i $j]],2)]
    }
-   set EE [roughenergy $msel $envsel $rcut $sigma $epsilon]
+   set EE [roughenergy $msel $envsel $rcut $sigma $epsilon $bs]
    set E [expr $SE + $EE]
    set E0 $E
    #puts "CFAFLEXMC) E0 $E0"
@@ -708,7 +709,7 @@ proc do_flex_mc { molid msel ri rj fa k i j envsel epsilon sigma rcut maxcycles 
       } else {
         set SE 0.0
       }
-      set EE [roughenergy $msel $envsel $rcut $sigma $epsilon]
+      set EE [roughenergy $msel $envsel $rcut $sigma $epsilon $bs]
       set E [expr $SE + $EE]
      # puts " ... E $E"
       set X [expr rand()]

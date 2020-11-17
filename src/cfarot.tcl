@@ -125,7 +125,9 @@ proc make_bondstruct { molid sel rot_il rot_jl } {
         bondstruct_addbonds $bs $a $ta [llength $partners]
 #     }
    }
-   bondstruct_makerotatablebondlist $bs [intListToArray $rot_il] [llength $rot_il] [intListToArray $rot_jl] [llength $rot_jl]
+   if { [llength $rot_il] > 0 && [llength $rot_jl] > 0 }
+     bondstruct_makerotatablebondlist $bs [intListToArray $rot_il] [llength $rot_il] [intListToArray $rot_jl] [llength $rot_jl]
+   }
    #puts "make_bondstruct returns"
    return $bs
 }
