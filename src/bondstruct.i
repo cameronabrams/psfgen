@@ -38,5 +38,5 @@ extern int bondstruct_arebonded ( bondstruct * bs, int a, int b );
 extern linkcell * my_roughenergy_setup ( double * x2, double * y2, double * z2, int n2, double cut );
 extern double my_roughenergy ( int * i1, double * x1, double * y1, double * z1, int n1, int * i2, 
                         int n2, double cut,
-                        double sigma, double epsilon, bondstruct * bs );
+                        double sigma, double epsilon, bondstruct * bs, linkcell * ls );
 

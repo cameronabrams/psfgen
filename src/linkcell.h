@@ -11,8 +11,6 @@ typedef struct LINKCELL {
     int xnc, ync, znc; // number of cells along x, y, z
     int nc; // number of cells
 
-    int * ci; // cell index of each particle
-
     double * x, * y, * z; // particle position arrays, dim[n]
     int n; // number of particles
     int * cx, * cy, * cz; // cell coordinates of each particle, dim[n]
