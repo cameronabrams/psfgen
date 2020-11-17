@@ -30,6 +30,10 @@ bondstruct * new_bondstruct ( int * ia, int na, int nb ) {
       bs->b[i]=(int*)malloc(2*sizeof(int));
    }
    bs->bra=(int**)malloc(nb*sizeof(int*));
+   for (i=0;i<nb;i++) {
+      bs->bra[i]=(int*)malloc(na*sizeof(int));
+      for (j=0;j<na;j++) bs->bra[i][j]=-1;
+   }
    bs->bran=(int*)malloc(nb*sizeof(int));
 
    return bs;
