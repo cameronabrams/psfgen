@@ -102,7 +102,7 @@ proc intArrayToList {a n} {
 # this procedure returns 1 if both a and b are located in any one 
 # ring
 proc bond_in_ring { a b ri ringsize } {
-    puts "$a $b $ri $ringsize"
+#    puts "$a $b $ri $ringsize"
     if { [llength $ri] == 0 } {
         return 0
     }
@@ -112,7 +112,7 @@ proc bond_in_ring { a b ri ringsize } {
             lappend this_ring [expr [lindex $ri $i] + $j]
         }
 #       puts "searching ($this_ring) for $a-$b"
-        flush stdout
+#        flush stdout
         if { [lsearch $this_ring $a] != -1 && [lsearch $this_ring $b] != -1 } {
             return 1
         }
@@ -209,7 +209,7 @@ proc make_bondstruct { molid sel } {
     bondstruct_maprotatables $bs
     puts "making right-sides..."
     # make the right-side lists for each bond
-    bondstruct_makerightsiSdes $bs
+    bondstruct_makerightsides $bs
     puts "printing..."
     bondstruct_print $bs
 
