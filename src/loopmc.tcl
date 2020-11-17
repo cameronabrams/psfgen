@@ -954,6 +954,7 @@ proc check_pierced_rings { molid TOL } {
       incr i
     }
     set ln 0
+    set ndots 0
     # fix to exclude atoms in the ring from bond definition!
     foreach a $na bl $nb {
       if { [lsearch $this_ri $a] !=  -1 } {
@@ -961,6 +962,11 @@ proc check_pierced_rings { molid TOL } {
       }
       if { [expr $ln%100 == 0] } {
         puts -nonewline "."
+        incr ndots
+        if { $ndots > 80 } {
+          puts ""
+          set ndots 0
+        }
         flush stdout
       }
       incr ln
