@@ -961,6 +961,7 @@ proc check_pierced_rings { molid TOL } {
       }
       if { [expr $ln%100 == 0] } {
         puts -nonewline "."
+        flush stdout
       }
       incr ln
       set ai $ord($a)
@@ -973,8 +974,8 @@ proc check_pierced_rings { molid TOL } {
           set bi $ord($b)
           set bpos [list [lindex $nax $bi] [lindex $nay $bi] [lindex $naz $bi]]
           set avpos [vecscale [vecadd $apos $bpos] 0.5]
-          set avec [vecsub $avpos $apos]
-          set bvec [vecsub $avpos $bpos]
+          set avec [vecsub $this_com $apos]
+          set bvec [vecsub $this_com $bpos]
           set crit1 [expr [veclength [vecsub $avpos $this_com]] < $TOL]
           set d1 [vecdot $avec $chat123]
           set d2 [vecdot $bvec $chat123]
