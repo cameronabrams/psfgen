@@ -140,11 +140,11 @@ proc make_bondstruct { molid sel } {
         set bb {}
         foreach pp $ibl {
             if { [lsearch $il $pp] != -1 } {
-                lappend partners $pp
+                lappend bb $pp
             }
         }
-        lset bl $i $partners
-        incr bondcount [llength $partners]
+        lset bl $i $bb
+        incr bondcount [llength $bb]
     }
     
     # set up an empty bondstruct and populate it atomwise
@@ -162,9 +162,9 @@ proc make_bondstruct { molid sel } {
     # any bond in a 5- or 6-membered ring, or is a peptide bond, is tagged as non-rotatable
     # any bond for which either member has as its sole heavy-atom ligand the *other* member
     # is not rotatable
-    set r5 [atomselect $mol "ringsize 5 from ([$sel str])"]
+    set r5 [atomselect $molid "ringsize 5 from ([$sel str])"]
     set r5i [$r5 get index]
-    set r6 [atomselect $mol "ringsize 6 from ([$sel str])"]
+    set r6 [atomselect $molid "ringsize 6 from ([$sel str])"]
     set r6i [$r6 get index]
     set c [atomselect $molid "protein and name C and ([$sel str])"]
     set ci [$c get index]
