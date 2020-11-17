@@ -80,7 +80,7 @@ proc roughenergy { sel1 sel2 cut sigma epsilon bs }  {
 
   set E 0.0
 
-  if { $_n1 == 0 && $_n2 == 0 } return $E
+  if { $_n1 == 0 && $_n2 == 0 } { return $E }
   # update positions in 1
   ListToArray_Data $_x1 [$sel1 get x]
   ListToArray_Data $_y1 [$sel1 get y]
@@ -288,7 +288,7 @@ proc do_loop_mc { residueList c molid k r0 env sigma epsilon rcut maxcycles temp
   roughenergy_setup $mselnoh $envex $sigma
   puts "calc..."
   set SE [expr 0.5*$k*pow([measure bond $idx]-$r0,2)]
-  #set EE [roughenergy $mselnoh $env $rcut]
+  
   set EE [roughenergy $mselnoh $envex $rcut $sigma $epsilon $bs]
   set E [expr $SE + $EE]
   set E0 $E
