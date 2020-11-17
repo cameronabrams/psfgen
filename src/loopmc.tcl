@@ -59,7 +59,7 @@ proc roughenergy { sel1 sel2 cut sigma epsilon bs }  {
    set y2 [ListToArray [$sel2 get y]]
    set z1 [ListToArray [$sel1 get z]]
    set z2 [ListToArray [$sel2 get z]]
-   set E [my_roughenergy $r1 $x1 $y1 $z1 [$sel1 num] $r2 $x2 $y2 $z2 [$sel2 num] $cut $sigma $epsilon $bs]
+   set E [my_roughenergy $r1 $_x1 $y1 $z1 [$sel1 num] $r2 $x2 $y2 $z2 [$sel2 num] $cut $sigma $epsilon $bs]
    delete_arrayint $r1
    delete_arrayint $r2
    #delete_array $x1
