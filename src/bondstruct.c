@@ -251,9 +251,9 @@ double my_roughenergy ( int * i1, double * x1, double * y1, double * z1, int n1,
                         double sigma, double epsilon ) {
    int i,j;
    double cut2=cut*cut;
-   double d2,E=0.0;
+   double d2,E=0.0,di6,di12;
    double s6=sigma*sigma*sigma*sigma*sigma*sigma;
-   double rcut=pow(2,1./6.)*sigma;
+   double rcut=pow(2,1./6.)*sigma,rcut2;
    if (rcut>cut) {
       rcut=cut;
    }
@@ -266,7 +266,7 @@ double my_roughenergy ( int * i1, double * x1, double * y1, double * z1, int n1,
            d2+=(z1[i]-z2[j])*(z1[i]-z2[j]);
            if (d2<rcut2) {
               di6=s6/(d2*d2*d2);
-              di12=di6**2;
+              di12=di6*di6;
               E+=4*epsilon*(di12-di6)+epsilon;
            }
          }
