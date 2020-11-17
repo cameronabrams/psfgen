@@ -111,13 +111,13 @@ void bondstruct_addbond( bondstruct * bs, int i, int j) {
       printf("Error: too many bonds! (bug)\n");
       return;
    }
-   printf("assigning %i to 0th element of b[%i]\n",i,bs->bctr);fflush(stdout);
+   //printf("assigning %i to 0th element of b[%i]\n",i,bs->bctr);fflush(stdout);
    bs->b[bs->bctr][0]=i;
-   printf("assigning %i to 1th element of b[%i]\n",j,bs->bctr);fflush(stdout);
+   //printf("assigning %i to 1th element of b[%i]\n",j,bs->bctr);fflush(stdout);
    bs->b[bs->bctr][1]=j;
-   printf("setting rotatable flag\n");fflush(stdout);
+   //printf("setting rotatable flag\n");fflush(stdout);
    bs->isrotatable[bs->bctr]=1; // by assumption
-   printf("setting active flag\n");fflush(stdout);
+   //printf("setting active flag\n");fflush(stdout);
    bs->isactive[bs->bctr]=1; // by assumption
    bs->bctr++;
 }
@@ -137,7 +137,7 @@ void bondstruct_importbonds ( bondstruct * bs, int a, int * bl, int nb ) {
             printf("ERROR: position %i of atom %i neighbor list is zero!\n",i,a);
          }
          bs->ba[ia][i]=bl[i];
-         printf("adding bond %i %i...\n",a,bl[i]);fflush(stdout);
+         //printf("adding bond %i %i...\n",a,bl[i]);fflush(stdout);
          bondstruct_addbond(bs,ia,bl[i]);
       }
     }

@@ -162,13 +162,13 @@ proc make_bondstruct { molid sel } {
     # any bond in a 5- or 6-membered ring, or is a peptide bond, is tagged as non-rotatable
     # any bond for which either member has as its sole heavy-atom ligand the *other* member
     # is not rotatable
-    set r5 [atomselect $molid "ringsize 5 from ([$sel str])"]
+    set r5 [atomselect $molid "ringsize 5 from ([$sel text])"]
     set r5i [$r5 get index]
-    set r6 [atomselect $molid "ringsize 6 from ([$sel str])"]
+    set r6 [atomselect $molid "ringsize 6 from ([$sel text])"]
     set r6i [$r6 get index]
-    set c [atomselect $molid "protein and name C and ([$sel str])"]
+    set c [atomselect $molid "protein and name C and ([$sel text])"]
     set ci [$c get index]
-    set n [atomselect $molid "protein and name N and ([$sel str])"]
+    set n [atomselect $molid "protein and name N and ([$sel text])"]
     set ni [$n get index]
     foreach a $il ibl $bl {
         foreach b $ibl {
