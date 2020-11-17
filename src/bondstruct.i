@@ -17,6 +17,7 @@ extern bondstruct * new_bondstruct ( int * ia, int na );
 extern void print_bondlist ( bondstruct * bs );
 extern void bondstruct_addbonds ( bondstruct * bs, int a, int * ba, int nb );
 extern void bondstruct_makerotatablebondlist ( bondstruct * bs, int * rot_i, int ni, int * rot_j, int nj );
+extern void bondstruct_setatom_nonrotatable ( bondstruct * bs, int a, int b );
 extern void free_bondstruct ( bondstruct * bs );
 extern int bondstruct_getna ( bondstruct * bs );
 extern int bondstruct_getnb ( bondstruct * bs );

@@ -96,42 +96,104 @@ proc intArrayToList {a n} {
     return $l
 }
 
-# molid is the molecule id
-# sel is an atomselection
-# rol_il is a list of atom indices that define rotatable bond "left" partners
-# rot_jl is a list of atom indices that define rotatable bond "right" partners
-proc make_bondstruct { molid sel rot_il rot_jl } {
+# a and b are atom indices of a bond
+# ri is an ordered list of ring-atom indices; every block of $ringsize
+# entries is one unique ring
+# this procedure returns 1 if both a and b are located in any one 
+# ring
+proc bond_in_ring { a b ri ringsize } {
+    for { set i 0 } { $i < [llength $ri] } { incr i $ringsize } {
+        set this_ring {}
+        for {set j 0} {$j<$ringsize} {incr $j} {
+            lappend this_ring [expr $i + $j]
+        }
+        if { [lsearch $this_ring $a] != -1 && [lsearch $this_ring $b] != -1] } {
+            return 1
+        }
+    }
+    return 0
+}
 
-   #puts "#### rot_il $rot_il"
-   #puts "#### roj_jl $rot_jl"
-   set il [$sel get index]
-   set bl [$sel getbonds]
+proc bond_is_peptide { a b ci ni } {
+    if { [lsearch $ci $a] !=-1 and [lsearch $ni $b] != -1 } {
+        return 1
+    }
+    if { [lsearch $ci $b] !=-1 and [lsearch $ni $a] != -1 } {
+        return 1
+    }
+    return 0
+}
 
-   set ia [intListToArray $il]
-   set bs [new_bondstruct $ia [llength $il]]
-   
-
-   foreach a $il ibl $bl {
-#     if { [llength $ibl] > 0 } {
-        # fix: do not add a partner atom that is not internal to the selection
-        set partners [list]
-        foreach pp $ibl {
-            if { [lsearch $il $pp] != -1 } {
+proc make_bondstruct { molid sel } {
+    # get list of atom indices and bondlist
+    set il [$sel get index]
+    set bl [$sel getbonds]
+    # get number of atoms
+    set na [llength $il]
+    # first, count the total number of bonds in the bondlist,
+    # excluding bonds to atoms outside the sel
+    set bondcount 0
+    for { set i 0 } { $i < $na } { incr i } {
+        set a [lindex $il $i]
+        set ibl [lindex $bl $i]
+        set bb {}
+        for pp $ibl {
+            if { [lsearch $il $pp] != -1] } {
                 lappend partners $pp
             }
         }
-        #puts "#### $a bonds with $ibl partners $partners"
-        set ta [intListToArray $partners]
-        bondstruct_addbonds $bs $a $ta [llength $partners]
-#     }
-   }
-   if { [llength $rot_il] > 0 && [llength $rot_jl] > 0 } {
-     bondstruct_makerotatablebondlist $bs [intListToArray $rot_il] [llength $rot_il] [intListToArray $rot_jl] [llength $rot_jl]
-   }
-   #puts "make_bondstruct returns"
-   return $bs
-}
+        lset bl $i $partners
+        incr bondcount [llength $partners]
+    }
+    
+    # set up an empty bondstruct and populate it atomwise
+    set bs [new_bondstruct $ia [llength $il] $bondcount]
+    for { set i 0 } { $i < $na } { incr i } {
+        set a [lindex $il $i]
+        set ibl [lindex $bl $i]
+        set ta [intListToArray $ibl]
+        bondstruct_importbonds $bs $a $ta [llength $ibl]
+    }
 
+    # any bond in a 5- or 6-membered ring, or is a peptide bond, is tagged as non-rotatable
+    # any bond for which either member has as its sole heavy-atom ligand the *other* member
+    # is not rotatable
+    set r5 [atomselect $mol "ringsize 5 from ([$sel str])"]
+    set r5i [$r5 get index]
+    set r6 [atomselect $mol "ringsize 6 from ([$sel str])"]
+    set r6i [$r6 get index]
+    set c [atomselect $molid "protein and name C and ([$sel str])"]
+    set ci [$c get index]
+    set n [atomselect $molid "protein and name N and ([$sel str])"]
+    set ni [$n get index]
+    foreach a $il ibl $bl {
+        foreach b $ibl {
+            set rotatable 1
+            set in5ring [bond_in_ring $a $b $r5i 5]
+            set in6ring [bond_in_ring $a $b $r6i 6]
+            set ispeptidebond [bond_is_peptide $a $b $ni $ci]
+            if { $in5ring == 1 || $in6ring == 1 || $ispeptidebond == 1 } {
+                set rotatable 0
+            }
+            if { [llength $ibl] == 1 } {
+                set rotatable 0
+            }
+            if { $rotatable == 0 } {
+                bondstruct_setbond_rotatable $bs $a $b 0
+            } else {
+                bondstruct_setbond_rotatable $bs $a $b 1
+            }
+        }
+    }
+    # generate the count of rotatable bonds and the map to the bond array
+    bondstruct_maprotatables $bs
+    # make the right-side lists for each bond
+    bondstruct_makerightsides $bs
+    bondstruct_print $bs
+
+    #puts "make_bondstruct returns"
+    return $bs
+}
 proc bondstruct_getbond { bs i } {
    return [intArrayToList [bondstruct_getbondpointer $bs $i] 2]
 }

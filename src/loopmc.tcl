@@ -262,6 +262,7 @@ proc do_loop_mc { residueList c molid k r0 env sigma epsilon rcut maxcycles temp
   for {set cyc 0} { $cyc < $maxcycles } { incr cyc } {
     # save coordinates
     set SAVEPOS [$msel get {x y z}]
+    # do a cycle of $nres rotation attempts
     for {set r 0} {$r < $nres} {incr r} {
       set i [irand_dom 0 [expr $nres-2]]
       set at [irand_dom 0 1]
@@ -655,11 +656,11 @@ proc random_loop { molid sel } {
 #   bonds by random amounts. 
 # temperature is the Metropolis temperature.
 # iseed is the rng seed.
-proc do_flex_mc { molid msel ri rj fa k i j envsel epsilon sigma rcut maxcycles temperature iseed logid logevery } {
+proc do_flex_mc { molid msel fa k i j envsel epsilon sigma rcut maxcycles temperature iseed logid logevery } {
 
    set bl [$msel getbonds]
    set il [$msel get index]
-   set bs [make_bondstruct $molid $msel $ri $rj]
+   set bs [make_bondstruct $molid $msel]
    bondstruct_deactivate_by_fixed $bs $fa
    #print_bondlist $bs
 
@@ -690,12 +691,13 @@ proc do_flex_mc { molid msel ri rj fa k i j envsel epsilon sigma rcut maxcycles 
       # save coordinates
       set SAVEPOS [$msel get {x y z}]
       set nrot 0
-      for {set r 0} {$r < [bondstruct_getnb $bs] } {incr r} {
+      for {set r 0} {$r < [bondstruct_getnrb $bs] } {incr r} {
          #set av [expr 60 * [irand_dom 1 5]]
          set av [expr 6 * [irand_dom -5 5]]
         # puts "cyc $cyc bond $r deg $av"
-         if { [bondstruct_isactive $bs $r] } {
-           bondrot_by_index $bs $molid $r $av
+        set rr [bondstruct_r2b $r]
+         if { [bondstruct_isactive $bs $rr] } {
+           bondrot_by_index $bs $molid $rr $av
            set nrot [expr $nrot + 1]
          }
       }
@@ -754,8 +756,8 @@ proc ladd {l} {
     return $total
 }
 
-proc check_pierced_rings { molid TOL } {
-  set r6 [atomselect $molid "ringsize 6 from all"]
+proc check_pierced_rings { molid ringsize TOL } {
+  set r6 [atomselect $molid "ringsize $ringsize from all"]
   set r6i [$r6 get index]
   set i 0
   foreach ii $r6i {
@@ -766,13 +768,13 @@ proc check_pierced_rings { molid TOL } {
   set r6y [$r6 get y]
   set r6z [$r6 get z]
 
-  for { set ri 0 } { $ri < [llength $r6i] } { incr ri 6 } {
+  for { set ri 0 } { $ri < [llength $r6i] } { incr ri $ringsize } {
     #puts "ring $ri"
     set this_ri {}
     set this_rx {}
     set this_ry {}
     set this_rz {}
-    for { set t 0 } { $t < 6 } { incr t } {
+    for { set t 0 } { $t < $ringsize } { incr t } {
       lappend this_ri [lindex $r6i [expr $ri + $t]]
       lappend this_rx [lindex $r6x [expr $ri + $t]]
       lappend this_ry [lindex $r6y [expr $ri + $t]]
@@ -785,7 +787,7 @@ proc check_pierced_rings { molid TOL } {
     }
     #puts "this_rr $this_rr"
     set this_com [list [ladd $this_rx] [ladd $this_ry] [ladd $this_rz]]
-    set this_com [vecscale $this_com [expr 1./6.]]
+    set this_com [vecscale $this_com [expr 1./$ringsize]]
     set this_b12 [vecsub [lindex $this_rr 0] [lindex $this_rr 1]]
     set this_b23 [vecsub [lindex $this_rr 1] [lindex $this_rr 3]]
     set c123 [veccross $this_b12 $this_b23]
@@ -826,6 +828,9 @@ proc check_pierced_rings { molid TOL } {
         if { [lsearch $this_ri $b] != -1 } {
           continue
         }
+        if { [ expr $b < $a ] } {
+          continue
+        }
         if { [lsearch $na $b] != -1 } {
           set bi $ord($b)
           set bpos [list [lindex $nax $bi] [lindex $nay $bi] [lindex $naz $bi]]
@@ -847,49 +852,3 @@ proc check_pierced_rings { molid TOL } {
   }
 }
 
-
-proc glycan_rotatables { molid selstr } {
-  set a [atomselect $molid "$selstr"]
-  set bl [$a getbonds]
-  set at [$a get index]
-  set r6 [atomselect $molid "ringsize 6 from ($selstr)"]
-  set ri6 [$r6 get index]
-  puts "ringsize sel has [$r6 num] atoms"
-  set lefts [list]
-  set rights [list]
-  foreach i $at b $bl {
-    foreach j $b {
-      if { [expr $j > $i] } {
-        #puts "considering $i - $j"
-        set inring 0
-        for { set r 0 } { $r < [llength $ri6] } { incr r 6 } {
-            #puts "   considering ring [expr $r/6]"
-            set i_in 0
-            set j_in 0
-            for { set ri $r } { $ri < [expr $r + 6] } { incr ri } {
-               if { $i == [lindex $ri6 $ri] } {
-                  set i_in 1
-               }
-               if { $j == [lindex $ri6 $ri] } {
-                  set j_in 1
-               }
-            }
-            if { $i_in == 1 && $j_in == 1 } {
-              #puts "bond $i - $j lives in ring [expr $r/6]"
-              set inring 1
-              break
-            }
-        }
-        if { $inring == 1 } {
-           # puts "$i $j is a ring edge"
-        } else {
-            lappend lefts $i
-            lappend lefts $j
-            lappend rights $i
-            lappend rights $j
-        }
-      }
-    }
-  }
-  return [list $lefts $rights]
-}

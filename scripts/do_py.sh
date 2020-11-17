@@ -170,7 +170,8 @@ for pi in `seq 0 $((nparse-1))`; do
 source $PSFGEN_BASEDIR/src/loopmc.tcl
 mol new $CURRPSF
 mol addfile $CURRPDB
-check_pierced_rings 0 1.5
+check_pierced_rings 0 6 1.5
+check_pierced_rings 0 5 1.5
 exit
 EOF
    echo "        ->  Checking for pierced rings in system ${CURRPSF}+${CURRPDB}..."
