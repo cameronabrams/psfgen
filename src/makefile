@@ -26,7 +26,7 @@ bondstruct.so:  $(OBJ) bondstruct_wrap.o
 	cp $@ ../lib/
 
 %.o: %.c %.h
-	$(CC) -c -fpic $(CFLAGS) $< $(LIBS)
+	$(CC) -c -fPIC $(CFLAGS) $< $(LIBS)
 
 %_wrap.c: %.i %.c %.h
 	swig -tcl8 $<
