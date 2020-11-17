@@ -64,7 +64,7 @@ int bondstruct_getlocalatomindex ( bondstruct * bs, int a ) {
    int la;
    for (la=0;la<bs->na && bs->ia[la]!=a;la++);
    if (la==bs->na) {
-     printf("ERROR: atom-index %i is not in the bondstruct.\n",a);
+     //printf("ERROR: atom-index %i is not in the bondstruct.\n",a);
      return -1;
    }
    return la;
@@ -283,15 +283,15 @@ void bondstruct_deactivate_by_fixed ( bondstruct * bs, int fa ) {
 }
 
 int bondstruct_arebonded ( bondstruct * bs, int a, int b ) {
-   int rm=0;
-   int la=bondstruct_getlocalatomindex(bs,a);
    int * ba;
    int i;
+   int la=bondstruct_getlocalatomindex(bs,a);
+   if (la==-1) return 0;
    ba=bs->ba[la];
    for (i=0;i<bs->mb&&ba[i]!=-1&&ba[i]!=b;i++);
    if (i==bs->mb) return 0;
    if (ba[i]==-1) return 0;
-   else return 1;
+   return 1;
 }
  
 void free_intarray ( int * a ) {
