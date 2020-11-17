@@ -289,7 +289,8 @@ int bondstruct_arebonded ( bondstruct * bs, int a, int b ) {
    int i;
    ba=bs->ba[la];
    for (i=0;i<bs->mb&&ba[i]!=-1&&ba[i]!=b;i++);
-   if (i==bs->mb||ba[i]==-1) return 0;
+   if (i==bs->mb) return 0;
+   if (ba[i]==-1) return 0;
    else return 1;
 }
  
