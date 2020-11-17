@@ -109,7 +109,7 @@ proc bond_in_ring { a b ri ringsize } {
     for { set i 0 } { $i < [llength $ri] } { incr i $ringsize } {
         set this_ring {}
         for {set j 0} {$j<$ringsize} {incr j} {
-            lappend this_ring [expr $i + $j]
+            lappend this_ring [expr [lindex $ri $i] + $j]
         }
         puts "searching ($this_ring) for $a-$b"
         flush stdout
