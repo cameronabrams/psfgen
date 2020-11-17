@@ -654,7 +654,7 @@ proc random_loop { molid sel } {
 #   bonds by random amounts. 
 # temperature is the Metropolis temperature.
 # iseed is the rng seed.
-proc do_flex_mc { molid msel ri rj fa k i j envsel rcut maxcycles temperature iseed logid logevery } {
+proc do_flex_mc { molid msel ri rj fa k i j envsel epsilon sigma rcut maxcycles temperature iseed logid logevery } {
 
    set bl [$msel getbonds]
    set il [$msel get index]
