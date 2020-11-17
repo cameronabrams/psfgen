@@ -102,6 +102,9 @@ proc intArrayToList {a n} {
 # this procedure returns 1 if both a and b are located in any one 
 # ring
 proc bond_in_ring { a b ri ringsize } {
+    if { [llength $ri] == 0 } {
+        return 0
+    }
     for { set i 0 } { $i < [llength $ri] } { incr i $ringsize } {
         set this_ring {}
         for {set j 0} {$j<$ringsize} {incr $j} {
@@ -115,6 +118,9 @@ proc bond_in_ring { a b ri ringsize } {
 }
 
 proc bond_is_peptide { a b ci ni } {
+    if { [llength $ci] == 0 } {
+        return 0
+    }
     if { [lsearch $ci $a] !=-1 and [lsearch $ni $b] != -1 } {
         return 1
     }
