@@ -90,7 +90,7 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
         fp.write('set epsilon 0.5\n')
         fp.write('set r0 1.5\n')
         fp.write('set temperature 3.0\n')
-        fp.write('set k 10.0\n')
+        fp.write('set k 20.0\n')
         fp.write('set bg [atomselect $molid "noh"]\n')
         fp.write('set loopindex 0\n')
         fp.write('set nloops [llength $loops]\n')
