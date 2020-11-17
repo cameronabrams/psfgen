@@ -212,30 +212,30 @@ void bondstruct_makerightsides ( bondstruct * bs ) {
    // allocate array of right-side counts
    bs->bran=(int*)malloc(bs->nb*sizeof(int));
  */   // for each bond, identify and save all right-side atoms
-   //printf("#### in makerightsides processing %i bonds\n",bs->nb);fflush(stdout);
+   printf("#### in makerightsides processing %i bonds\n",bs->nb);fflush(stdout);
 
    // for each bond
    for (k=0;k<bs->nb;k++) {
       // get indices of two atoms; 'a' is the left-atom index and 'b' is the right-atom index
       a=bs->b[k][0];
       b=bs->b[k][1];
-      //printf("#### in makerightsides at bond %i : %i %i\n",k,a,b);fflush(stdout);
+      printf("#### in makerightsides at bond %i : %i %i\n",k,a,b);fflush(stdout);
       // get the two local indices
       la=bondstruct_getlocalatomindex(bs,a);
       lb=bondstruct_getlocalatomindex(bs,b);
-      //printf("#### local indices %i %i\n",la,lb);fflush(stdout);
+      printf("#### local indices %i %i\n",la,lb);fflush(stdout);
       // put all atoms b is bonded to on the right-side list _except_ atom a
       bs->bran[k]=0;
       if (!bs->isrotatable[k]) continue;
       for (i=0;i<bs->mb && bs->ba[lb][i]!=-1;i++) {
          if (bs->ba[lb][i] != a) {
-            //printf("#### added %i-neighbor %i to bond-%i rightside list\n",b,bs->ba[lb][i],k);fflush(stdout);
+            printf("#### added %i-neighbor %i to bond-%i rightside list\n",b,bs->ba[lb][i],k);fflush(stdout);
             bs->bra[k][bs->bran[k]++]=bs->ba[lb][i];
          }
       }
      // enter the grow-loop; for each element on bs->bra[k][], add _its_ bond partners to this
      // right-side array, provided they are not already in it
-     //printf("#### growing rightside of bond %i\n",k);fflush(stdout);
+      printf("#### growing rightside of bond %i\n",k);fflush(stdout);
       grow=1;
       while (grow) {
          grow=0;
