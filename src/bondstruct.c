@@ -22,7 +22,7 @@ bondstruct * new_bondstruct ( int * ia, int na, int nb ) {
 
    // set up blank lists of bonds
    bs->nb=nb;
-   bs->active=(int*)malloc(nb*sizeof(int));
+   bs->isactive=(int*)malloc(nb*sizeof(int));
    bs->isrotatable=(int*)malloc(nb*sizeof(int));
    bs->bctr=0;
    bs->b=(int**)malloc(nb*sizeof(int*));
@@ -111,13 +111,13 @@ void bondstruct_addbond( bondstruct * bs, int i, int j) {
       printf("Error: too many bonds! (bug)\n");
       return;
    }
-   print("assigning %i to 0th element of b[%i]",i,bs->bctr);fflush(stdout);
+   printf("assigning %i to 0th element of b[%i]",i,bs->bctr);fflush(stdout);
    bs->b[bs->bctr][0]=i;
-   print("assigning %i to 1th element of b[%i]",j,bs->bctr);fflush(stdout);
+   printf("assigning %i to 1th element of b[%i]",j,bs->bctr);fflush(stdout);
    bs->b[bs->bctr][1]=j;
-   print("setting rotatable flag");fflush(stdout);
+   printf("setting rotatable flag");fflush(stdout);
    bs->isrotatable[bs->bctr]=1; // by assumption
-   print("setting active flag");fflush(stdout);
+   printf("setting active flag");fflush(stdout);
    bs->isactive[bs->bctr]=1; // by assumption
    bs->bctr++;
 }
