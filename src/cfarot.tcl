@@ -150,11 +150,13 @@ proc make_bondstruct { molid sel } {
     # set up an empty bondstruct and populate it atomwise
     set ia [intListToArray $il]
     set bs [new_bondstruct $ia [llength $il] $bondcount]
+    puts "created bs"
     for { set i 0 } { $i < $na } { incr i } {
         set a [lindex $il $i]
         set ibl [lindex $bl $i]
         set ta [intListToArray $ibl]
         bondstruct_importbonds $bs $a $ta [llength $ibl]
+        puts "imported bonds from $a"
     }
 
     # any bond in a 5- or 6-membered ring, or is a peptide bond, is tagged as non-rotatable
@@ -187,10 +189,13 @@ proc make_bondstruct { molid sel } {
             }
         }
     }
+    puts "mapping rotatables..."
     # generate the count of rotatable bonds and the map to the bond array
     bondstruct_maprotatables $bs
+    puts "making right-sides..."
     # make the right-side lists for each bond
     bondstruct_makerightsides $bs
+    puts "printing..."
     bondstruct_print $bs
 
     #puts "make_bondstruct returns"
