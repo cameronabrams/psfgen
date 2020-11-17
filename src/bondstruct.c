@@ -3,8 +3,8 @@
 bondstruct * new_bondstruct ( int * ia, int na, int nb ) {
    int i,j;
    bondstruct * bs = (bondstruct*)malloc(sizeof(bondstruct));
-   bs->nr=0;
-   bs->sr=0;
+   //bs->nr=0;
+   //bs->sr=0;
    bs->na=na;
    bs->mb=5; // by assumption
    // populate the list of atom-indexes
@@ -23,7 +23,7 @@ bondstruct * new_bondstruct ( int * ia, int na, int nb ) {
    // set up blank lists of bonds
    bs->nb=nb;
    bs->isrotatable=(int*)malloc(nb*sizeof(int));
-   bs->bctr=0
+   bs->bctr=0;
    bs->b=(int**)malloc(nb*sizeof(int*));
    for (i=0;i<nb;i++) {
       bs->b[i]=(int*)malloc(2*sizeof(int));
@@ -37,14 +37,14 @@ bondstruct * new_bondstruct ( int * ia, int na, int nb ) {
 void free_bondstruct ( bondstruct * bs ) {
    int i;
    if (bs->ia) free(bs->ia);
-   if (bs->rl) free(bs->rl);
+   //if (bs->rl) free(bs->rl);
    if (bs->ba) {
       for (i=0;i<bs->na;i++) free(bs->ba[i]);
       free(bs->ba);
    }
    if (bs->b) {
       for (i=0;i<bs->nb;i++) free(bs->b[i]);
-      free(bs-b)
+      free(bs->b);
    }
    if (bs->bra) {
       for (i=0;i<bs->nb;i++) free(bs->bra[i]);
@@ -106,8 +106,8 @@ int bondstruct_getrightside_count ( bondstruct * bs, int b ) {
 }
 
 void bondstruct_addbond( bondstruct * bs, int i, int j) {
-   if (bs->bctr==nb) {
-      printf("Error: too many bonds! (bug)\n")
+   if (bs->bctr==bs->nb) {
+      printf("Error: too many bonds! (bug)\n");
       return;
    }
    bs->b[bs->bctr][0]=i;
@@ -139,12 +139,12 @@ void bondstruct_importbonds ( bondstruct * bs, int a, int * bl, int nb ) {
 }
 
 void bondstruct_setbond_rotatable ( bondstruct * bs, int a, int b, int flag ) {
-   k=bondstruct_getbondindex(bs,a,b)
+   int k=bondstruct_getbondindex(bs,a,b);
    bs->isrotatable[k]=flag;
 }
 
 void bondstruct_setbond_active ( bondstruct * bs, int a, int b, int flag ) {
-   k=bondstruct_getbondindex(bs,a,b)
+   int k=bondstruct_getbondindex(bs,a,b);
    bs->isactive[k]=flag;
 }
 
@@ -272,7 +272,7 @@ void bondstruct_deactivate_by_fixed ( bondstruct * bs, int fa ) {
 
 int bondstruct_arebonded ( bondstruct * bs, int a, int b ) {
    int rm=0;
-   int la=bondstruct_getlocalatomindex(bs,a)
+   int la=bondstruct_getlocalatomindex(bs,a);
    int * ba;
    int i;
    ba=bs->ba[la];
