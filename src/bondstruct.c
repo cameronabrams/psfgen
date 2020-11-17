@@ -304,10 +304,11 @@ int isin ( int * arr, int n, int t ) {
    if (i<n) return 1;
    return 0;
 }
+// set1-set1 and set1-set2 energies are to be calculated
 double my_roughenergy ( int * i1, double * x1, double * y1, double * z1, int n1, int * i2, 
                         double * x2, double * y2, double * z2, int n2, double cut,
                         double sigma, double epsilon, bondstruct * bs ) {
-   int i,j;
+   int i,j,ij;
    double d2,E=0.0,di6,di12;
    double s6=sigma*sigma*sigma*sigma*sigma*sigma;
    double rcut=pow(2,1./6.)*sigma,rcut2;
@@ -316,8 +317,19 @@ double my_roughenergy ( int * i1, double * x1, double * y1, double * z1, int n1,
    }
    rcut2=rcut*rcut;
    for (i=0;i<n1;i++) {
+      for (ij=i+1;ij<n1;ij++) {
+         if (bondstruct_arebonded(bs,i1[i],i1[ij])) continue;
+         d2 =(x1[i]-x1[ij])*(x1[i]-x1[ij]);
+         d2+=(y1[i]-y1[ij])*(y1[i]-y1[ij]);
+         d2+=(z1[i]-z1[ij])*(z1[i]-z1[ij]);
+         if (d2<rcut2) {
+            di6=s6/(d2*d2*d2);
+            di12=di6*di6;
+            E+=4*(di12-di6)+1;
+         }      
+      }
       for (j=0;j<n2;j++) {
-         if ((i1[i]==i2[j])||bondstruct_arebonded(bs,i1[i],i2[j])) continue;
+         if (bondstruct_arebonded(bs,i1[i],i2[j])) continue;
          d2 =(x1[i]-x2[j])*(x1[i]-x2[j]);
          d2+=(y1[i]-y2[j])*(y1[i]-y2[j]);
          d2+=(z1[i]-z2[j])*(z1[i]-z2[j]);

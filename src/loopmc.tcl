@@ -41,34 +41,51 @@ proc my_increment { numlet } {
    return $nn
 }
 
-# computes overlap energy between atoms in sel1 and sel2.  The "my_roughenergy" function (implemented in C)
-# uses a repulsive WCA pair potential.  Residue index lists are
-# sent so the my_roughenergy does not compute pair interactions for atoms in the same residue
-set _x1 "UNSET"
-proc roughenergy { sel1 sel2 cut sigma epsilon bs }  {
-  set E 0.0
+# computes overlap energy between atoms in sel1 and sel2.  "sel2" is assumed to be a static background that
+# does not include the atoms in sel1.  Atom indices in sel1 are assumed not to change.
+proc roughenergy_setup { sel1 sel2 sigma } {
+  global _r1
+  global _r2
   global _x1
-  if { [$sel1 num] > 0 && [$sel2 num] > 0 } {
-   set r1 [intListToArray [$sel1 get residue]]
-   set r2 [intListToArray [$sel2 get residue]]
-   if { $_x1 == "UNSET" } { set _x1 [ListToArray [$sel1 get x]] }
-   else ListToArray_Data $_x1 [$sel1 get x]
-   set x1 [ListToArray [$sel1 get x]]
-   set x2 [ListToArray [$sel2 get x]]
-   set y1 [ListToArray [$sel1 get y]]
-   set y2 [ListToArray [$sel2 get y]]
-   set z1 [ListToArray [$sel1 get z]]
-   set z2 [ListToArray [$sel2 get z]]
-   set E [my_roughenergy $r1 $_x1 $y1 $z1 [$sel1 num] $r2 $x2 $y2 $z2 [$sel2 num] $cut $sigma $epsilon $bs]
-   delete_arrayint $r1
-   delete_arrayint $r2
-   #delete_array $x1
-   delete_array $x2
-   delete_array $y1
-   delete_array $y2
-   delete_array $z1
-   delete_array $z2
-  }
+  global _y1
+  global _z1
+  global _x2
+  global _y2
+  global _z2
+  global _n1
+  global _n2
+  set _r1 [intListToArray [$sel1 get index]]
+  set _r2 [intListToArray [$sel2 get index]]
+  set _x1 [ListToArray [$sel1 get x]]
+  set _y1 [ListToArray [$sel1 get y]]
+  set _z1 [ListToArray [$sel1 get z]]
+  set _x2 [ListToArray [$sel2 get x]]
+  set _y2 [ListToArray [$sel2 get y]]
+  set _z2 [ListToArray [$sel2 get z]]
+  set _n1 [$sel1 num]
+  set _n2 [$sel2 num]
+}
+proc roughenergy { sel1 sel2 cut sigma epsilon bs }  {
+  global _r1
+  global _r2
+  global _x1
+  global _y1
+  global _z1
+  global _x2
+  global _y2
+  global _z2
+  global _n1
+  global _n2
+
+  set E 0.0
+
+  if { [$sel1 num] == 0 && [$sel2 num] == 0 } return E
+  # update positions in 1
+  ListToArray_Data $_x1 [$sel1 get x]
+  ListToArray_Data $_y1 [$sel1 get y]
+  ListToArray_Data $_z1 [$sel1 get z]
+  set E [my_roughenergy $_r1 $_x1 $_y1 $_z1 $_n1 $_r2 $_x2 $_y2 $_z2 $_n2 $cut $sigma $epsilon $bs]
+  
   return $E
 }
 
@@ -240,6 +257,9 @@ proc do_loop_mc { residueList c molid k r0 env sigma epsilon rcut maxcycles temp
 
   set msel [atomselect $molid "chain $c and residue $residueList"]
   set mselnoh [atomselect $molid "chain $c and residue $residueList and noh"]
+  set exind [$mselnoh get index]
+  set envex [atomselect $molid "[$env text] and not index $exind"]
+
   set bs [make_bondstruct $molid $mselnoh]
   #bondstruct_print $bs
 #  set mselca [atomselect $molid "chain $c and residue $residueList and name CA"]
@@ -257,10 +277,11 @@ proc do_loop_mc { residueList c molid k r0 env sigma epsilon rcut maxcycles temp
   expr srand($iseed)
 
   set nacc 0
-
+  
+  roughenergy_setup $mselnoh $envex $sigma
   set SE [expr 0.5*$k*pow([measure bond $idx]-$r0,2)]
   #set EE [roughenergy $mselnoh $env $rcut]
-  set EE [roughenergy $mselnoh $env $rcut $sigma $epsilon $bs]
+  set EE [roughenergy $mselnoh $envex $rcut $sigma $epsilon $bs]
   set E [expr $SE + $EE]
   set E0 $E
 
@@ -283,7 +304,7 @@ proc do_loop_mc { residueList c molid k r0 env sigma epsilon rcut maxcycles temp
     }
     set SE [expr 0.5*$k*pow([measure bond $idx]-$r0,2)]
     #set EE [roughenergy $mselnoh $env $rcut]
-    set EE [roughenergy $mselnoh $env $rcut $sigma $epsilon $bs]
+    set EE [roughenergy $mselnoh $envex $rcut $sigma $epsilon $bs]
     set E [expr $SE + $EE]
     # decide to accept or reject this new conformation using a 
     # metropolis criterion
