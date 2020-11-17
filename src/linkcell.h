@@ -1,5 +1,8 @@
 #ifndef _LINKCELL_H_
 #define _LINKCELL_H_
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
 
 typedef struct LINKCELL {
     

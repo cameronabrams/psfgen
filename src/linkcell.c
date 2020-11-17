@@ -27,7 +27,7 @@ linkcell * linkcell_new ( double * x, double * y, double * z, int n, double cut 
     int icx, icy, icz, pi, lci;
     int * npl;
 
-    linkcell * ls=malloc(sizeof(linkcell));
+    linkcell * ls=(linkcell*)malloc(sizeof(linkcell));
     ls->n;
     ls->x=x;
     ls->y=y;
