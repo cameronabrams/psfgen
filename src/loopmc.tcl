@@ -701,7 +701,7 @@ proc random_loop { molid sel } {
 #   bonds by random amounts. 
 # temperature is the Metropolis temperature.
 # iseed is the rng seed.
-proc do_flex_mc { molid msel fa k i j envsel epsilon sigma rcut maxcycles temperature iseed logid logevery } {
+proc do_flex_mc { molid msel fa k i j envsel epsilon sigma rcut maxcycles temperature iseed logid logevery logsaveevery } {
 
    set bl [$msel getbonds]
    set il [$msel get index]
@@ -710,7 +710,7 @@ proc do_flex_mc { molid msel fa k i j envsel epsilon sigma rcut maxcycles temper
   # bondstruct_print $bs
    set exind [$msel get index]
    set envex [atomselect $molid "[$envsel text] and not index $exind"]
-
+   puts "CFAFLEXMC) msel [$msel num] envex [$envex num]"
    if { $i != $j } { 
      puts "CFAFLEXMC) Initial attractor distance [format "%.2f" [measure bond [list $i $j]]] A"
    }
@@ -783,6 +783,10 @@ proc do_flex_mc { molid msel fa k i j envsel epsilon sigma rcut maxcycles temper
         puts "[format "strc-pnlty %.2f" $EE]"
         if { [expr $nacc % $logevery == 0 ] } {
           log_addframe $molid $logid
+          if { [expr $nacc % $logsaveevery == 0] } {
+             set loga [atomselect $logid all]
+             animate write dcd "tmp.dcd" waitfor all sel $loga $logid
+          }
         }
       }
    }

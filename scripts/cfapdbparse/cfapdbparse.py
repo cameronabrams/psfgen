@@ -27,10 +27,13 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
     """
     logfile=''
     logevery=1
+    lobsavevery=-1
     if 'log_dcd_file' in PostMod:
         logfile=PostMod['log_dcd_file']
     if 'log_every' in PostMod:
         logevery=PostMod['log_every']
+    if 'log_save_every' in PostMod:
+        logsaveevery=PostMod['log_save_every']
     logdcd=len(logfile)>0
 
     prefix=pdb[:]
@@ -101,7 +104,7 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
         fp.write('   set fa [[atomselect $molid "protein and chain $chain and resid [lindex $l 1] and name CA"] get index]\n')
         fp.write('   set ca [[atomselect $molid "protein and chain $chain and resid [lindex $l 2] and name CA"] get index]\n')
         fp.write('   set c [[atomselect $molid "protein and chain $chain and resid [lindex $l 2] and name C"] get index]\n')
-        fp.write('   do_flex_mc $molid $msel $fa $k $ca $c $bg $sigma $epsilon $rcut $nc $temperature [irand_dom 1000 9999] $logid {}\n'.format(logevery))
+        fp.write('   do_flex_mc $molid $msel $fa $k $ca $c $bg $sigma $epsilon $rcut $nc $temperature [irand_dom 1000 9999] $logid {} {}\n'.format(logevery,logsaveevery))
   #  fp.write('   set residueList [[atomselect $molid "chain $chain and resid [lindex $l 1] to [lindex $l 2] and name CA"] get residue]\n')
       #  fp.write('   do_loop_mc $residueList $chain $molid $k $r0 $bg $sigma $epsilon $rcut $nc $temperature [irand_dom 1000 9999] $logid {}\n'.format(logevery))
         fp.write('   set loopindex [expr $loopindex + 1]\n')
@@ -223,6 +226,7 @@ if __name__=='__main__':
     parser.add_argument('-linkfile',metavar='<name>',default='',help='input file with PDB-format LINK records the user would like to enforce that are not in the RCSB PDB file')
     parser.add_argument('-logdcd',metavar='<name>.dcd',default='',help='name of dcd logging file')
     parser.add_argument('-logevery',metavar='<int>',default=1,help='number of MC accepts between successive frame logging')
+    parser.add_argument('-logsaveevery',metavar='<int>',default=1,help='number of MC accepts between log writes to disk')
     # booleans
     parser.add_argument('-rmi',action='store_true',help='asks psfgen to use the loopMC module to relax modeled-in loops of residues missing from PDB')
     parser.add_argument('-grel',action='store_true',help='asks psfgen to use the loopMC module to relax modeled-in glycans missing from PDB')
@@ -253,6 +257,7 @@ if __name__=='__main__':
     PostMod['Crot']=MrgCmdLineAndFileContents(args.crot,args.crotfile,Crot)
     PostMod['log_dcd_file']=args.logdcd
     PostMod['log_every']=args.logevery
+    PostMod['log_save_every']=args.logsaveevery
     fixConflicts=not args.kc
     fixEngineeredMutations=args.rem
     psfgen=args.psfgen
