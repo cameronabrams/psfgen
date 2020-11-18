@@ -142,7 +142,7 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
         fp.write('     set firstres $upres\n')
         fp.write('     puts "setting firstres to $upres"\n')
         fp.write('   }\n')
-        fp.write('   set msel [atomselect $molid "protein and chain $chain and resid $firstres to [lindex $l 2]"] and not (resid [lindex $l 2] and name C O)\n')
+        fp.write('   set msel [atomselect $molid "protein and chain $chain and resid $firstres to [lindex $l 2] and not (resid [lindex $l 2] and name C O)"]\n')
         fp.write('   set atomind [dict create]\n') 
         fp.write('   dict set atomind fa  [[atomselect $molid "protein and chain $chain and resid $firstres and name CA"] get index]\n')
         fp.write('   dict set atomind ca [[atomselect $molid "protein and chain $chain and resid [lindex $l 2] and name CA"] get index]\n')
