@@ -100,7 +100,6 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
             mck=mck if 'k' not in p else p['k']
             dstop=dstop if 'dstop' not in p else p['dstop']
             sstop=sstop if 'sstop' not in p else p['sstop']
-        fp.write('           }\n')
         fp.write('set mcp [dict create]\n')
         fp.write('dict set mcp nc {:d}\n'.format(nc))
         fp.write('dict set mcp rcut {:.4f}\n'.format(rcut))
@@ -116,6 +115,7 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
         for l in Loops:
             if l.term and len(l.residues)>1:
                 fp.write('{{ {} {} {} }}\n'.format(l.replica_chainID,l.residues[0].resseqnum,l.residues[-1].resseqnum))
+        fp.write('           }\n')
         fp.write('set nloops [llength $loops]\n')
         fp.write('foreach l $loops {\n')
         fp.write('   set chain [lindex $l 0]\n')
