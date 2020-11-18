@@ -1,3 +1,6 @@
+#ifndef _LINKCELL_H_
+#define _LINKCELL_H_
+
 typedef struct LINKCELL {
     
     double xmin,xmax,xspan;
@@ -19,3 +22,4 @@ typedef struct LINKCELL {
 
 linkcell * linkcell_new ( double * x, double * y, double * z, int n, double cut );
 linkcell * my_roughenergy_setup ( double * x2, double * y2, double * z2, int n2, double cut );
+#endif

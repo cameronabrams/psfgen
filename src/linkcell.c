@@ -1,5 +1,6 @@
 
 #include <stdio.h>
+#include <stdlib.h>
 #include "linkcell.h"
 
 linkcell * linkcell_new ( double * x, double * y, double * z, int n, double cut ) {
