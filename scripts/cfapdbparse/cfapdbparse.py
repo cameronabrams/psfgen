@@ -90,7 +90,7 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
         mck=10.0
         dstop=2.0
         sstop=2.0
-        maxanglestep=6.0 # degrees
+        maxanglestep=60.0 # degrees
         if 'loop_mc_params' in PostMod:
             p=PostMod['loop_mc_params']
             nc=nc if 'maxcycles' not in p else p['maxcycles']
@@ -160,7 +160,7 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
         epsilon=0.5
         mctemperature=3.0
         sstop=2.0
-        maxanglestep=6.0 # degrees
+        maxanglestep=60.0 # degrees
         if 'gly_mc_params' in PostMod:
             p=PostMod['gly_mc_params']
             nc=nc if 'maxcycles' not in p else p['maxcycles']
