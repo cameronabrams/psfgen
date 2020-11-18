@@ -113,7 +113,7 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
         fp.write('set mpc(temperature) {:.4f}\n'.format(mctemperature))
         fp.write('set mpc(k) {:.4f}\n'.format(mck))
         fp.write('set mpc(dstop) {:.4f}\n'.format(dstop))
-        fp.write('set mpc(sstop) {:.4f}\n'.format(stop))
+        fp.write('set mpc(sstop) {:.4f}\n'.format(sstop))
         fp.write('set bg [atomselect $molid "noh"]\n')
         fp.write('set loopindex 0\n')
         fp.write('set nloops [llength $loops]\n')
