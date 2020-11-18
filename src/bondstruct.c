@@ -1,4 +1,5 @@
 #include "bondstruct.h"
+#include "linkcell.h"
 
 bondstruct * new_bondstruct ( int * ia, int na, int nb ) {
    int i,j;
