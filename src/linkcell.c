@@ -31,7 +31,7 @@ linkcell * linkcell_new ( double * x, double * y, double * z, int n, double cut 
     int * npl;
 
     linkcell * ls=(linkcell*)malloc(sizeof(linkcell));
-    ls->n;
+    ls->n=n;
     ls->x=x;
     ls->y=y;
     ls->z=z;
@@ -62,12 +62,12 @@ linkcell * linkcell_new ( double * x, double * y, double * z, int n, double cut 
     ls->nc=ls->xnc*ls->ync*ls->znc;
 
     printf("Sel2 linkcell %i particles with cut %.4f:\n",ls->n,ls->cut);
-    printf("   x: [%.4f,%.4f,%.4f] %i\n",ls->xmin,ls->dx,ls->xmax,ls->xnc);
-    printf("   y: [%.4f,%.4f,%.4f] %i\n",ls->ymin,ls->dy,ls->ymax,ls->ync);
-    printf("   z: [%.4f,%.4f,%.4f] %i\n",ls->zmin,ls->dz,ls->zmax,ls->znc);
+    printf("   x: [%6.2f,%6.2f,%6.2f] %i\n",ls->xmin,ls->dx,ls->xmax,ls->xnc);
+    printf("   y: [%6.2f,%6.2f,%6.2f] %i\n",ls->ymin,ls->dy,ls->ymax,ls->ync);
+    printf("   z: [%6.2f,%6.2f,%6.2f] %i\n",ls->zmin,ls->dz,ls->zmax,ls->znc);
     printf("   total cells: %i\n",ls->nc);
     fflush(stdout);
-    
+
     npl=(int*)malloc(ls->nc*sizeof(int));
     for (i=0;i<ls->nc;i++) {
         npl[i]=0;
