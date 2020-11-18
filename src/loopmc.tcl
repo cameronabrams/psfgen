@@ -70,7 +70,7 @@ proc roughenergy_setup { sel1 sel2 cut } {
   return $ls
 }
 
-prot roughenergy_cleanup { ls } {
+proc roughenergy_cleanup { ls } {
   myroughenergy_cleanup $ls
 }
 
