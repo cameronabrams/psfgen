@@ -82,31 +82,70 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
         if logdcd:
             fp.write('log_addframe $molid $logid\n')
     if 'do_loop_mc' in PostMod and PostMod['do_loop_mc']:
+        nc=1000
+        rcut=4.0
+        sigma=1.8
+        epsilon=0.5
+        mctemperature=3.0
+        mck=10.0
+        dstop=2.0
+        sstop=2.0
+        if 'loop_mc_params' in PostMod:
+            p=PostMod['loop_mc_params']
+            nc=nc if 'maxcycles' not in p else p['maxcycles']
+            rcut=rcut if 'rcut' not in p else p['rcut']
+            sigma=sigma if 'sigma' not in p else p['sigma']
+            epsilon=epsilon if 'epsilon' not in p else p['epsilon']
+            mctemperature=mctemperature if 'temperature' not in p else p['temperature']
+            mck=mck if 'k' not in p else p['k']
+            dstop=dstop if 'dstop' not in p else p['dstop']
+            sstop=sstop if 'sstop' not in p else p['sstop']
         fp.write('set loops {\n')
         for l in Loops:
             if l.term and len(l.residues)>1:
                 fp.write('{{ {} {} {} }}\n'.format(l.replica_chainID,l.residues[0].resseqnum,l.residues[-1].resseqnum))
         fp.write('           }\n')
-        fp.write('set nc 1000\n')
-        fp.write('set rcut 4.0\n')
-        fp.write('set sigma 1.8\n')
-        fp.write('set epsilon 0.5\n')
-        fp.write('set r0 1.5\n')
-        fp.write('set temperature 3.0\n')
-        fp.write('set k 100.0\n')
+        fp.write('set mcp(nc) {:d}}\n'.format(nc))
+        fp.write('set mcp(rcut) {:.4f}\n'.format(rcut))
+        fp.write('set mpc(sigma) {:.4f}\n'.format(sigma))
+        fp.write('set mpc(epsilon) {:.4f}\n'.format(epsilon))
+        #fp.write('set r0 1.5\n')
+        fp.write('set mpc(temperature) {:.4f}\n'.format(mctemperature))
+        fp.write('set mpc(k) {:.4f}\n'.format(mck))
+        fp.write('set mpc(dstop) {:.4f}\n'.format(dstop))
+        fp.write('set mpc(sstop) {:.4f}\n'.format(stop))
         fp.write('set bg [atomselect $molid "noh"]\n')
         fp.write('set loopindex 0\n')
         fp.write('set nloops [llength $loops]\n')
         fp.write('foreach l $loops {\n')
         fp.write('   set chain [lindex $l 0]\n')
-        fp.write('   puts "Relaxing loop $loopindex out of $nloops"\n')
-        fp.write('   set msel [atomselect $molid "protein and chain $chain and resid [lindex $l 1] to [lindex $l 2]"]\n')
-        fp.write('   set fa [[atomselect $molid "protein and chain $chain and resid [lindex $l 1] and name CA"] get index]\n')
-        fp.write('   set ca [[atomselect $molid "protein and chain $chain and resid [lindex $l 2] and name CA"] get index]\n')
-        fp.write('   set c [[atomselect $molid "protein and chain $chain and resid [lindex $l 2] and name C"] get index]\n')
-        fp.write('   do_flex_mc $molid $msel $fa $k $ca $c $bg $sigma $epsilon $rcut $nc $temperature [irand_dom 1000 9999] $logid {} {}\n'.format(logevery,logsaveevery))
-  #  fp.write('   set residueList [[atomselect $molid "chain $chain and resid [lindex $l 1] to [lindex $l 2] and name CA"] get residue]\n')
-      #  fp.write('   do_loop_mc $residueList $chain $molid $k $r0 $bg $sigma $epsilon $rcut $nc $temperature [irand_dom 1000 9999] $logid {}\n'.format(logevery))
+        fp.write('   puts "Relaxing loop $l ($loopindex out of [expr $nloops-1])..."\n')
+        fp.write('   set upsel [atomselect $molid "protein and chain $chain and resid [lindex $l 1]"]')
+        fp.write('   set bnds [$upsel getbonds]
+        fp.write('   set an [$upsel get name]
+        fp.write('   set ai [$upsel get index]
+        fp.write('   set upc -1
+        fp.write('   foreach n $an i $ai bl $bnds {
+        fp.write('     if { $n == "N" } {
+        fp.write('       foreach b $bl {
+        fp.write('         if { [lsearch $ai $b] == -1 } {
+        fp.write('              set upc $b
+        fp.write('         }
+        fp.write('       }
+        fp.write('     }
+        fp.write('   }
+        fp.write('   if { $upc == -1 } {
+        fp.write('     set firstres [lindex $l 1]
+        fp.write('   } else {
+        fp.write('     set upres [[atomselect $molid "index $upc"] get resid]
+        fp.write('     set firstres $upres
+        fp.write('     puts "setting firstres to $upres"
+        fp.write('   }
+        fp.write('   set msel [atomselect $molid "protein and chain $chain and resid $firstres to [lindex $l 2]"]\n')
+        fp.write('   set atomind(fa) [[atomselect $molid "protein and chain $chain and resid $firstres and name CA"] get index]\n')
+        fp.write('   set atomind(ca) [[atomselect $molid "protein and chain $chain and resid [lindex $l 2] and name CA"] get index]\n')
+        fp.write('   set atomind(c) [[atomselect $molid "protein and chain $chain and resid [lindex $l 2] and name C"] get index]\n')
+        fp.write('   do_flex_mc $molid $msel $bg $atomind $mcp [irand_dom 1000 9999] $logid {} {}\n'.format(logevery,logsaveevery))
         fp.write('   set loopindex [expr $loopindex + 1]\n')
         fp.write('}\n')
 

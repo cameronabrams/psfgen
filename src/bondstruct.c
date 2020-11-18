@@ -346,13 +346,13 @@ double my_roughenergy ( int * i1, double * x1, double * y1, double * z1, int n1,
       //printf(" %i cell(%i/%i,%i/%i,%i/%i)\n",a,icx,ls->xnc,icy,ls->ync,icz,ls->znc);fflush(stdout);
       for (dx=-1;dx<2;dx++) {
          tx=icx+dx;
-         if (tx>=ls->xnc||tx==-1) continue;
+         if (tx>=ls->xnc||tx<=-1) continue;
          for (dy=-1;dy<2;dy++) {
             ty=icy+dy;
-            if (ty>=ls->ync||ty==-1) continue;
+            if (ty>=ls->ync||ty<=-1) continue;
             for (dz=-1;dz<2;dz++) {
                tz=icz+dz;
-               if (tz>=ls->znc||tz==-1) continue;
+               if (tz>=ls->znc||tz<=-1) continue;
                //printf("   -> cell(%i/%i,%i/%i,%i/%i)\n",tx,ls->xnc,ty,ls->ync,tz,ls->znc);fflush(stdout);
                pa=ls->pa[tx][ty][tz];
                np=ls->np[tx][ty][tz];

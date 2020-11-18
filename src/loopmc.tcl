@@ -701,7 +701,7 @@ proc random_loop { molid sel } {
 #   bonds by random amounts. 
 # temperature is the Metropolis temperature.
 # iseed is the rng seed.
-proc do_flex_mc { molid msel fa k i j envsel epsilon sigma rcut maxcycles dstop sstop temperature iseed logid logevery logsaveevery } {
+proc do_flex_mc { molid msel envsel refatomind params iseed logid logevery logsaveevery } {
 
    set mselnoh [atomselect $molid "([$msel text]) and noh"]
    #set bl [$msel getbonds]
@@ -712,12 +712,24 @@ proc do_flex_mc { molid msel fa k i j envsel epsilon sigma rcut maxcycles dstop 
    set exind [$msel get index]
    set envex [atomselect $molid "[$envsel text] and not index $exind"]
    puts "CFAFLEXMC) msel [$msel num] envex [$envex num]"
+   # extract parameters
+   set fa $refatomind(fa)
+   set i $refatomind(ca)
+   set j $refatomind(c)
    if { $i != $j } { 
      puts "CFAFLEXMC) Initial attractor distance [format "%.2f" [measure bond [list $i $j]]] A"
    }
-   puts "CFAFLEXMC) Max cycles $maxcycles dattr-thresh $dstop strc-thresh $sstop"
+   set maxcycles $params(nc)
+   set dstop $params(dstop)
+   set sstop $params(sstop)
+   set k $params(mck)
+   set temperature $params(temperature)
+   set sigma $params(sigma)
+   set epsilon $params(epsilon)
+   set rcut $params(rcut)
+   puts "CFAFLEXMC) Max cycles $maxcycles dattr-thresh $dstop strc-thresh $sstop k $k"
    puts "CFAFLEXMC) [bondstruct_getnrb $bs] rotatable bonds"
-
+   puts "CFAFLEXMC) MC-Temperature $temperature sigma $sigma epsilon $epsilon"
    flush stdout
 
    expr srand($iseed)
