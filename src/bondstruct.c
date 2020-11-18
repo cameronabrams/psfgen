@@ -371,7 +371,8 @@ double my_roughenergy ( int * i1, double * x1, double * y1, double * z1, int n1,
          }
       }
    }
-   print("Returning %.5f\n",E*epsilon);
+   printf("Returning %.5f\n",E*epsilon);
+   
    return E*epsilon;
 }
 
