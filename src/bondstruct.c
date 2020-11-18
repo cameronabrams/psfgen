@@ -305,10 +305,6 @@ int isin ( int * arr, int n, int t ) {
    return 0;
 }
 
-linkcell * my_roughenergy_setup ( double * x2, double * y2, double * z2, int n2, double cut ) {
-   linkcell * ls = linkcell_new(x2,y2,z2,n2,cut);
-   return ls;
-}
 
 double my_roughenergy ( int * i1, double * x1, double * y1, double * z1, int n1, 
                         int * i2, int n2,

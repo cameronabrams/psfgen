@@ -101,3 +101,8 @@ linkcell * linkcell_new ( double * x, double * y, double * z, int n, double cut 
     }
     return ls;
 }
+
+linkcell * my_roughenergy_setup ( double * x2, double * y2, double * z2, int n2, double cut ) {
+   linkcell * ls = linkcell_new(x2,y2,z2,n2,cut);
+   return ls;
+}
