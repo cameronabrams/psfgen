@@ -100,7 +100,7 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
         fp.write('foreach l $loops {\n')
         fp.write('   set chain [lindex $l 0]\n')
         fp.write('   puts "Relaxing loop $loopindex out of $nloops"\n')
-        fp.write('   set msel [atomselect $molid "protein and chain $chain and resid [lindex $l 1] to [lindex $l 2] and noh"]\n')
+        fp.write('   set msel [atomselect $molid "protein and chain $chain and resid [lindex $l 1] to [lindex $l 2]"]\n')
         fp.write('   set fa [[atomselect $molid "protein and chain $chain and resid [lindex $l 1] and name CA"] get index]\n')
         fp.write('   set ca [[atomselect $molid "protein and chain $chain and resid [lindex $l 2] and name CA"] get index]\n')
         fp.write('   set c [[atomselect $molid "protein and chain $chain and resid [lindex $l 2] and name C"] get index]\n')
