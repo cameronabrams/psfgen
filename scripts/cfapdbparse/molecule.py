@@ -120,6 +120,7 @@ class Molecule:
             print('{} ATOM or HETATOM records.'.format(len(self.Atoms)))
             print('{} unique residues, {} missing.'.format(len(self.Residues),len(self.MissingRes)))
             print('{} disulfides; {} covalent links.'.format(len(self.SSBonds),len(self.Links)))
+            self.ShowSeqadv(brief=True)
             if len(self.Chains)>0:
                print('Chains: {}'.format(", ".join(c.chainID for c in self.Chains.values())))
             print('Biomolecules:')
@@ -353,11 +354,12 @@ class Molecule:
                 for sa in self.Seqadv:
                     print('### SEQADV:',sa)
             else:
+                print('{:d} SEQADV records; conflicts are'.format(self.pdb,len(self.Seqadv)))
                 nc=0
                 for sa in self.Seqadv:
                     if sa.conflict=='CONFLICT':
+                        sa.printshort()
                         nc = nc + 1
-                print('#### {} contains {:d} SEQADV records including {:d} conflicts'.format(self.pdb,len(self.Seqadv),nc))
 
     def MakeBiomolecules(self):
         self.chainIDs_allowed=set(['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'])

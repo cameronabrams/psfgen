@@ -298,7 +298,6 @@ if __name__=='__main__':
     parser.add_argument('-logdcd',metavar='<name>.dcd',default='',help='name of dcd logging file')
     parser.add_argument('-logevery',metavar='<int>',default=1,help='number of MC accepts between successive frame logging')
     parser.add_argument('-logsaveevery',metavar='<int>',default=1,help='number of MC accepts between log writes to disk')
-    # booleans
     parser.add_argument('-rlxloops',action='store_true',help='asks psfgen to use the loopMC module to relax modeled-in loops of residues missing from PDB')
     parser.add_argument('-loopmcparams',metavar='<param1=val1,param2=val2,...>',default='',help='Loop Monte Carlo parameters')
     parser.add_argument('-rlxgly',action='store_true',help='asks psfgen to use the loopMC module to relax modeled-in glycans missing from PDB')
