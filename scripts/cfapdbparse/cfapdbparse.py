@@ -177,6 +177,7 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
         fp.write('dict set mcp epsilon {}\n'.format(epsilon))
         fp.write('dict set mcp temperature {}\n'.format(mctemperature))
         fp.write('dict set mcp sstop {}\n'.format(sstop))
+        fp.write('dict set mcp dstop -1\n')
         fp.write('dict set mcp maxanglestep {}\n'.format(maxanglestep))
         fp.write('set bg [atomselect $molid "noh"]\n')
         fp.write('set glycan_segs [list '+' '.join(GlycanSegs)+']\n')
