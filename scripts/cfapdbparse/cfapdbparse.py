@@ -104,7 +104,7 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
 
     if 'do_gly_mc' in PostMod and PostMod['do_gly_mc']:
         fp.write('set nc 1000\n')
-        fp.write('set rcut 3.0\n')
+        fp.write('set rcut 6.0\n')
         fp.write('set sigma 1.8\n')
         fp.write('set epsilon 0.5\n')
         fp.write('set temperature 3.0\n')
