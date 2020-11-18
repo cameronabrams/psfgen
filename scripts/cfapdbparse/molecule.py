@@ -354,7 +354,7 @@ class Molecule:
                 for sa in self.Seqadv:
                     print('### SEQADV:',sa)
             else:
-                print('{:d} SEQADV records; conflicts are'.format(self.pdb,len(self.Seqadv)))
+                print('{:d} SEQADV records; conflicts are'.format(len(self.Seqadv)))
                 nc=0
                 for sa in self.Seqadv:
                     if sa.conflict=='CONFLICT':
