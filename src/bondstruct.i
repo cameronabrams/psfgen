@@ -28,6 +28,7 @@ extern void bondstruct_setbond_active ( bondstruct * bs, int a, int b, int flag 
 extern void bondstruct_maprotatables ( bondstruct * bs );
 extern int bondstruct_r2b ( bondstruct * bs, int r );
 extern int bondstruct_getnb ( bondstruct * bs );
+extern int bondstruct_getnrb ( bondstruct * bs );
 extern int * bondstruct_getbondpointer ( bondstruct * bs, int i );
 extern int * bondstruct_getia ( bondstruct * bs );
 extern int bondstruct_getna ( bondstruct * bs );

@@ -184,7 +184,7 @@ int bondstruct_getnb ( bondstruct * bs ) {
    return bs->nb;
 }
 
-int bondstruct_getrnb ( bondstruct * bs ) {
+int bondstruct_getnrb ( bondstruct * bs ) {
    return bs->nrb;
 }
 

@@ -59,6 +59,7 @@ void bondstruct_setbond_active ( bondstruct * bs, int a, int b, int flag );
 void bondstruct_maprotatables ( bondstruct * bs );
 int bondstruct_r2b ( bondstruct * bs, int r );
 int bondstruct_getnb ( bondstruct * bs );
+int bondstruct_getnrb ( bondstruct * bs );
 int * bondstruct_getbondpointer ( bondstruct * bs, int i );
 int * bondstruct_getia ( bondstruct * bs );
 int bondstruct_getna ( bondstruct * bs );
