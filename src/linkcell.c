@@ -135,5 +135,5 @@ void linkcell_free ( linkcell * ls ) {
     }
     free(ls->pa);
     free(ls->np);
-    free(ls)
+    free(ls);
 }
