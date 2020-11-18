@@ -247,13 +247,15 @@ def MrgCmdLineAndFileContents(cl_list,filename,typ):
     return cl_list
 
 def DictFromString(string):
+    print('parsing {}'.format(string))
     my_dict = {}
-    items=string.split(',')
-    for i in items:
-        kv=i.split('=')
-        k=kv[0]
-        v=kv[1]
-        my_dict[k]=v
+    if len(string)>0:
+        items=string.split(',')
+        for i in items:
+            kv=i.split('=')
+            k=kv[0]
+            v=kv[1]
+            my_dict[k]=v
     return my_dict
 
 if __name__=='__main__':
