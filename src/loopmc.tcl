@@ -730,10 +730,15 @@ proc do_flex_mc { molid msel envsel refatominddict paramsdict iseed logid logeve
    set sigma  [dict get $params sigma]
    set epsilon [dict get $params epsilon]
    set rcut [dict get $params rcut]
+   set maxanglestep [dict get $params maxanglestep]
+
    puts "CFAFLEXMC) Max cycles $maxcycles dattr-thresh $dstop strc-thresh $sstop k $k"
    puts "CFAFLEXMC) [bondstruct_getnrb $bs] rotatable bonds"
    puts "CFAFLEXMC) MC-Temperature $temperature sigma $sigma epsilon $epsilon"
+   puts "CFAFLEXMC) Maximum angle displacement: $maxanglestep degrees"
    flush stdout
+
+   set maxanglestep [expr $maxanglestep / 10.0]
 
    expr srand($iseed)
 
@@ -763,7 +768,7 @@ proc do_flex_mc { molid msel envsel refatominddict paramsdict iseed logid logeve
       set nrot 0
       for {set r 0} {$r < [bondstruct_getnrb $bs] } {incr r} {
          #set av [expr 60 * [irand_dom 1 5]]
-         set av [expr 6 * [irand_dom -5 5]]
+         set av [expr $maxanglestep * [irand_dom -10 10]]
         # puts "cyc $cyc bond $r deg $av"
         set rr [bondstruct_r2b $bs $r]
          if { [bondstruct_isactive $bs $rr] } {

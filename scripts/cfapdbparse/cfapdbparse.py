@@ -90,6 +90,7 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
         mck=10.0
         dstop=2.0
         sstop=2.0
+        maxanglestep=6.0 # degrees
         if 'loop_mc_params' in PostMod:
             p=PostMod['loop_mc_params']
             nc=nc if 'maxcycles' not in p else p['maxcycles']
@@ -100,6 +101,7 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
             mck=mck if 'k' not in p else p['k']
             dstop=dstop if 'dstop' not in p else p['dstop']
             sstop=sstop if 'sstop' not in p else p['sstop']
+            maxanglestep=maxanglestep if 'maxanglestep' not in p else ['maxanglestep']
         fp.write('set mcp [dict create]\n')
         fp.write('dict set mcp nc {:d}\n'.format(nc))
         fp.write('dict set mcp rcut {:.4f}\n'.format(rcut))
@@ -109,6 +111,7 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
         fp.write('dict set mcp mck {:.4f}\n'.format(mck))
         fp.write('dict set mcp dstop {:.4f}\n'.format(dstop))
         fp.write('dict set mcp sstop {:.4f}\n'.format(sstop))
+        fp.write('dict set mcp maxanglestep {:.4f}\n'.format(maxanglestep))
         fp.write('set bg [atomselect $molid "noh"]\n')
         fp.write('set loopindex 0\n')
         fp.write('set loops {\n')
@@ -157,6 +160,7 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
         epsilon=0.5
         mctemperature=3.0
         sstop=2.0
+        maxanglestep=6.0 # degrees
         if 'gly_mc_params' in PostMod:
             p=PostMod['gly_mc_params']
             nc=nc if 'maxcycles' not in p else p['maxcycles']
@@ -165,6 +169,7 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
             epsilon=epsilon if 'epsilon' not in p else p['epsilon']
             mctemperature=mctemperature if 'temperature' not in p else p['temperature']
             sstop=sstop if 'sstop' not in p else p['sstop']
+            maxanglestep=maxanglestep if 'maxanglestep' not in p else ['maxanglestep']
         fp.write('set mcp [dict create]\n')
         fp.write('dict set mcp nc {:d}\n'.format(nc))
         fp.write('dict set mcp rcut {:.4f}\n'.format(rcut))
@@ -172,6 +177,7 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
         fp.write('dict set mcp epsilon {:.4f}\n'.format(epsilon))
         fp.write('dict set mcp temperature {:.4f}\n'.format(mctemperature))
         fp.write('dict set mcp sstop {:.4f}\n'.format(sstop))
+        fp.write('dict set mcp maxanglestep {:.4f}\n'.format(maxanglestep))
         fp.write('set bg [atomselect $molid "noh"]\n')
         fp.write('set glycan_segs [list '+' '.join(GlycanSegs)+']\n')
         fp.write('set ng [llength $glycan_segs]\n')
