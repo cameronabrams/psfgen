@@ -105,7 +105,7 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
             if l.term and len(l.residues)>1:
                 fp.write('{{ {} {} {} }}\n'.format(l.replica_chainID,l.residues[0].resseqnum,l.residues[-1].resseqnum))
         fp.write('           }\n')
-        fp.write('set mcp(nc) {:d}}\n'.format(nc))
+        fp.write('set mcp(nc) {:d}\n'.format(nc))
         fp.write('set mcp(rcut) {:.4f}\n'.format(rcut))
         fp.write('set mpc(sigma) {:.4f}\n'.format(sigma))
         fp.write('set mpc(epsilon) {:.4f}\n'.format(epsilon))
