@@ -701,7 +701,7 @@ proc random_loop { molid sel } {
 #   bonds by random amounts. 
 # temperature is the Metropolis temperature.
 # iseed is the rng seed.
-proc do_flex_mc { molid msel fa k i j envsel epsilon sigma rcut maxcycles temperature iseed logid logevery logsaveevery } {
+proc do_flex_mc { molid msel fa k i j envsel epsilon sigma rcut maxcycles dstop sstop temperature iseed logid logevery logsaveevery } {
 
    set mselnoh [atomselect $molid "([$msel text]) and noh"]
    #set bl [$msel getbonds]
@@ -715,6 +715,7 @@ proc do_flex_mc { molid msel fa k i j envsel epsilon sigma rcut maxcycles temper
    if { $i != $j } { 
      puts "CFAFLEXMC) Initial attractor distance [format "%.2f" [measure bond [list $i $j]]] A"
    }
+   puts "CFAFLEXMC) Max cycles $maxcycles dattr-thresh $dstop strc-thresh $sstop"
    puts "CFAFLEXMC) [bondstruct_getnrb $bs] rotatable bonds"
 
    flush stdout
@@ -724,8 +725,10 @@ proc do_flex_mc { molid msel fa k i j envsel epsilon sigma rcut maxcycles temper
    set nacc 0
 
    set SE 0.0
+   set dattr 0.0
    if { $i != $j } {
-     set SE [expr 0.5*$k*pow([measure bond [list $i $j]],2)]
+     set dattr [measure bond [list $i $j]]
+     set SE [expr 0.5*$k*pow($dattr,2)]
    }
    set ls [roughenergy_setup $mselnoh $envex $rcut]
   #puts "calc ($mselnoh) ($rcut) ($sigma) ($epsilon) ($bs) ($ls)..."
@@ -733,7 +736,11 @@ proc do_flex_mc { molid msel fa k i j envsel epsilon sigma rcut maxcycles temper
    set E [expr $SE + $EE]
    set E0 $E
    #puts "CFAFLEXMC) E0 $E0"
-   for {set cyc 0} { $cyc < $maxcycles } { incr cyc } {
+   set keep_cycling 1
+   if { $EE < $sstop && $dattr < $dstop } {
+      set keep_cycling 0
+   }
+   for {set cyc 0} { $cyc < $maxcycles && $keep_cycling == 1 } { incr cyc } {
       # save coordinates
       set SAVEPOS [$msel get {x y z}]
       set nrot 0
@@ -753,7 +760,8 @@ proc do_flex_mc { molid msel fa k i j envsel epsilon sigma rcut maxcycles temper
          exit
       }
       if { $i != $j } {
-        set SE [expr 0.5*$k*pow([measure bond [list $i $j]],2)]
+        set dattr [measure bond [list $i $j]]
+        set SE [expr 0.5*$k*pow($dattr,2)]
       } else {
         set SE 0.0
       }
@@ -789,12 +797,16 @@ proc do_flex_mc { molid msel fa k i j envsel epsilon sigma rcut maxcycles temper
              animate write dcd "tmp.dcd" waitfor all sel $loga $logid
           }
         }
+        if { $EE < $sstop && $dattr < $dstop } {
+          set keep_cycling 0
+        }
       }
    }
-   #if { $i != $j } {
-   #  puts -nonewline "attr dst: [format "%.2f" [measure bond [list $i $j]]] [format "attr-pnlty %.2f " $SE]"
-   #}
-   #puts "[format "strc-pnlty %.2f" $EE]"
+   puts -noewline "CFAFLEXMC) Stop at cycle $ncyc: "
+   if { $i != $j } {
+     puts -nonewline "attr dst: [format "%.2f" [measure bond [list $i $j]]] [format "attr-pnlty %.2f " $SE]"
+   }
+   puts "[format "strc-pnlty %.2f" $EE]"
    free_bondstruct $bs
    roughenergy_cleanup $ls
 }
