@@ -25,7 +25,7 @@ bondstruct.so:  $(OBJ) bondstruct_wrap.o
 	$(CC) $(CFLAGS) -shared -o $@ $^ $(LIBS)
 	cp $@ ../lib/
 
-%.o: %.c %.h
+%.o: %.c
 	$(CC) -c -fpic $(CFLAGS) $< $(LIBS)
 
 %_wrap.c: %.i %.c %.h
