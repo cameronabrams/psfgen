@@ -65,6 +65,7 @@ proc roughenergy_setup { sel1 sel2 cut } {
   set _z2 [ListToArray [$sel2 get z]]
   set _n1 [$sel1 num]
   set _n2 [$sel2 num]
+  puts "Calling my_roughenergy_setup"
   set ls [my_roughenergy_setup $_x2 $_y2 $_z2 $_n2 $cut]
   return $ls
 }

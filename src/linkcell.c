@@ -65,7 +65,7 @@ linkcell * linkcell_new ( double * x, double * y, double * z, int n, double cut 
     printf("   y: [%.4f,%.4f,%.4f] %i\n",ls->ymin,ls->dy,ls->ymax,ls->ync);
     printf("   z: [%.4f,%.4f,%.4f] %i\n",ls->zmin,ls->dz,ls->zmax,ls->znc);
     printf("   total cells: %i\n",ls->nc);
-
+    fflush(stdout);
     npl=(int*)malloc(ls->nc*sizeof(int));
     for (i=0;i<ls->nc;i++) {
         npl[i]=0;
