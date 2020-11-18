@@ -701,8 +701,10 @@ proc random_loop { molid sel } {
 #   bonds by random amounts. 
 # temperature is the Metropolis temperature.
 # iseed is the rng seed.
-proc do_flex_mc { molid msel envsel refatomind params iseed logid logevery logsaveevery } {
+proc do_flex_mc { molid msel envsel refatominddict paramsdict iseed logid logevery logsaveevery } {
 
+   upvar 1 $refatominddict refatoms
+   upvar 1 $paramsdict params
    set mselnoh [atomselect $molid "([$msel text]) and noh"]
    #set bl [$msel getbonds]
    #set il [$mselnoh get index]
@@ -713,20 +715,20 @@ proc do_flex_mc { molid msel envsel refatomind params iseed logid logevery logsa
    set envex [atomselect $molid "[$envsel text] and not index $exind"]
    puts "CFAFLEXMC) msel [$msel num] envex [$envex num]"
    # extract parameters
-   set fa $refatomind(fa)
-   set i $refatomind(ca)
-   set j $refatomind(c)
+   set fa [dict get $refatoms fa]
+   set i [dict get $refatoms ca]
+   set j [dict get $refatoms c]
    if { $i != $j } { 
      puts "CFAFLEXMC) Initial attractor distance [format "%.2f" [measure bond [list $i $j]]] A"
    }
-   set maxcycles $params(nc)
-   set dstop $params(dstop)
-   set sstop $params(sstop)
-   set k $params(mck)
-   set temperature $params(temperature)
-   set sigma $params(sigma)
-   set epsilon $params(epsilon)
-   set rcut $params(rcut)
+   set maxcycles [dict get $params nc]
+   set dstop  [dict get $params dstop]
+   set sstop  [dict get $params sstop]
+   set k  [dict get $params mck]
+   set temperature  [dict get $params temperature]
+   set sigma  [dict get $params sigma]
+   set epsilon [dict get $params epsilon]
+   set rcut [dict get $params rcut]
    puts "CFAFLEXMC) Max cycles $maxcycles dattr-thresh $dstop strc-thresh $sstop k $k"
    puts "CFAFLEXMC) [bondstruct_getnrb $bs] rotatable bonds"
    puts "CFAFLEXMC) MC-Temperature $temperature sigma $sigma epsilon $epsilon"
