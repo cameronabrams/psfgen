@@ -707,7 +707,9 @@ proc do_flex_mc { molid msel fa k i j envsel epsilon sigma rcut maxcycles temper
    set il [$msel get index]
    set bs [make_bondstruct $molid $msel]
    bondstruct_deactivate_by_fixed $bs $fa
-   
+   set exind [$msel get index]
+   set envex [atomselect $molid "[$envsel text] and not index $exind"]
+
    if { $i != $j } { 
      puts "CFAFLEXMC) Initial attractor distance [format "%.2f" [measure bond [list $i $j]]] A"
    }
@@ -722,9 +724,9 @@ proc do_flex_mc { molid msel fa k i j envsel epsilon sigma rcut maxcycles temper
    if { $i != $j } {
      set SE [expr 0.5*$k*pow([measure bond [list $i $j]],2)]
    }
-   set ls [roughenergy_setup $mselnoh $envex $rcut]
+   set ls [roughenergy_setup $msel $envex $rcut]
   #puts "calc ($mselnoh) ($rcut) ($sigma) ($epsilon) ($bs) ($ls)..."
-   set EE [roughenergy $mselnoh $rcut $sigma $epsilon $bs $ls]
+   set EE [roughenergy $msel $rcut $sigma $epsilon $bs $ls]
    set E [expr $SE + $EE]
    set E0 $E
    #puts "CFAFLEXMC) E0 $E0"
@@ -752,7 +754,7 @@ proc do_flex_mc { molid msel fa k i j envsel epsilon sigma rcut maxcycles temper
       } else {
         set SE 0.0
       }
-      set EE [roughenergy $mselnoh $rcut $sigma $epsilon $bs $ls]
+      set EE [roughenergy $msel $rcut $sigma $epsilon $bs $ls]
       set E [expr $SE + $EE]
      # puts " ... E $E"
       set X [expr rand()]

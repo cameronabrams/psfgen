@@ -342,6 +342,7 @@ double my_roughenergy ( int * i1, double * x1, double * y1, double * z1, int n1,
       icx=(int)((x1[i]-ls->xmin)/ls->dx);
       icy=(int)((y1[i]-ls->ymin)/ls->dy);
       icz=(int)((z1[i]-ls->zmin)/ls->dz);
+      
       //printf(" %i cell(%i/%i,%i/%i,%i/%i)\n",a,icx,ls->xnc,icy,ls->ync,icz,ls->znc);fflush(stdout);
       for (dx=-1;dx<2;dx++) {
          tx=icx+dx;
