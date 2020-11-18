@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include "linkcell.h"
 
 // rotatable bonds: bonds are directional!  the i->j bond is "different"
 // from the j->i bond because even though the same two atoms
@@ -43,27 +44,7 @@ typedef struct BONDSTRUCT {
   //int sr; // position saver 
 } bondstruct;
 
-typedef struct LINKCELL {
-    
-    double xmin,xmax,xspan;
-    double ymin,ymax,yspan;
-    double zmin,zmax,zspan;
-    double cut; // cutoff
-    double dx, dy, dz; // cell dimensions in x, y , z
-    int xnc, ync, znc; // number of cells along x, y, z
-    int nc; // number of cells
 
-    double * x, * y, * z; // particle position arrays, dim[n]
-    int n; // number of particles
-    int * cx, * cy, * cz; // cell coordinates of each particle, dim[n]
-    int * ci; // linear cell index of each particle, dim[n]
-    
-    int **** pa; // particle-arrays dim[xnc][ync][znc][np[][][]]
-    int *** np; // particle counts 
-} linkcell;
-
-linkcell * linkcell_new ( double * x, double * y, double * z, int n, double cut );
-linkcell * my_roughenergy_setup ( double * x2, double * y2, double * z2, int n2, double cut );
 bondstruct * new_bondstruct ( int * ia, int na, int nb );
 void free_bondstruct ( bondstruct * bs );
 void bondstruct_print ( bondstruct * bs );

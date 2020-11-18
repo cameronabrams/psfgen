@@ -12,6 +12,7 @@ double get_double(double *a, int index) {
 #include <stdio.h>
 #include <stdlib.h>
 #include "bondstruct.h"
+#include "linkcell.h"
 %}
 extern bondstruct * new_bondstruct ( int * ia, int na, int nb );
 extern void free_bondstruct ( bondstruct * bs );
