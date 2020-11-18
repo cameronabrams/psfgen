@@ -802,7 +802,7 @@ proc do_flex_mc { molid msel fa k i j envsel epsilon sigma rcut maxcycles dstop 
         }
       }
    }
-   puts -noewline "CFAFLEXMC) Stop at cycle $ncyc: "
+   puts -noewline "CFAFLEXMC) Stop at cycle $cyc: "
    if { $i != $j } {
      puts -nonewline "attr dst: [format "%.2f" [measure bond [list $i $j]]] [format "attr-pnlty %.2f " $SE]"
    }
