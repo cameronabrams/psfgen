@@ -318,7 +318,7 @@ proc do_loop_mc { residueList c molid k r0 env sigma epsilon rcut maxcycles temp
     }
     set SE [expr 0.5*$k*pow([measure bond $idx]-$r0,2)]
     #set EE [roughenergy $mselnoh $env $rcut]
-    set EE [roughenergy $mselnoh $envex $rcut $sigma $epsilon $bs]
+    set EE [roughenergy $mselnoh $rcut $sigma $epsilon $bs $ls]
     set E [expr $SE + $EE]
     # decide to accept or reject this new conformation using a 
     # metropolis criterion
