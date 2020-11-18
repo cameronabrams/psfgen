@@ -44,7 +44,6 @@ proc my_increment { numlet } {
 # computes overlap energy between atoms in sel1 and sel2.  "sel2" is assumed to be a static background that
 # does not include the atoms in sel1.  Atom indices in sel1 are assumed not to change.
 proc roughenergy_setup { sel1 sel2 cut } {
-
   global _r1
   global _r2
   global _x1
