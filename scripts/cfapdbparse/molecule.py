@@ -354,12 +354,14 @@ class Molecule:
                 for sa in self.Seqadv:
                     print('### SEQADV:',sa)
             else:
-                print('{:d} SEQADV records; conflicts are'.format(len(self.Seqadv)))
+                
                 nc=0
+                cons=[]
                 for sa in self.Seqadv:
                     if sa.conflict=='CONFLICT':
-                        sa.printshort()
+                        cons.append(sa.printshort())
                         nc = nc + 1
+                print('{:d} SEQADV records; {:d} conflicts: '.format(len(self.Seqadv),nc,", ".join(cons)))
 
     def MakeBiomolecules(self):
         self.chainIDs_allowed=set(['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'])
