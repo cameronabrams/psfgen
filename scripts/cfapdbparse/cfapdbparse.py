@@ -85,7 +85,7 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
                 fp.write('{{ {} {} {} }}\n'.format(l.replica_chainID,l.residues[0].resseqnum,l.residues[-1].resseqnum))
         fp.write('           }\n')
         fp.write('set nc 1000\n')
-        fp.write('set rcut 3.0\n')
+        fp.write('set rcut 6.0\n')
         fp.write('set sigma 1.8\n')
         fp.write('set epsilon 0.5\n')
         fp.write('set r0 1.5\n')
