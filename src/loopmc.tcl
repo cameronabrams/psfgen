@@ -64,7 +64,7 @@ proc roughenergy_setup { sel1 sel2 cut } {
   set _z2 [ListToArray [$sel2 get z]]
   set _n1 [$sel1 num]
   set _n2 [$sel2 num]
-  puts "Calling my_roughenergy_setup"
+  #puts "Calling my_roughenergy_setup"
   set ls [my_roughenergy_setup $_x2 $_y2 $_z2 $_n2 $cut]
   return $ls
 }
@@ -291,15 +291,15 @@ proc do_loop_mc { residueList c molid k r0 env sigma epsilon rcut maxcycles temp
 
   set nacc 0
   
-  puts "roughenergy setup..."
+  #puts "roughenergy setup..."
   set ls [roughenergy_setup $mselnoh $envex $rcut]
-  puts "calc ($mselnoh) ($rcut) ($sigma) ($epsilon) ($bs) ($ls)..."
+  #puts "calc ($mselnoh) ($rcut) ($sigma) ($epsilon) ($bs) ($ls)..."
   set SE [expr 0.5*$k*pow([measure bond $idx]-$r0,2)]
   
   set EE [roughenergy $mselnoh $rcut $sigma $epsilon $bs $ls]
   set E [expr $SE + $EE]
   set E0 $E
-  puts "EE $EE"
+  #puts "EE $EE"
   flush stdout
 
   for {set cyc 0} { $cyc < $maxcycles } { incr cyc } {
@@ -349,6 +349,7 @@ proc do_loop_mc { residueList c molid k r0 env sigma epsilon rcut maxcycles temp
     }
   }
   puts "CFALOOPMC) ($rend) cyc $cyc na $nacc ([format "%.5f" [expr (1.0*$nacc)/($cyc+1)]]) CA-C: [format "%.2f" [measure bond $idx]]"
+  free_bondstruct $bs
   roughenergy_cleanup $ls
 }
 
@@ -721,7 +722,9 @@ proc do_flex_mc { molid msel fa k i j envsel epsilon sigma rcut maxcycles temper
    if { $i != $j } {
      set SE [expr 0.5*$k*pow([measure bond [list $i $j]],2)]
    }
-   set EE [roughenergy $msel $envsel $rcut $sigma $epsilon $bs]
+   set ls [roughenergy_setup $mselnoh $envex $rcut]
+  #puts "calc ($mselnoh) ($rcut) ($sigma) ($epsilon) ($bs) ($ls)..."
+   set EE [roughenergy $mselnoh $rcut $sigma $epsilon $bs $ls]
    set E [expr $SE + $EE]
    set E0 $E
    #puts "CFAFLEXMC) E0 $E0"
@@ -749,7 +752,7 @@ proc do_flex_mc { molid msel fa k i j envsel epsilon sigma rcut maxcycles temper
       } else {
         set SE 0.0
       }
-      set EE [roughenergy $msel $envsel $rcut $sigma $epsilon $bs]
+      set EE [roughenergy $mselnoh $rcut $sigma $epsilon $bs $ls]
       set E [expr $SE + $EE]
      # puts " ... E $E"
       set X [expr rand()]
@@ -784,6 +787,7 @@ proc do_flex_mc { molid msel fa k i j envsel epsilon sigma rcut maxcycles temper
    #}
    #puts "[format "strc-pnlty %.2f" $EE]"
    free_bondstruct $bs
+   roughenergy_cleanup $ls
 }
 
 proc ladd {l} {

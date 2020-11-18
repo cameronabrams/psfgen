@@ -90,7 +90,7 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
         fp.write('set epsilon 0.5\n')
         fp.write('set r0 1.5\n')
         fp.write('set temperature 3.0\n')
-        fp.write('set k 20.0\n')
+        fp.write('set k 100.0\n')
         fp.write('set bg [atomselect $molid "noh"]\n')
         fp.write('set loopindex 0\n')
         fp.write('set nloops [llength $loops]\n')
@@ -104,7 +104,7 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
 
     if 'do_gly_mc' in PostMod and PostMod['do_gly_mc']:
         fp.write('set nc 1000\n')
-        fp.write('set rcut 6.0\n')
+        fp.write('set rcut 4.0\n')
         fp.write('set sigma 1.8\n')
         fp.write('set epsilon 0.5\n')
         fp.write('set temperature 3.0\n')
