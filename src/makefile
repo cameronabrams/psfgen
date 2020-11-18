@@ -18,7 +18,6 @@ CFLAGS += -O3 -I/usr/include/tcl
 USER_FLAGS =
 
 OBJ += bondstruct.o 
-OBJ += linkcell.o
 
 all: bondstruct.so 
 
@@ -33,7 +32,6 @@ bondstruct.so:  $(OBJ) bondstruct_wrap.o
 	swig -tcl8 $<
 
 bondstruct.o : bondstruct.h
-linkcell.o : linkcell.h
 
 .PHONY: clean force
 
