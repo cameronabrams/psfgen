@@ -44,19 +44,19 @@ linkcell * linkcell_new ( double * x, double * y, double * z, int n, double cut 
     ls->xmin=min(x,n)-cut;
     ls->xmax=max(x,n)+cut;
     ls->xspan=ls->xmax-ls->xmin;
-    ls->xnc=(int)(ls->xspan/ls->cut+1);
+    ls->xnc=(int)(ls->xspan/ls->cut-1);
     ls->dx=ls->xspan/ls->xnc;
 
     ls->ymin=min(y,n)-cut;
     ls->ymax=max(y,n)+cut;
     ls->yspan=ls->ymax-ls->ymin;
-    ls->ync=(int)(ls->yspan/ls->cut+1);
+    ls->ync=(int)(ls->yspan/ls->cut-1);
     ls->dy=ls->yspan/ls->ync;
 
     ls->zmin=min(z,n)-cut;
     ls->zmax=max(z,n)+cut;
     ls->zspan=ls->zmax-ls->zmin;
-    ls->znc=(int)(ls->zspan/ls->cut+1);
+    ls->znc=(int)(ls->zspan/ls->cut-1);
     ls->dz=ls->zspan/ls->znc;
 
     ls->nc=ls->xnc*ls->ync*ls->znc;
