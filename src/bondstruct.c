@@ -306,6 +306,9 @@ int isin ( int * arr, int n, int t ) {
    return 0;
 }
 
+void my_roughenergy_cleanup ( linkcell * ls ) {
+   linkcell_free(ls);
+}
 
 double my_roughenergy ( int * i1, double * x1, double * y1, double * z1, int n1, 
                         int * i2, int n2,
