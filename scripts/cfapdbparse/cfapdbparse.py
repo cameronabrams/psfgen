@@ -188,6 +188,8 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
         fp.write('   set root [lindex [lsort -unique -real $rid] 0]\n')
         fp.write('   set atomind [dict create]\n') 
         fp.write('   dict set atomind fa  [[atomselect $molid "segname $g and name C1 and resid $root"] get index]\n')
+        fp.write('   dict set atomind ca  -1\n')
+        fp.write('   dict set atomind c  -1\n')
         fp.write('   puts "Relaxing glycan $g ($gi/$ng) rootres $root..."\n')
         fp.write('   do_flex_mc $molid $msel $bg atomind mcp [irand_dom 1000 9999] $logid {} {}\n'.format(logevery,logsaveevery))
         fp.write('   set gi [expr $gi + 1]\n')
