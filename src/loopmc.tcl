@@ -738,7 +738,7 @@ proc do_flex_mc { molid msel fa k i j envsel epsilon sigma rcut maxcycles temper
          #set av [expr 60 * [irand_dom 1 5]]
          set av [expr 6 * [irand_dom -5 5]]
         # puts "cyc $cyc bond $r deg $av"
-        set rr [bondstruct_r2b $r]
+        set rr [bondstruct_r2b $bs $r]
          if { [bondstruct_isactive $bs $rr] } {
            bondrot_by_index $bs $molid $rr $av
            set nrot [expr $nrot + 1]
