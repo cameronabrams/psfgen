@@ -78,6 +78,7 @@ linkcell * linkcell_new ( double * x, double * y, double * z, int n, double cut 
         ls->cy[i]=(int)((ls->y[i]-ls->ymin)/ls->dy);
         ls->cz[i]=(int)((ls->z[i]-ls->zmin)/ls->dz);
         ls->ci[i]=ls->cx[i]*ls->ync*ls->znc+ls->cy[i]*ls->znc+ls->cz[i];
+        printf("linear index %i",ls->ci[i])
         npl[ls->ci[i]]++;
     }
 
@@ -92,7 +93,7 @@ linkcell * linkcell_new ( double * x, double * y, double * z, int n, double cut 
             for (k=0;k<ls->znc;k++) {
                 lci=i*ls->ync*ls->znc+j*ls->znc+k;
                 ls->pa[i][j][k]=(int*)malloc(npl[lci]*sizeof(int*));
-                ls->np[i][j][j]=0;
+                ls->np[i][j][k]=0;
             }
         }
     }
