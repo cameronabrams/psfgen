@@ -71,7 +71,7 @@ proc roughenergy_setup { sel1 sel2 cut } {
 }
 
 proc roughenergy_cleanup { ls } {
-  myroughenergy_cleanup $ls
+  my_roughenergy_cleanup $ls
 }
 
 proc roughenergy { sel1 cut sigma epsilon bs ls }  {
