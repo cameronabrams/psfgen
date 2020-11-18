@@ -289,11 +289,11 @@ proc do_loop_mc { residueList c molid k r0 env sigma epsilon rcut maxcycles temp
   set nacc 0
   
   puts "roughenergy setup..."
-  roughenergy_setup $mselnoh $envex $rcut
+  set ls [roughenergy_setup $mselnoh $envex $rcut]
   puts "calc..."
   set SE [expr 0.5*$k*pow([measure bond $idx]-$r0,2)]
   
-  set EE [roughenergy $mselnoh $envex $rcut $sigma $epsilon $bs]
+  set EE [roughenergy $mselnoh $envex $rcut $sigma $epsilon $bs $ls]
   set E [expr $SE + $EE]
   set E0 $E
   puts "EE $EE"
