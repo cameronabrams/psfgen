@@ -120,27 +120,27 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
         fp.write('foreach l $loops {\n')
         fp.write('   set chain [lindex $l 0]\n')
         fp.write('   puts "Relaxing loop $l ($loopindex out of [expr $nloops-1])..."\n')
-        fp.write('   set upsel [atomselect $molid "protein and chain $chain and resid [lindex $l 1]"]')
-        fp.write('   set bnds [$upsel getbonds]
-        fp.write('   set an [$upsel get name]
-        fp.write('   set ai [$upsel get index]
-        fp.write('   set upc -1
-        fp.write('   foreach n $an i $ai bl $bnds {
-        fp.write('     if { $n == "N" } {
-        fp.write('       foreach b $bl {
-        fp.write('         if { [lsearch $ai $b] == -1 } {
-        fp.write('              set upc $b
-        fp.write('         }
-        fp.write('       }
-        fp.write('     }
-        fp.write('   }
-        fp.write('   if { $upc == -1 } {
-        fp.write('     set firstres [lindex $l 1]
-        fp.write('   } else {
-        fp.write('     set upres [[atomselect $molid "index $upc"] get resid]
-        fp.write('     set firstres $upres
-        fp.write('     puts "setting firstres to $upres"
-        fp.write('   }
+        fp.write('   set upsel [atomselect $molid "protein and chain $chain and resid [lindex $l 1]"]\n')
+        fp.write('   set bnds [$upsel getbonds]\n')
+        fp.write('   set an [$upsel get name]\n')
+        fp.write('   set ai [$upsel get index]\n')
+        fp.write('   set upc -1\n')
+        fp.write('   foreach n $an i $ai bl $bnds {\n')
+        fp.write('     if { $n == "N" } {\n')
+        fp.write('       foreach b $bl {\n')
+        fp.write('         if { [lsearch $ai $b] == -1 } {\n')
+        fp.write('              set upc $b\n')
+        fp.write('         }\n')
+        fp.write('       }\n')
+        fp.write('     }\n')
+        fp.write('   }\n')
+        fp.write('   if { $upc == -1 } {\n')
+        fp.write('     set firstres [lindex $l 1]\n')
+        fp.write('   } else {\n')
+        fp.write('     set upres [[atomselect $molid "index $upc"] get resid]\n')
+        fp.write('     set firstres $upres\n')
+        fp.write('     puts "setting firstres to $upres"\n')
+        fp.write('   }\n')
         fp.write('   set msel [atomselect $molid "protein and chain $chain and resid $firstres to [lindex $l 2]"]\n')
         fp.write('   set atomind(fa) [[atomselect $molid "protein and chain $chain and resid $firstres and name CA"] get index]\n')
         fp.write('   set atomind(ca) [[atomselect $molid "protein and chain $chain and resid [lindex $l 2] and name CA"] get index]\n')
