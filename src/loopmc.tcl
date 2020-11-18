@@ -707,6 +707,7 @@ proc do_flex_mc { molid msel fa k i j envsel epsilon sigma rcut maxcycles temper
    set il [$msel get index]
    set bs [make_bondstruct $molid $msel]
    bondstruct_deactivate_by_fixed $bs $fa
+   bondstruct_print $bs
    set exind [$msel get index]
    set envex [atomselect $molid "[$envsel text] and not index $exind"]
 
@@ -736,7 +737,7 @@ proc do_flex_mc { molid msel fa k i j envsel epsilon sigma rcut maxcycles temper
       set nrot 0
       for {set r 0} {$r < [bondstruct_getnrb $bs] } {incr r} {
          #set av [expr 60 * [irand_dom 1 5]]
-         set av [expr 6 * [irand_dom -5 5]]
+         set av [expr 60 * [irand_dom -5 5]]
         # puts "cyc $cyc bond $r deg $av"
         set rr [bondstruct_r2b $bs $r]
          if { [bondstruct_isactive $bs $rr] } {
