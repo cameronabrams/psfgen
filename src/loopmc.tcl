@@ -717,7 +717,7 @@ proc do_flex_mc { molid msel envsel refatominddict paramsdict iseed logid logeve
   # bondstruct_print $bs
    set exind [$msel get index]
    set envex [atomselect $molid "[$envsel text] and not index $exind"]
-   puts "CFAFLEXMC) msel [$msel num] envex [$envex num]"
+   puts "CFAFLEXMC) msel [$msel num] envex [$envex num] fa $fa"
    flush stdout
    if { $i != $j } { 
      puts "CFAFLEXMC) Initial attractor distance [format "%.2f" [measure bond [list $i $j]]] A"
