@@ -323,7 +323,8 @@ double my_roughenergy ( int * i1, double * x1, double * y1, double * z1, int n1,
       // pairwise sum over all sel1 pairs
       a=i1[i];
       for (ij=i+1;ij<n1;ij++) {
-         if (bondstruct_arebonded(bs,a,a)) continue;
+         b=i1[ij];
+         if (bondstruct_arebonded(bs,a,b)) continue;
          d2 =(x1[i]-x1[ij])*(x1[i]-x1[ij]);
          d2+=(y1[i]-y1[ij])*(y1[i]-y1[ij]);
          d2+=(z1[i]-z1[ij])*(z1[i]-z1[ij]);
