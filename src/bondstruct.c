@@ -322,6 +322,7 @@ double my_roughenergy ( int * i1, double * x1, double * y1, double * z1, int n1,
    for (i=0;i<n1;i++) {
       // pairwise sum over all sel1 pairs
       a=i1[i];
+      printf(" %i intrasel\n",a);fflush(stdout);
       for (ij=i+1;ij<n1;ij++) {
          b=i1[ij];
          if (bondstruct_arebonded(bs,a,b)) continue;
@@ -338,6 +339,7 @@ double my_roughenergy ( int * i1, double * x1, double * y1, double * z1, int n1,
       icx=(int)((x1[i]-ls->xmin)/ls->dx);
       icy=(int)((y1[i]-ls->ymin)/ls->dy);
       icz=(int)((z1[i]-ls->zmin)/ls->dz);
+      printf(" %i cell(%i,%i,%i)\n",a,icx,icy,icz);fflush(stdout);
       for (dx=-1;dx<2;dx++) {
          tx=icx+dx;
          if (tx==ls->xnc||tx==-1) continue;
@@ -347,6 +349,7 @@ double my_roughenergy ( int * i1, double * x1, double * y1, double * z1, int n1,
             for (dz=-1;dz<2;dz++) {
                tz=icy+dz;
                if (tz==ls->znc||tz==-1) continue;
+               printf("   -> cell(%i,%i,%i)\n",tx,ty,tz);fflush(stdout);
                pa=ls->pa[tx][ty][tz];
                np=ls->np[tx][ty][tz];
                for (j=0;j<np;j++) {
