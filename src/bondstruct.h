@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-#include "linkcell.h"
 
 // rotatable bonds: bonds are directional!  the i->j bond is "different"
 // from the j->i bond because even though the same two atoms
