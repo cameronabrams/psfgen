@@ -370,24 +370,3 @@ double my_roughenergy ( int * i1, double * x1, double * y1, double * z1, int n1,
    return E*epsilon;
 }
 
-double max ( double * a, int n ) {
-   double r = -1.e23;
-   int i;
-   for (i=0;i<n;i++) {
-      if (a[i]>r) {
-         r=a[i];
-      }
-   }
-   return r;
-}
-
-double min ( double * a, int n ) {
-   double r = 1.e23;
-   int i;
-   for (i=0;i<n;i++) {
-      if (a[i]<r) {
-         r=a[i];
-      }
-   }
-   return r;
-}
