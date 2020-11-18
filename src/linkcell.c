@@ -112,3 +112,28 @@ linkcell * my_roughenergy_setup ( double * x2, double * y2, double * z2, int n2,
    linkcell * ls = linkcell_new(x2,y2,z2,n2,cut);
    return ls;
 }
+
+void linkcell_free ( linkcell * ls ) {
+    int i,j,k;
+    ls->x=NULL;
+    ls->y=NULL;
+    ls->z=NULL;
+    free(ls->ci);
+    free(ls->cx);
+    free(ls->cy);
+    free(ls->cz);
+    for (i=0;i<ls->xnc;i++) {
+        for (j=0;j<ls->ync;j++) {
+            free(ls->np[i][j]);
+            for (k=0;k<ls->znc;k++) {
+                free(ls->pa[i][j][k]);
+            }
+            free(ls->pa[i][j]);
+        }
+        free(ls->pa[i]);
+        free(ls->np[i]);
+    }
+    free(ls->pa);
+    free(ls->np);
+    free(ls)
+}

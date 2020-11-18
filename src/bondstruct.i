@@ -39,4 +39,4 @@ extern linkcell * my_roughenergy_setup ( double * x2, double * y2, double * z2, 
 extern double my_roughenergy ( int * i1, double * x1, double * y1, double * z1, int n1, int * i2, 
                         int n2, double cut,
                         double sigma, double epsilon, bondstruct * bs, linkcell * ls );
-
+extern void my_roughenergy_cleanup ( linkcell * ls );

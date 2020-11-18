@@ -70,6 +70,10 @@ proc roughenergy_setup { sel1 sel2 cut } {
   return $ls
 }
 
+prot roughenergy_cleanup { ls } {
+  myroughenergy_cleanup $ls
+}
+
 proc roughenergy { sel1 cut sigma epsilon bs ls }  {
   global _r1
   global _r2
@@ -346,6 +350,7 @@ proc do_loop_mc { residueList c molid k r0 env sigma epsilon rcut maxcycles temp
     }
   }
   puts "CFALOOPMC) ($rend) cyc $cyc na $nacc ([format "%.5f" [expr (1.0*$nacc)/($cyc+1)]]) CA-C: [format "%.2f" [measure bond $idx]]"
+  roughenergy_cleanup $ls
 }
 
 # matrix inversion routine from http://wiki.tcl.tk/14921 (Keith Vetter)
