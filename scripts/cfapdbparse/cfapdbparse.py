@@ -101,7 +101,7 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
             mck=mck if 'k' not in p else p['k']
             dstop=dstop if 'dstop' not in p else p['dstop']
             sstop=sstop if 'sstop' not in p else p['sstop']
-            maxanglestep=maxanglestep if 'maxanglestep' not in p else ['maxanglestep']
+            maxanglestep=maxanglestep if 'maxanglestep' not in p else p['maxanglestep']
         fp.write('set mcp [dict create]\n')
         fp.write('dict set mcp nc {}\n'.format(nc))
         fp.write('dict set mcp rcut {}\n'.format(rcut))
@@ -169,7 +169,7 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
             epsilon=epsilon if 'epsilon' not in p else p['epsilon']
             mctemperature=mctemperature if 'temperature' not in p else p['temperature']
             sstop=sstop if 'sstop' not in p else p['sstop']
-            maxanglestep=maxanglestep if 'maxanglestep' not in p else ['maxanglestep']
+            maxanglestep=maxanglestep if 'maxanglestep' not in p else p['maxanglestep']
         fp.write('set mcp [dict create]\n')
         fp.write('dict set mcp nc {}\n'.format(nc))
         fp.write('dict set mcp rcut {}\n'.format(rcut))
