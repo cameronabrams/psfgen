@@ -714,6 +714,7 @@ proc do_flex_mc { molid msel envsel refatominddict paramsdict iseed logid logeve
    set exind [$msel get index]
    set envex [atomselect $molid "[$envsel text] and not index $exind"]
    puts "CFAFLEXMC) msel [$msel num] envex [$envex num]"
+   flush stdout
    # extract parameters
    set fa [dict get $refatoms fa]
    set i [dict get $refatoms ca]
