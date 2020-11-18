@@ -88,7 +88,7 @@ proc roughenergy { sel1 cut sigma epsilon bs ls }  {
   ListToArray_Data $_x1 [$sel1 get x]
   ListToArray_Data $_y1 [$sel1 get y]
   ListToArray_Data $_z1 [$sel1 get z]
-  set E [my_roughenergy $_r1 $_x1 $_y1 $_z1 $_n1 $cut $sigma $epsilon $bs $ls ]
+  set E [my_roughenergy $_r1 $_x1 $_y1 $_z1 $_n1 $cut $sigma $epsilon $bs $ls]
   
   return $E
 }
