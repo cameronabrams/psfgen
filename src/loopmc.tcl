@@ -749,6 +749,8 @@ proc do_flex_mc { molid msel envsel refatominddict paramsdict iseed logid logeve
   #puts "calc ($mselnoh) ($rcut) ($sigma) ($epsilon) ($bs) ($ls)..."
    set EE [roughenergy $mselnoh $rcut $sigma $epsilon $bs $ls]
    set E [expr $SE + $EE]
+   set lastEE $EE
+   set lastSE $SE
    set E0 $E
    #puts "CFAFLEXMC) E0 $E0"
    set keep_cycling 1
@@ -812,6 +814,8 @@ proc do_flex_mc { molid msel envsel refatominddict paramsdict iseed logid logeve
              animate write dcd "tmp.dcd" waitfor all sel $loga $logid
           }
         }
+        set lastEE $EE
+        set lastSE $SE
         if { $EE < $sstop && $dattr < $dstop } {
           set keep_cycling 0
         }
@@ -819,9 +823,9 @@ proc do_flex_mc { molid msel envsel refatominddict paramsdict iseed logid logeve
    }
    puts -nonewline "CFAFLEXMC) Stop at cycle $cyc: "
    if { $i != $j } {
-     puts -nonewline "attr dst: [format "%.2f" [measure bond [list $i $j]]] [format "attr-pnlty %.2f " $SE]"
+     puts -nonewline "attr dst: [format "%.2f" [measure bond [list $i $j]]] [format "attr-pnlty %.2f " $lastSE]"
    }
-   puts "[format "strc-pnlty %.2f" $EE]"
+   puts "[format "strc-pnlty %.2f" $lastEE]"
    free_bondstruct $bs
    roughenergy_cleanup $ls
 }
