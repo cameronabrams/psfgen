@@ -705,9 +705,13 @@ proc do_flex_mc { molid msel envsel refatominddict paramsdict iseed logid logeve
 
    upvar 1 $refatominddict refatoms
    upvar 1 $paramsdict params
+
    set mselnoh [atomselect $molid "([$msel text]) and noh"]
    #set bl [$msel getbonds]
    #set il [$mselnoh get index]
+   set fa [dict get $refatoms fa]
+   set i [dict get $refatoms ca]
+   set j [dict get $refatoms c]
    set bs [make_bondstruct $molid $msel]
    bondstruct_deactivate_by_fixed $bs $fa
   # bondstruct_print $bs
@@ -715,10 +719,6 @@ proc do_flex_mc { molid msel envsel refatominddict paramsdict iseed logid logeve
    set envex [atomselect $molid "[$envsel text] and not index $exind"]
    puts "CFAFLEXMC) msel [$msel num] envex [$envex num]"
    flush stdout
-   # extract parameters
-   set fa [dict get $refatoms fa]
-   set i [dict get $refatoms ca]
-   set j [dict get $refatoms c]
    if { $i != $j } { 
      puts "CFAFLEXMC) Initial attractor distance [format "%.2f" [measure bond [list $i $j]]] A"
    }
