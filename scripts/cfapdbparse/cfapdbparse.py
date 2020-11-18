@@ -115,6 +115,7 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
         fp.write('set bg [atomselect $molid "noh"]\n')
         fp.write('set loopindex 0\n')
         fp.write('set loops {\n')
+        Loops.sort(key=lambda l: len(l.residues))
         for l in Loops:
             if l.term and len(l.residues)>1:
                 fp.write('{{ {} {} {} }}\n'.format(l.replica_chainID,l.residues[0].resseqnum,l.residues[-1].resseqnum))
