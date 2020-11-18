@@ -17,7 +17,8 @@ CFLAGS += -O3 -I/usr/include/tcl
 
 USER_FLAGS =
 
-OBJ += bondstruct.o 
+OBJ += bondstruct.o
+OBJ += linkcell.o
 
 all: bondstruct.so 
 
