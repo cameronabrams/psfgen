@@ -160,9 +160,9 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
             fp.write(r'set j [list {*}$i {*}$gj]'+'\n')
 
         fp.write('set rotsel [atomselect $molid "{}"]\n'.format(rotsel))
-        fp.write('dict set atomind fa [[atomselect $molid "{}"] get index]\n'.format(fa_sel))
-        fp.write('dict set atomind i [[atomselect $molid "{}"] get index]\n'.format(ca_sel))
-        fp.write('dict set atomind j [[atomselect $molid "{}"] get index]\n'.format(c_sel))
+        fp.write('dict set atomind fa $fa\n'.format(fa_sel))
+        fp.write('dict set atomind i $i\n'.format(ca_sel))
+        fp.write('dict set atomind j $j\n'.format(c_sel))
         fp.write('do_multiflex_mc $molid $rotsel atomind mcp [irand_dom 1000 9999] $logid {} {}\n'.format(logevery,logsaveevery))
  #       fp.write('           }\n')
  #       fp.write('set nloops [llength $loops]\n')
