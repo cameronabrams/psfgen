@@ -282,6 +282,7 @@ void bondstruct_deactivate_by_fixed ( bondstruct * bs, int fa ) {
       if (j<bs->bran[i]) {
          bs->isactive[i]=0;
          bs->isrotatable[i]=0;
+      }
    }
 }
 
