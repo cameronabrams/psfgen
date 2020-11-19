@@ -141,7 +141,7 @@ proc make_bondstruct { molid sel } {
     set na [llength $il]
     # first, count the total number of bonds in the bondlist,
     # excluding bonds to atoms outside the sel
-    puts "BONDSTRUCT) pruning from VMD [\$sel getbonds]..."
+    puts "BONDSTRUCT) pruning from VMD [sel getbonds]..."
     flush stdout
     set bondcount 0
     for { set i 0 } { $i < $na } { incr i } {
