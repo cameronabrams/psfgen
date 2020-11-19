@@ -189,7 +189,8 @@ class Segment:
                            stanzastr+='   residue {}{} {} {}\n'.format(rr.resseqnum,rr.insertion,nm,tmat.get_replica_chainID(rr.chainID))
                         # insert sacrificial glycine
                         rr=l.residues[-1]
-                        stanzastr+='   residue {}{} {} {}\n'.format(rr.resseqnum,chr(ord(rr.insertion)+1),'GLY',tmat.get_replica_chainID(rr.chainID))
+                        ss.sacrins='A' if rr.insertion != '' else chr(ord(rr.insertion)+1)
+                        stanzastr+='   residue {}{} {} {}\n'.format(rr.resseqnum,ss.sacrins,'GLY',tmat.get_replica_chainID(rr.chainID))
                         ss.sacrins=chr(ord(rr.insertion)+1)
             ''' PART 2.1:  Include mutations '''
             #print('### {} mutations'.format(len(self.mutations)))
