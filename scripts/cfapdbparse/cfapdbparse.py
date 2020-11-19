@@ -265,10 +265,12 @@ if __name__=='__main__':
     parser.add_argument('-logdcd',metavar='<name>.dcd',default='',help='name of dcd logging file')
     parser.add_argument('-logevery',metavar='<int>',default=1,help='number of MC accepts between successive frame logging')
     parser.add_argument('-logsaveevery',metavar='<int>',default=1,help='number of MC accepts between log writes to disk')
-    parser.add_argument('-rlxloops',action='store_true',help='asks psfgen to use the loopMC module to relax modeled-in loops of residues missing from PDB')
-    parser.add_argument('-loopmcparams',metavar='<param1=val1,param2=val2,...>',default='',help='Loop Monte Carlo parameters')
-    parser.add_argument('-rlxgly',action='store_true',help='asks psfgen to use the loopMC module to relax modeled-in glycans missing from PDB')
-    parser.add_argument('-glymcparams',metavar='<param1=val1,param2=val2,...>',default='',help='Glycan Monte Carlo parameters')
+ #   parser.add_argument('-rlxloops',action='store_true',help='asks psfgen to use the loopMC module to relax modeled-in loops of residues missing from PDB')
+    parser.add_argument('-rlxmc',action='store_true',help='asks psfgen to use do_multiflex_mc module to relax modeled-in loops of residues missing from PDB and glycans')
+#    parser.add_argument('-loopmcparams',metavar='<param1=val1,param2=val2,...>',default='',help='Loop Monte Carlo parameters')
+    parser.add_argument('-rlxmcparams',metavar='<param1=val1,param2=val2,...>',default='',help='Loop Monte Carlo parameters')
+ #   parser.add_argument('-rlxgly',action='store_true',help='asks psfgen to use the loopMC module to relax modeled-in glycans missing from PDB')
+ #   parser.add_argument('-glymcparams',metavar='<param1=val1,param2=val2,...>',default='',help='Glycan Monte Carlo parameters')
     parser.add_argument('-kc',action='store_true',help='ignores SEQADV records indicating conflicts; if unset, residues in conflict are mutated to their proper identities')
     parser.add_argument('-rem',action='store_true',help='revert engineered mutations listed in SEQADV records')
     parser.add_argument('-noc',action='store_true',help='do not center the protein at the origin of the coordinate system')
@@ -291,10 +293,12 @@ if __name__=='__main__':
     if len(args.topo)>0:
         CTopo.extend(args.topo)
     prefix=args.prefix
-    PostMod['do_loop_mc']=args.rlxloops
-    PostMod['loop_mc_params']=DictFromString(args.loopmcparams)
-    PostMod['do_gly_mc']=args.rlxgly
-    PostMod['gly_mc_params']=DictFromString(args.glymcparams)
+#    PostMod['do_loop_mc']=args.rlxloops
+#    PostMod['loop_mc_params']=DictFromString(args.loopmcparams)
+#    PostMod['do_gly_mc']=args.rlxgly
+#    PostMod['gly_mc_params']=DictFromString(args.glymcparams)
+    PostMod['do_multiflex_mc']=args.rlxmc
+    PostMod['multiflex_mc_params']=DictFromString(args.rlxmcparams)
     PostMod['Crot']=MrgCmdLineAndFileContents(args.crot,args.crotfile,Crot)
     PostMod['log_dcd_file']=args.logdcd
     PostMod['log_every']=args.logevery
