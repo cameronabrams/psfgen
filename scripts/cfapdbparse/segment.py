@@ -213,12 +213,13 @@ class Segment:
             ''' slice calls '''
             for i in range(0,len(self.subsegbounds)):
                 ss=self.subsegbounds[i]
+                l=ss.d
                 if ss.typ=='LOOP':
                     if (i>0 and i<(len(self.subsegbounds)-1)):
                         fragss=self.subsegbounds[i+1]
-                        stanzastr+='patch cter {}:{}{}\n'.format(rep_segname,ss.residues[-1].resseqnum,ss.residues[-1].insertion)
-                        stanzastr+='patch nter {}:{}{}\n'.format(rep_segname,fragss.residues[0].resseqnum,fragss.residues[0].insertion)
-                        stanzastr+='delatom {} {}{}\n'.format(rep_segname,ss.residues[-1].resseqnum,ss.sacrins)
+                        stanzastr+='patch cter {}:{}{}\n'.format(rep_segname,l.residues[-1].resseqnum,l.residues[-1].insertion)
+                        stanzastr+='patch nter {}:{}{}\n'.format(rep_segname,fragss.d.residues[0].resseqnum,fragss.d.residues[0].insertion)
+                        stanzastr+='delatom {} {}{}\n'.format(rep_segname,l.residues[-1].resseqnum,ss.sacrins)
             return stanzastr,Loops
         elif self.segtype=='GLYCAN':
             stanzastr=''
