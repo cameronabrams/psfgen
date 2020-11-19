@@ -175,15 +175,27 @@ proc make_bondstruct { molid sel } {
         set cbl [lindex $bl $cci]
         foreach cbln $cbl {
             set nn [lsearch $ni $cbln]
-        }
-        if { $nn != -1 } {
-            bondstruct_setbond_rotatable $bs $cc $n 0
-            bondstruct_setbond_rotatable $bs $n $cc 0
-            set nnr [expr $nnr + 1]
+            if { $nn != -1 } {
+                bondstruct_setbond_rotatable $bs $cc $n 0
+                bondstruct_setbond_rotatable $bs $n $cc 0
+                set nnr [expr $nnr + 2]
+                continue
+            }
         }
     }
     puts "BONDSTRUCT) Disabled rotation of $nnr peptide bonds"
     flush stdout
+    # any atom index which has only one bondlist member
+    set nnr 0
+    foreach a $il abl $bl {
+        if { [$llength $abl == 1] } {
+            bondstruct_setbond_rotatable $bs $a $abl[0] 0
+            bondstruct_setbond_rotatable $bs $abl[0] $a 0
+            set nnr [expr $nnr + 2]
+        }
+    }
+    puts "BONDSTRUCT) Disabled rotation of $nnr single-ligand bonds"
+    puts "BONDSTRUCT) $bondcount total bonds, [bondstruct_getnrb $bs] rotatables"
     puts "BONDSTRUCT) Making right-sides..."
 #    puts "mapping rotatables..."
     # generate the count of rotatable bonds and the map to the bond array
