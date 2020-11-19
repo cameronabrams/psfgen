@@ -195,11 +195,11 @@ proc make_bondstruct { molid sel } {
         }
     }
     puts "BONDSTRUCT) Disabled rotation of $nnr single-ligand bonds"
+    # generate the count of rotatable bonds and the map to the bond array
+    bondstruct_maprotatables $bs
     puts "BONDSTRUCT) $bondcount total bonds, [bondstruct_getnrb $bs] rotatables"
     puts "BONDSTRUCT) Making right-sides..."
 #    puts "mapping rotatables..."
-    # generate the count of rotatable bonds and the map to the bond array
-    bondstruct_maprotatables $bs
 #    puts "making right-sides..."
     # make the right-side lists for each bond
     bondstruct_makerightsides $bs
