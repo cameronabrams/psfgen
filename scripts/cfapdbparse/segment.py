@@ -193,7 +193,6 @@ class Segment:
                            rr=l.residues[-1]
                            ss.sacrins='A' if rr.insertion != '' else chr(ord(rr.insertion)+1)
                            stanzastr+='   residue {}{} {} {}\n'.format(rr.resseqnum,ss.sacrins,'GLY',tmat.get_replica_chainID(rr.chainID))
-                           ss.sacrins=chr(ord(rr.insertion)+1)
             ''' PART 2.1:  Include mutations '''
             #print('### {} mutations'.format(len(self.mutations)))
             for m in self.mutations:
