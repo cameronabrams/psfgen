@@ -147,6 +147,8 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
             fp.write('set gra {}\n')
             fp.write('set gi {}\n')
             fp.write('set gj {}\n')
+            fp.write('set glycan_segs [list '+' '.join(GlycanSegs)+']\n')
+            fp.write('set ng [llength $glycan_segs]\n')
             fp.write('foreach g $glycan_segs {\n')
             fp.write('   set sel [atomselect $molid "segname $g"]\n')
             fp.write('   set rid [$sel get resid]\n')
