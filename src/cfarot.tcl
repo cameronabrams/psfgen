@@ -96,6 +96,19 @@ proc intArrayToList {a n} {
     return $l
 }
 
+proc ring_nonrotatables { ri ringsize bs } {
+    if { [llength $ri] == 0 } {
+        return 0
+    }
+    for { set r 0 } { $r < [llength $ri] } { incr r $ringsize } {
+        for {set j 0} {$j<$ringsize} {incr j} {
+            set i [lindex $ri [expr $r + $j]]
+            set k [lindex $ri [expr ($i+1)%$ringsize]]
+            bondstruct_setbond_rotatable $bs $i $k 0
+            bondstruct_setbond_rotatable $bs $k $i 0
+        }
+    }
+}
 # a and b are atom indices of a bond
 # ri is an ordered list of ring-atom indices; every block of $ringsize
 # entries is one unique ring
@@ -177,9 +190,11 @@ proc make_bondstruct { molid sel } {
     # is not rotatable
     set r5 [atomselect $molid "ringsize 5 from ([$sel text])"]
     set r5i [$r5 get index]
+    ring_nonrotatables $r5i 5 $bs
     puts "BONDSTRUCT) Considering [expr [llength $r5i]/5] 5-membered rings"
     set r6 [atomselect $molid "ringsize 6 from ([$sel text])"]
     set r6i [$r6 get index]
+    ring_nonrotatables $r6i 6 $bs
     puts "BONDSTRUCT) Considering [expr [llength $r6i]/6] 6-membered rings"
     set c [atomselect $molid "protein and name C and ([$sel text])"]
     set ci [$c get index]
@@ -193,11 +208,9 @@ proc make_bondstruct { molid sel } {
 #            puts "Considering $a-$b"
 #            flush stdout
             set rotatable 1
-            set in5ring [bond_in_ring $a $b $r5i 5]
-            set in6ring [bond_in_ring $a $b $r6i 6]
             set ispeptidebond [bond_is_peptide $a $b $ni $ci]
 #            puts " -> 5 $in5ring 6 $in6ring p $ispeptidebond"
-            if { $in5ring == 1 || $in6ring == 1 || $ispeptidebond == 1 } {
+            if { $ispeptidebond == 1 } {
                 set rotatable 0
             }
             if { [llength $ibl] == 1 } {
