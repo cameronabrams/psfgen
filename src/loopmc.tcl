@@ -855,11 +855,12 @@ proc do_multiflex_mc { molid rotsel refatominddict paramsdict iseed logid logeve
   # bondstruct_print $bs
    set exind [$rotsel get index]
    set envex [atomselect $molid "noh and not index $exind"]
-   puts "CFAFLEXMC) rotsel [$rotsel num] envex [$envex num] falist $fa"
+   puts "CFAFLEXMC) rotsel [$rotsel num] envex [$envex num] falist $falist"
    flush stdout
    foreach i $ilist j $jlist {
       if { $i != $j } { 
-        puts "CFAFLEXMC) Initial attractor distance [format "%.2f" [measure bond [list $i $j]]] A"
+        puts "CFAFLEXMC) Initial ($i)-($j) distance [format "%.2f" [measure bond [list $i $j]]] A"
+        flush stdout
       }
    }
    set maxcycles [dict get $params nc]

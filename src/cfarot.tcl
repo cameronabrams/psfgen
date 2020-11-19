@@ -203,11 +203,7 @@ proc make_bondstruct { molid sel } {
             if { [llength $ibl] == 1 } {
                 set rotatable 0
             }
-            if { $rotatable == 0 } {
-                bondstruct_setbond_rotatable $bs $a $b 0
-            } else {
-                bondstruct_setbond_rotatable $bs $a $b 1
-            }
+            bondstruct_setbond_rotatable $bs $a $b $rotatable
     #        puts "-> $a $b $rotatable"
         }
     }
