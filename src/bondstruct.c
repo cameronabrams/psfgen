@@ -358,7 +358,7 @@ double my_roughenergy ( int * i1, double * x1, double * y1, double * z1, int n1,
                         int * i2, int n2,
                         double cut, double sigma, double epsilon, bondstruct * bs, linkcell * ls ) {
    int i;
-   double E=0.0,
+   double E=0.0;
    int a;
    double s6=sigma*sigma*sigma*sigma*sigma*sigma;
    double rcut=pow(2,1./6.)*sigma,rcut2;
