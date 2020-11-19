@@ -904,7 +904,10 @@ proc do_multiflex_mc { molid rotsel refatominddict paramsdict iseed logid logeve
       set keep_cycling 0
    }
    set nrb [bondstruct_getnrb $bs]
+   set tnacc 0
+   set ngc 0
    for {set cyc 0} { $cyc < $maxcycles && $keep_cycling == 1 } { incr cyc } {
+      set nacc 0
       for {set r 0} {$r < $nrb } {incr r} {
         set SAVEPOS [$rotsel get {x y z}]
         #get a random active bond
@@ -948,8 +951,12 @@ proc do_multiflex_mc { molid rotsel refatominddict paramsdict iseed logid logeve
         }
       }
       # end of one cycle
-      puts "CFAFLEXMC) cyc $cyc na $nacc [format "ar=%.5f" [expr (1.0*$nacc)/($cyc*$nrb+1)]] [format "attr-pnlty= %.2f " $SE] [format "strc-pnlty=%.2f" $EE]"
-      if { [expr $nacc % $logevery == 0 ] } {
+      set tnacc [expr $tnacc + $nacc]
+      if { $nacc > 0 } {
+        set ngc [expr $ngc + 1]
+      }
+      puts "CFAFLEXMC) cyc $cyc na $nacc tna $tnacc [format "ar=%.5f" [expr (1.0*$tnacc)/($cyc*$nrb+1)]] [format "attr-pnlty= %.2f " $SE] [format "strc-pnlty=%.2f" $EE]"
+      if { [expr $ngc % $logevery == 0 ] } {
         log_addframe $molid $logid
         if { [expr $nacc % $logsaveevery == 0] } {
             set loga [atomselect $logid all]
