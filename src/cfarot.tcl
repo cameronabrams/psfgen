@@ -141,6 +141,8 @@ proc make_bondstruct { molid sel } {
     set na [llength $il]
     # first, count the total number of bonds in the bondlist,
     # excluding bonds to atoms outside the sel
+    puts "BONDSTRUCT) pruning from VMD [\$sel getbonds]..."
+    flush stdout
     set bondcount 0
     for { set i 0 } { $i < $na } { incr i } {
         set a [lindex $il $i]
@@ -156,6 +158,8 @@ proc make_bondstruct { molid sel } {
         incr bondcount [llength $bb]
     }
     
+    puts "BONDSTRUCT) Importing into bondstruct..."
+    flush stdout
     # set up an empty bondstruct and populate it atomwise
     set ia [intListToArray $il]
     set bs [new_bondstruct $ia [llength $il] $bondcount]
@@ -182,6 +186,8 @@ proc make_bondstruct { molid sel } {
     set n [atomselect $molid "protein and name N and ([$sel text])"]
     set ni [$n get index]
 #    puts "Considering [llength $ci] peptide bonds"
+    puts "BONDSTRUCT) labeling rotatables..."
+    flush stdout
     foreach a $il ibl $bl {
         foreach b $ibl {
 #            puts "Considering $a-$b"
@@ -205,6 +211,7 @@ proc make_bondstruct { molid sel } {
     #        puts "-> $a $b $rotatable"
         }
     }
+    puts "BONDSTRUCT) Making right-sides..."
 #    puts "mapping rotatables..."
     # generate the count of rotatable bonds and the map to the bond array
     bondstruct_maprotatables $bs

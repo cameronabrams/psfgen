@@ -61,7 +61,7 @@ linkcell * linkcell_new ( double * x, double * y, double * z, int n, double cut 
 
     ls->nc=ls->xnc*ls->ync*ls->znc;
 
-    printf("Sel2 linkcell %i particles with cut %.4f:\n",ls->n,ls->cut);
+    printf("Linkcell %i particles with cut %.4f:\n",ls->n,ls->cut);
     printf("   x: [%6.2f,%6.2f,%6.2f] %i\n",ls->xmin,ls->dx,ls->xmax,ls->xnc);
     printf("   y: [%6.2f,%6.2f,%6.2f] %i\n",ls->ymin,ls->dy,ls->ymax,ls->ync);
     printf("   z: [%6.2f,%6.2f,%6.2f] %i\n",ls->zmin,ls->dz,ls->zmax,ls->znc);

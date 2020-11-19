@@ -310,74 +310,73 @@ void my_roughenergy_cleanup ( linkcell * ls ) {
    linkcell_free(ls);
 }
 
-double my_roughenergy ( int * i1, double * x1, double * y1, double * z1, int n1, 
-                        int * i2, int n2,
-                        double cut, double sigma, double epsilon, bondstruct * bs, linkcell * ls ) {
-   int i,j,ij;
-   int a,b,icx,icy,icz,tx,ty,tz,dx,dy,dz,*pa,np;
-   double d2,E=0.0,di6,di12,bx,by,bz;
-   double s6=sigma*sigma*sigma*sigma*sigma*sigma;
-   double rcut=pow(2,1./6.)*sigma,rcut2;
-   if (rcut>cut) {
-      rcut=cut;
-   }
-   rcut2=rcut*rcut;
-   for (i=0;i<n1;i++) {
-      // pairwise sum over all sel1 pairs
-      a=i1[i];
-      //printf(" %i intrasel\n",a);fflush(stdout);
-      for (ij=i+1;ij<n1;ij++) {
-         b=i1[ij];
-         if (bondstruct_arebonded(bs,a,b)) continue;
-         d2 =(x1[i]-x1[ij])*(x1[i]-x1[ij]);
-         d2+=(y1[i]-y1[ij])*(y1[i]-y1[ij]);
-         d2+=(z1[i]-z1[ij])*(z1[i]-z1[ij]);
-         if (d2<rcut2) {
-            di6=s6/(d2*d2*d2);
-            di12=di6*di6;
-            E+=4*(di12-di6)+1;
-         }      
-      }
-      // linkcell sum over all sel1-sel2 pairs
-      icx=(int)((x1[i]-ls->xmin)/ls->dx);
-      icy=(int)((y1[i]-ls->ymin)/ls->dy);
-      icz=(int)((z1[i]-ls->zmin)/ls->dz);
-      
-      //printf(" %i cell(%i/%i,%i/%i,%i/%i)\n",a,icx,ls->xnc,icy,ls->ync,icz,ls->znc);fflush(stdout);
-      for (dx=-1;dx<2;dx++) {
-         tx=icx+dx;
-         if (tx>=ls->xnc||tx<=-1) continue;
-         for (dy=-1;dy<2;dy++) {
-            ty=icy+dy;
-            if (ty>=ls->ync||ty<=-1) continue;
-            for (dz=-1;dz<2;dz++) {
-               tz=icz+dz;
-               if (tz>=ls->znc||tz<=-1) continue;
-               //printf("   -> cell(%i/%i,%i/%i,%i/%i)\n",tx,ls->xnc,ty,ls->ync,tz,ls->znc);fflush(stdout);
-               pa=ls->pa[tx][ty][tz];
-               np=ls->np[tx][ty][tz];
-               for (j=0;j<np;j++) {
-                  b=i2[pa[j]];
-                  if (bondstruct_arebonded(bs,a,b)) continue;
-                  bx=ls->x[pa[j]];
-                  by=ls->y[pa[j]];
-                  bz=ls->z[pa[j]];
-                  d2 =(x1[i]-bx)*(x1[i]-bx);
-                  d2+=(y1[i]-by)*(y1[i]-by);
-                  d2+=(z1[i]-bz)*(z1[i]-bz);
-                  if (d2<rcut2) {
-                     di6=s6/(d2*d2*d2);
-                     di12=di6*di6;
-                     E+=4*(di12-di6)+1;
-                  }
+double i_cell ( double x, double y, double z, int a, double s6, double epsilon, double rcut2, linkcell * ls ) {
+   int j,ij,b,icx,icy,icz,tx,ty,tz,dx,dy,dz,*pa,np;
+   double di6,di12,bx,by,bz;
+   double E = 0.0;
+   
+   icx=(int)((x-ls->xmin)/ls->dx);
+   icy=(int)((y-ls->ymin)/ls->dy);
+   icz=(int)((z-ls->zmin)/ls->dz);
+   //printf(" %i cell(%i/%i,%i/%i,%i/%i)\n",a,icx,ls->xnc,icy,ls->ync,icz,ls->znc);fflush(stdout);
+   for (dx=-1;dx<2;dx++) {
+      tx=icx+dx;
+      if (tx>=ls->xnc||tx<=-1) continue;
+      for (dy=-1;dy<2;dy++) {
+         ty=icy+dy;
+         if (ty>=ls->ync||ty<=-1) continue;
+         for (dz=-1;dz<2;dz++) {
+            tz=icz+dz;
+            if (tz>=ls->znc||tz<=-1) continue;
+            //printf("   -> cell(%i/%i,%i/%i,%i/%i)\n",tx,ls->xnc,ty,ls->ync,tz,ls->znc);fflush(stdout);
+            pa=ls->pa[tx][ty][tz];
+            np=ls->np[tx][ty][tz];
+            for (j=0;j<np;j++) {
+               b=i2[pa[j]];
+               if (a==b||bondstruct_arebonded(bs,a,b)) continue;
+               bx=ls->x[pa[j]];
+               by=ls->y[pa[j]];
+               bz=ls->z[pa[j]];
+               d2 =(x-bx)*(x-bx);
+               d2+=(y-by)*(y-by);
+               d2+=(z-bz)*(z-bz);
+               if (d2<rcut2) {
+                  di6=s6/(d2*d2*d2);
+                  di12=di6*di6;
+                  E+=4*(di12-di6)+1;
                }
             }
          }
       }
    }
+   return E;
+}
+
+double my_roughenergy ( int * i1, double * x1, double * y1, double * z1, int n1, 
+                        int * i2, int n2,
+                        double cut, double sigma, double epsilon, bondstruct * bs, linkcell * ls ) {
+   int i;
+   double E=0.0,
+   int a;
+   double s6=sigma*sigma*sigma*sigma*sigma*sigma;
+   double rcut=pow(2,1./6.)*sigma,rcut2;
+
+   // build linkcell for the set1-set1 interactions
+   f_ls = linkcell_new(x1,y1,z1,n1,ls->cut);
+   if (rcut>cut) {
+      rcut=cut;
+   }
+   rcut2=rcut*rcut;
+   for (i=0;i<n1;i++) {
+      a=i1[i];
+      // set1-set1 energy for this atom
+      E+=i_cell(x1[i],y1[i],z1[i],a,s6,epsilon,rcut2,f_ls);
+      // set1-set2 energy for this atom
+      E+=i_cell(x1[i],y1[i],z1[i],a,s6,epsilon,rcut2,ls);
+   }
    //printf("Returning %.5f\n",E*epsilon);
    //fflush(stdout);
-
+   linkcell_free(f_ls);
    return E*epsilon;
 }
 
