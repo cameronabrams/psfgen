@@ -846,10 +846,8 @@ proc do_multiflex_mc { molid rotsel refatominddict paramsdict iseed logid logeve
    set falist [dict get $refatoms fa]
    puts "CFAFLEXMC) Making bondstruct..."
    flush stdout 
-   set bs [make_bondstruct $molid $rotsel]
-   foreach fa $falist {
-      bondstruct_deactivate_by_fixed $bs $fa
-   }
+   set bs [make_bondstruct $molid $rotsel $falist]
+
    # remove movable atoms from the background
    set exind [$rotsel get index]
    set envex [atomselect $molid "noh and not index $exind"]

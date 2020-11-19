@@ -113,7 +113,7 @@ proc ring_nonrotatables { ri ringsize bs } {
     return $bondsset
 }
 
-proc make_bondstruct { molid sel } {
+proc make_bondstruct { molid sel falist } {
     # get list of atom indices and bondlist
     puts "BONDSTRUCT) Generating bondlists for sel with [$sel num] atoms..."
     set il [$sel get index]
@@ -197,7 +197,6 @@ proc make_bondstruct { molid sel } {
     puts "BONDSTRUCT) Disabled rotation of $nnr single-ligand bonds"
     # generate the count of rotatable bonds and the map to the bond array
     bondstruct_maprotatables $bs
-    puts "BONDSTRUCT) $bondcount total bonds, [bondstruct_getnrb $bs] rotatables"
     puts "BONDSTRUCT) Making right-sides..."
 #    puts "mapping rotatables..."
 #    puts "making right-sides..."
@@ -205,7 +204,11 @@ proc make_bondstruct { molid sel } {
     bondstruct_makerightsides $bs
 #    puts "printing..."
 #    bondstruct_print $bs
-
+    puts "BONDSTRUCT) Deactivating bonds with fixed atoms in their right-sides..."
+    foreach fa $falist {
+        bondstruct_deactivate_by_fixed $bs $fa
+    }
+    puts "BONDSTRUCT) $bondcount total bonds, [bondstruct_getnrb $bs] rotatables"
     #puts "make_bondstruct returns"
     return $bs
 }
