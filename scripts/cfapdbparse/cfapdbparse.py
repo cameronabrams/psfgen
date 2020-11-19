@@ -137,9 +137,28 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
         fa_sel='(protein and ('+fa_sel+'))'
         ca_sel='(protein and ('+ca_sel+'))'
         c_sel='(protein and ('+c_sel+'))'
+        fp.write('set fa [[atomselect $molid "{}"] get index]\n'.format(fa_sel))
+        fp.write('set i [[atomselect $molid "{}"] get index]\n'.format(ca_sel))
+        fp.write('set j [[atomselect $molid "{}"] get index]\n'.format(c_sel))
+
         if len(GlycanSegs)>0:
             glysel='(segname '+' '.join(GlycanSegs)+')'
             rotsel=loopsel+' or '+glysel
+            fp.write('set gra {}\n')
+            fp.write('set gi {}\n')
+            fp.write('set gj {}\n')
+            fp.write('foreach g $glycan_segs {\n')
+            fp.write('   set sel [atomselect $molid "segname $g"]\n')
+            fp.write('   set rid [$sel get resid]\n')
+            fp.write('   set root [lindex [lsort -unique -real $rid] 0]\n')
+            fp.write('   lappend gra [[atomselect $molid "segname $g and name C1 and resid $root"] get index]\n')
+            fp.write('   lappend gi -1\n')
+            fp.write('   lappend gj -1\n')
+            fp.write('}\n')
+            fp.write(r'set fa [list {*}$fa {*}$gra]'+'\n')
+            fp.write(r'set i [list {*}$i {*}$gi]'+'\n')
+            fp.write(r'set j [list {*}$i {*}$gj]'+'\n')
+
         fp.write('set rotsel [atomselect $molid "{}"]\n'.format(rotsel))
         fp.write('dict set atomind fa [[atomselect $molid "{}"] get index]\n'.format(fa_sel))
         fp.write('dict set atomind i [[atomselect $molid "{}"] get index]\n'.format(ca_sel))

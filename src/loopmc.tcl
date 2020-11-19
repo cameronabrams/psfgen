@@ -959,7 +959,7 @@ proc do_multiflex_mc { molid rotsel refatominddict paramsdict iseed logid logeve
         }
         set lastEE $EE
         set lastSE $SE
-        if { $EE < $sstop && $dattr < $dstop } {
+        if { $EE < $sstop && $SE < $dstop } {
           set keep_cycling 0
         }
       }
