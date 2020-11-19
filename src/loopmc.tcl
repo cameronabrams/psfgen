@@ -844,6 +844,20 @@ proc do_multiflex_mc { molid rotsel refatominddict paramsdict iseed logid logeve
    #set bl [$msel getbonds]
    #set il [$mselnoh get index]
    set falist [dict get $refatoms fa]
+   set ilist [dict get $refatoms i]
+   set jlist [dict get $refatoms j]
+   set loc [lsearch $ilist -1]
+   set trunc_ilist [lrange $ilist 0 [expr $loc-1]]
+   set trunc_jlist [lrange $jlist 0 [expr $loc-1]]
+   set allfixed [list {*}$falist {*}$trunc_ilist {*}$trunc_jlist]
+   set afas [atomselect $molid "index $allfixed"]
+   set aas [atomselect $molid "all"]
+   $aas set beta 0
+   $afas set beta 1
+   $aas writepdb "fixed.pdb"
+   $afas delete
+   $aas delete
+   exit
    puts "CFAFLEXMC) Making bondstruct..."
    flush stdout 
    set bs [make_bondstruct $molid $rotsel $falist]
@@ -873,8 +887,6 @@ proc do_multiflex_mc { molid rotsel refatominddict paramsdict iseed logid logeve
    puts "CFAFLEXMC) Maximum angle displacement: $maxanglestep degrees"
    flush stdout
 
-   set ilist [dict get $refatoms i]
-   set jlist [dict get $refatoms j]
    puts "CFAFLEXMC) ilist $ilist"
    puts "CFAFLEXMC) jlist $jlist"
    flush stdout
@@ -884,6 +896,9 @@ proc do_multiflex_mc { molid rotsel refatominddict paramsdict iseed logid logeve
         flush stdout
       }
    }
+
+   
+
    set anglegradationfactor 10
    set maxanglestep [expr $maxanglestep / $anglegradationfactor]
    expr srand($iseed)
@@ -897,7 +912,12 @@ proc do_multiflex_mc { molid rotsel refatominddict paramsdict iseed logid logeve
    }
    set ls [roughenergy_setup $rotnoh $envex $cellsize]
   #puts "calc ($mselnoh) ($rcut) ($sigma) ($epsilon) ($bs) ($ls)..."
+   puts -nonewline "roughenergy..."
+   flush stdout
+   set start [clock microseconds]
    set EE [roughenergy $rotnoh $ljcutoff $ljsigma $ljepsilon $ljshift $bs $ls]
+   set stop [clock microseconds]
+   puts "...done [expr ($stop-$start)/1.e6] s"
    set E [expr $SE + $EE]
    set lastEE $EE
    set lastSE $SE
@@ -908,11 +928,14 @@ proc do_multiflex_mc { molid rotsel refatominddict paramsdict iseed logid logeve
       set keep_cycling 0
    }
    set nrb [bondstruct_getnrb $bs]
-   set tnacc 0
-   set ngc 0
+   #set tnacc 0
+   #set ngc 0
+   set nacc 0
    for {set cyc 0} { $cyc < $maxcycles && $keep_cycling == 1 } { incr cyc } {
-      set nacc 0
       set SAVEPOS [$rotsel get {x y z}] ; # modify so only atoms on right-side of this bond are saved
+      puts -nonewline "rotating..."
+      flush stdout
+      set start [clock microseconds]
       for {set r 0} {$r < $nrb} {incr r} {
          #get a random active bond
         #set rb [irand_dom 0 [expr $nrb-1]]
@@ -926,59 +949,55 @@ proc do_multiflex_mc { molid rotsel refatominddict paramsdict iseed logid logeve
            bondrot_by_index $bs $molid $rr $av
         #}
       }
-      if { 1 } {
-        set SE 0.0
-        foreach i $ilist j $jlist {
-           if { $i != $j } {
-             set dattr [measure bond [list $i $j]]
-             set SE [expr $SE+0.5*$k*pow($dattr,2)]
-           }
+      set stop [clock microseconds]
+      puts "...done [expr ($stop-$start)/1.e6] s"
+      set SE 0.0
+      foreach i $ilist j $jlist {
+        if { $i != $j } {
+          set dattr [measure bond [list $i $j]]
+          set SE [expr $SE+0.5*$k*pow($dattr,2)]
         }
-        set EE [roughenergy $rotnoh $ljcutoff $ljsigma $ljepsilon $ljshift $bs $ls]
-        set E [expr $SE + $EE]
-        # do metropolis
-        set X [expr rand()]
-        set arg [expr {($E0-$E)/$temperature}]
-        if {[expr $arg < -20]} {
-          set B 0.0
-        } elseif {[expr $arg > 2.8]} {
-          set B 1.1
-        } else {
-          # compute a Boltzmann factor
-          set B [expr {exp($arg)}] 
-        }
-        if {[expr {$X > $B}]} {
-          # reject the move
-          $rotsel set {x y z} $SAVEPOS
-        } else {
+      }
+      puts -nonewline "roughenergy..."
+      flush stdout
+      set start [clock microseconds]
+      set EE [roughenergy $rotnoh $ljcutoff $ljsigma $ljepsilon $ljshift $bs $ls]
+      set stop [clock microseconds]
+      puts "...done [expr ($stop-$start)/1.e6] s"
+      set E [expr $SE + $EE]
+      # do metropolis
+      set X [expr rand()]
+      set arg [expr {($E0-$E)/$temperature}]
+      if {[expr $arg < -20]} {
+        set B 0.0
+      } elseif {[expr $arg > 2.8]} {
+        set B 1.1
+      } else {
+        # compute a Boltzmann factor
+        set B [expr {exp($arg)}] 
+      }
+      if {[expr {$X > $B}]} {
+        # reject the move
+        $rotsel set {x y z} $SAVEPOS
+      } else {
           # accept the move
           set E0 $E
-#          puts "$cyc $rb $E"
-#          if { [expr $r%10 == 0] } {
-            puts "cyc $cyc/[expr $maxcycles -1] bond $r/[expr $nrb -1]"
-#          }
-          incr nacc
-        }
-      }
-      # end of one cycle
-      set tnacc [expr $tnacc + $nacc]
-      if { $nacc > 0 } {
-        set ngc [expr $ngc + 1]
-      }
-      puts "CFAFLEXMC) cyc $cyc na $nacc tna $tnacc [format "ar=%.5f" [expr (1.0*$tnacc)/($cyc*$nrb+1)]] [format "attr-pnlty= %.2f " $SE] [format "strc-pnlty=%.2f" $EE]"
-      if { [expr $ngc % $logevery == 0 ] } {
-        log_addframe $molid $logid
-        if { [expr $nacc % $logsaveevery == 0] } {
-            set loga [atomselect $logid all]
-            animate write dcd "tmp.dcd" waitfor all sel $loga $logid
-        }
+          puts "CFAFLEXMC) cyc $cyc na $nacc [format "ar=%.5f" [expr (1.0*$nacc)/($cyc+1)]] [format "attr-pnlty= %.2f " $SE] [format "strc-pnlty=%.2f" $EE]"
+          if { [expr $nacc % $logevery == 0 ] } {
+            log_addframe $molid $logid
+            if { [expr $nacc % $logsaveevery == 0] } {
+                set loga [atomselect $logid all]
+                animate write dcd "tmp.dcd" waitfor all sel $loga $logid
+                $loga delete
+            }
+          }
       }
       set lastEE $EE
       set lastSE $SE
       if { $EE < $sstop && $SE < $dstop } {
         set keep_cycling 0
       }
-    }
+   }
    puts -nonewline "CFAFLEXMC) Stop at cycle $cyc: "
    if { $i != $j } {
      puts -nonewline "attr dst: [format "%.2f" [measure bond [list $i $j]]] [format "attr-pnlty %.2f " $lastSE]"
