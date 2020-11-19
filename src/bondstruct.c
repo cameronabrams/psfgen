@@ -312,7 +312,7 @@ void my_roughenergy_cleanup ( linkcell * ls ) {
 
 double i_cell ( double x, double y, double z, int a, 
                 double s6, double epsilon, double rcut2, 
-                linkcell * ls, int * indices ) {
+                bondstruct * bs, linkcell * ls, int * indices ) {
    int j,ij,b,icx,icy,icz,tx,ty,tz,dx,dy,dz,*pa,np;
    double d2,di6,di12,bx,by,bz;
    double E = 0.0;
@@ -362,9 +362,8 @@ double my_roughenergy ( int * i1, double * x1, double * y1, double * z1, int n1,
    int a;
    double s6=sigma*sigma*sigma*sigma*sigma*sigma;
    double rcut=pow(2,1./6.)*sigma,rcut2;
-
    // build linkcell for the set1-set1 interactions
-   f_ls = linkcell_new(x1,y1,z1,n1,ls->cut);
+   linkcell * f_ls = linkcell_new(x1,y1,z1,n1,ls->cut);
    if (rcut>cut) {
       rcut=cut;
    }
@@ -372,9 +371,9 @@ double my_roughenergy ( int * i1, double * x1, double * y1, double * z1, int n1,
    for (i=0;i<n1;i++) {
       a=i1[i];
       // set1-set1 energy for this atom
-      E+=i_cell(x1[i],y1[i],z1[i],a,s6,epsilon,rcut2,f_ls,i1);
+      E+=i_cell(x1[i],y1[i],z1[i],a,s6,epsilon,rcut2,bs,f_ls,i1);
       // set1-set2 energy for this atom
-      E+=i_cell(x1[i],y1[i],z1[i],a,s6,epsilon,rcut2,ls,i2);
+      E+=i_cell(x1[i],y1[i],z1[i],a,s6,epsilon,rcut2,bs,ls,i2);
    }
    //printf("Returning %.5f\n",E*epsilon);
    //fflush(stdout);
