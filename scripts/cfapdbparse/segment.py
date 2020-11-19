@@ -187,11 +187,13 @@ class Segment:
                         for rr in l.residues:
                            nm=ResnameCharmify(rr.name)
                            stanzastr+='   residue {}{} {} {}\n'.format(rr.resseqnum,rr.insertion,nm,tmat.get_replica_chainID(rr.chainID))
-                        # insert sacrificial glycine
-                        rr=l.residues[-1]
-                        ss.sacrins='A' if rr.insertion != '' else chr(ord(rr.insertion)+1)
-                        stanzastr+='   residue {}{} {} {}\n'.format(rr.resseqnum,ss.sacrins,'GLY',tmat.get_replica_chainID(rr.chainID))
-                        ss.sacrins=chr(ord(rr.insertion)+1)
+                        ss.sacrins='0'
+                        if len(l.residues)>3:
+                           # insert sacrificial glycine
+                           rr=l.residues[-1]
+                           ss.sacrins='A' if rr.insertion != '' else chr(ord(rr.insertion)+1)
+                           stanzastr+='   residue {}{} {} {}\n'.format(rr.resseqnum,ss.sacrins,'GLY',tmat.get_replica_chainID(rr.chainID))
+                           ss.sacrins=chr(ord(rr.insertion)+1)
             ''' PART 2.1:  Include mutations '''
             #print('### {} mutations'.format(len(self.mutations)))
             for m in self.mutations:
@@ -216,7 +218,7 @@ class Segment:
                 ss=self.subsegbounds[i]
                 l=ss.d
                 if ss.typ=='LOOP':
-                    if (i>0 and i<(len(self.subsegbounds)-1)):
+                    if (ss.sacrins!='0' and i>0 and i<(len(self.subsegbounds)-1)):
                         fragss=self.subsegbounds[i+1]
                         stanzastr+='patch cter {}:{}{}\n'.format(rep_segname,l.residues[-1].resseqnum,l.residues[-1].insertion)
                         stanzastr+='patch nter {}:{}\n'.format(rep_segname,fragss.d.resseqnum1)
