@@ -211,7 +211,7 @@ class Segment:
                     else:
                         stanzastr+=ss.d.caco_str()
             ''' slice calls '''
-             for i in range(0,len(self.subsegbonds)):
+            for i in range(0,len(self.subsegbonds)):
                 ss=self.subsegbonds[i]
                 if ss.typ=='LOOP':
                     if (i>0 and i<(len(self.subsegbounds)-1)):
