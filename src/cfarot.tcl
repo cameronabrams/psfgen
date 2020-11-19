@@ -176,8 +176,8 @@ proc make_bondstruct { molid sel } {
         foreach cbln $cbl {
             set nn [lsearch $ni $cbln]
             if { $nn != -1 } {
-                bondstruct_setbond_rotatable $bs $cc $n 0
-                bondstruct_setbond_rotatable $bs $n $cc 0
+                bondstruct_setbond_rotatable $bs $cc $nn 0
+                bondstruct_setbond_rotatable $bs $nn $cc 0
                 set nnr [expr $nnr + 2]
                 continue
             }
@@ -189,8 +189,8 @@ proc make_bondstruct { molid sel } {
     set nnr 0
     foreach a $il abl $bl {
         if { [$llength $abl == 1] } {
-            bondstruct_setbond_rotatable $bs $a $abl[0] 0
-            bondstruct_setbond_rotatable $bs $abl[0] $a 0
+            bondstruct_setbond_rotatable $bs $a [lindex $abl 0] 0
+            bondstruct_setbond_rotatable $bs [lindex $abl 0] $a 0
             set nnr [expr $nnr + 2]
         }
     }
