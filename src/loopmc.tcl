@@ -878,9 +878,7 @@ proc do_multiflex_mc { molid rotsel refatominddict paramsdict iseed logid logeve
    flush stdout
    foreach i $ilist j $jlist {
       if { $i != $j } { 
-        puts "CFAFLEXMC) Initial ($i)-($j) distance ..."
-        flush stdout
-        puts "   ...[format "%.2f" [measure bond [list $i $j]]] A"
+        puts "CFAFLEXMC) Initial ($i)-($j) distance [format "%.2f" [measure bond [list $i $j]]] A"
         flush stdout
       }
    }
