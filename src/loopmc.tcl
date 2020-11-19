@@ -835,6 +835,142 @@ proc do_flex_mc { molid msel envsel refatominddict paramsdict iseed logid logeve
    roughenergy_cleanup $ls
 }
 
+proc do_multiflex_mc { molid rotsel refatominddict paramsdict iseed logid logevery logsaveevery } {
+
+   upvar 1 $refatominddict refatoms
+   upvar 1 $paramsdict params
+
+   set rotnoh [atomselect $molid "([$rotsel text]) and noh"]
+   #set bl [$msel getbonds]
+   #set il [$mselnoh get index]
+   set falist [dict get $refatoms fa]
+   set ilist [dict get $refatoms i]
+   set jlist [dict get $refatoms j]
+   set bs [make_bondstruct $molid $rotsel]
+   foreach fa $falist {
+      bondstruct_deactivate_by_fixed $bs $fa
+   }
+  # bondstruct_print $bs
+   set exind [$rotsel get index]
+   set envex [atomselect $molid "noh and not index $exind"]
+   puts "CFAFLEXMC) msel [$msel num] envex [$envex num] falist $fa"
+   flush stdout
+   foreach i $ilist j $jlist {
+      if { $i != $j } { 
+        puts "CFAFLEXMC) Initial attractor distance [format "%.2f" [measure bond [list $i $j]]] A"
+      }
+   }
+   set maxcycles [dict get $params nc]
+   set dstop  [dict get $params dstop]
+   set sstop  [dict get $params sstop]
+   set k  [dict get $params mck]
+   set temperature  [dict get $params temperature]
+   set sigma  [dict get $params sigma]
+   set epsilon [dict get $params epsilon]
+   set rcut [dict get $params rcut]
+   set maxanglestep [dict get $params maxanglestep]
+
+   puts "CFAFLEXMC) Max cycles $maxcycles dattr-thresh $dstop strc-thresh $sstop k $k"
+   puts "CFAFLEXMC) [bondstruct_getnrb $bs] rotatable bonds"
+   puts "CFAFLEXMC) MC-Temperature $temperature sigma $sigma epsilon $epsilon"
+   puts "CFAFLEXMC) Maximum angle displacement: $maxanglestep degrees"
+   flush stdout
+
+   set maxanglestep [expr $maxanglestep / 10.0]
+
+   expr srand($iseed)
+
+   set nacc 0
+
+   set SE 0.0
+   foreach i $ilist j $jlist {
+      if { $i != $j } {
+        set dattr [measure bond [list $i $j]]
+        set SE [expr $SE+0.5*$k*pow($dattr,2)]
+      }
+   }
+   set ls [roughenergy_setup $rotnoh $envex $rcut]
+  #puts "calc ($mselnoh) ($rcut) ($sigma) ($epsilon) ($bs) ($ls)..."
+   set EE [roughenergy $rotnoh $rcut $sigma $epsilon $bs $ls]
+   set E [expr $SE + $EE]
+   set lastEE $EE
+   set lastSE $SE
+   set E0 $E
+   #puts "CFAFLEXMC) E0 $E0"
+   set keep_cycling 1
+   if { $EE < $sstop && $dattr < $dstop } {
+      set keep_cycling 0
+   }
+   for {set cyc 0} { $cyc < $maxcycles && $keep_cycling == 1 } { incr cyc } {
+      # save coordinates
+      set SAVEPOS [$rotsel get {x y z}]
+      set nrot 0
+      for {set r 0} {$r < [bondstruct_getnrb $bs] } {incr r} {
+         #set av [expr 60 * [irand_dom 1 5]]
+         set av [expr $maxanglestep * [irand_dom -10 10]]
+        # puts "cyc $cyc bond $r deg $av"
+        set rr [bondstruct_r2b $bs $r]
+         if { [bondstruct_isactive $bs $rr] } {
+           bondrot_by_index $bs $molid $rr $av
+           set nrot [expr $nrot + 1]
+         }
+      }
+    
+      if { $nrot == 0 } {
+         puts "ERROR: no rotations performed"
+         exit
+      }
+      set SE 0.0
+      foreach i $ilist j $jlist {
+         if { $i != $j } {
+           set dattr [measure bond [list $i $j]]
+           set SE [expr $SE+0.5*$k*pow($dattr,2)]
+         }
+      }
+      set EE [roughenergy $rotnoh $rcut $sigma $epsilon $bs $ls]
+      set E [expr $SE + $EE]
+     # puts " ... E $E"
+      set X [expr rand()]
+      set arg [expr {($E0-$E)/$temperature}]
+      if {[expr $arg < -20]} {
+        set B 0.0
+      } elseif {[expr $arg > 2.8]} {
+        set B 1.1
+      } else {
+        # compute a Boltzmann factor
+        set B [expr {exp($arg)}] 
+      }
+      if {[expr {$X > $B}]} {
+        # reject the move
+        $rotsel set {x y z} $SAVEPOS
+      } else {
+        # accept the move
+        set E0 $E
+        incr nacc
+        puts -nonewline "CFAFLEXMC) cyc $cyc na $nacc [format "ar=%.5f" [expr (1.0*$nacc)/($cyc+1)]] [format "attr-pnlty %.2f " $SE] [format "strc-pnlty %.2f" $EE]"
+        if { [expr $nacc % $logevery == 0 ] } {
+          log_addframe $molid $logid
+          if { [expr $nacc % $logsaveevery == 0] } {
+             set loga [atomselect $logid all]
+             animate write dcd "tmp.dcd" waitfor all sel $loga $logid
+          }
+        }
+        set lastEE $EE
+        set lastSE $SE
+        if { $EE < $sstop && $dattr < $dstop } {
+          set keep_cycling 0
+        }
+      }
+   }
+   puts -nonewline "CFAFLEXMC) Stop at cycle $cyc: "
+   if { $i != $j } {
+     puts -nonewline "attr dst: [format "%.2f" [measure bond [list $i $j]]] [format "attr-pnlty %.2f " $lastSE]"
+   }
+   puts "[format "strc-pnlty %.2f" $lastEE]"
+   free_bondstruct $bs
+   roughenergy_cleanup $ls
+}
+
 proc ladd {l} {
     set total 0.0
     foreach nxt $l {

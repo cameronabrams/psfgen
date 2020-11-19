@@ -81,7 +81,7 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
         fp.write(crot.psfgen_str())
         if logdcd:
             fp.write('log_addframe $molid $logid\n')
-    if 'do_loop_mc' in PostMod and PostMod['do_loop_mc']:
+    if 'do_multiflex_mc' in PostMod and PostMod['do_multiflex_mc']:
         nc=1000
         rcut=4.0
         sigma=1.8
@@ -91,8 +91,8 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
         dstop=2.0
         sstop=2.0
         maxanglestep=60.0 # degrees
-        if 'loop_mc_params' in PostMod:
-            p=PostMod['loop_mc_params']
+        if 'multiflex_mc_params' in PostMod:
+            p=PostMod['multiflex_mc_params']
             nc=nc if 'maxcycles' not in p else p['maxcycles']
             rcut=rcut if 'rcut' not in p else p['rcut']
             sigma=sigma if 'sigma' not in p else p['sigma']
@@ -113,89 +113,44 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
         fp.write('dict set mcp sstop {}\n'.format(sstop))
         fp.write('dict set mcp maxanglestep {}\n'.format(maxanglestep))
         fp.write('set bg [atomselect $molid "noh"]\n')
-        fp.write('set loopindex 0\n')
-        fp.write('set loops {\n')
-        Loops.sort(key=lambda l: len(l.residues))
+ #       fp.write('set loopindex 0\n')
+ #       fp.write('set loops {\n')
+        # build rotsel as as all atom indices in selection with rotatable bonds
+        #  that is all atoms in all residues except for the C and O of last residue in each loop
+        loopsel_substr=[]
+        fa_substr=[]
+        ca_substr=[]
+        c_substr=[]
+        #Loops.sort(key=lambda l: len(l.residues))
         for l in Loops:
             if l.term and len(l.residues)>1:
-                fp.write('{{ {} {} {} }}\n'.format(l.replica_chainID,l.residues[0].resseqnum,l.residues[-1].resseqnum))
-        fp.write('           }\n')
-        fp.write('set nloops [llength $loops]\n')
-        fp.write('foreach l $loops {\n')
-        fp.write('   set chain [lindex $l 0]\n')
-        fp.write('   puts "Relaxing loop $l ($loopindex out of [expr $nloops-1])..."\n')
-        fp.write('   set upsel [atomselect $molid "protein and chain $chain and resid [lindex $l 1]"]\n')
-        fp.write('   set bnds [$upsel getbonds]\n')
-        fp.write('   set an [$upsel get name]\n')
-        fp.write('   set ai [$upsel get index]\n')
-        fp.write('   set upc -1\n')
-        fp.write('   foreach n $an i $ai bl $bnds {\n')
-        fp.write('     if { $n == "N" } {\n')
-        fp.write('       foreach b $bl {\n')
-        fp.write('         if { [lsearch $ai $b] == -1 } {\n')
-        fp.write('              set upc $b\n')
-        fp.write('         }\n')
-        fp.write('       }\n')
-        fp.write('     }\n')
-        fp.write('   }\n')
-        fp.write('   if { $upc == -1 } {\n')
-        fp.write('     set firstres [lindex $l 1]\n')
-        fp.write('   } else {\n')
-        fp.write('     set upres [[atomselect $molid "index $upc"] get resid]\n')
-        fp.write('     set firstres $upres\n')
-        fp.write('     puts "setting firstres to $upres"\n')
-        fp.write('   }\n')
-        fp.write('   set msel [atomselect $molid "protein and chain $chain and resid $firstres to [lindex $l 2] and not (resid [lindex $l 2] and name C O)"]\n')
-        fp.write('   set atomind [dict create]\n') 
-        fp.write('   dict set atomind fa  [[atomselect $molid "protein and chain $chain and resid $firstres and name CA"] get index]\n')
-        fp.write('   dict set atomind ca [[atomselect $molid "protein and chain $chain and resid [lindex $l 2] and name CA"] get index]\n')
-        fp.write('   dict set atomind c [[atomselect $molid "protein and chain $chain and resid [lindex $l 2] and name C"] get index]\n')
-        fp.write('   do_flex_mc $molid $msel $bg atomind mcp [irand_dom 1000 9999] $logid {} {}\n'.format(logevery,logsaveevery))
-        fp.write('   set loopindex [expr $loopindex + 1]\n')
-        fp.write('}\n')
+ #               fp.write('{{ {} {} {} }}\n'.format(l.replica_chainID,l.residues[0].resseqnum,l.residues[-1].resseqnum))
+                loopsel_substr.append(' (chain {} and resid {} to {} and not (resid {} and name C O) )'.format(l.replica_chainID,l.residues[0].resseqnum,l.residues[-1].resseqnum,l.residues[-1].resseqnum))
+                fa_substr.append(' (chain {} and resid {} and name CA) '.format(l.replica_chainID,l.residues[0].resseqnum))
+                ca_substr.append(' (chain {} and resid {} and name CA) '.format(l.replica_chainID,l.residues[-1].resseqnum))
+                c_substr.append(' (chain {} and resid {} and name C) '.format(l.replica_chainID,l.residues[-1].resseqnum))
+        loopsel=' or '.join(loopsel_substr)
+        fa_sel=' or '.join(fa_substr)
+        ca_sel=' or '.join(ca_substr)
+        c_sel=' or '.join(c_substr)
+        loopsel='(protein and ('+loopsel+'))'
+        fa_sel='(protein and ('+fa_sel+'))'
+        ca_sel='(protein and ('+ca_sel+'))'
+        c_sel='(protein and ('+c_sel+'))'
+        if len(GlycanSegs)>0:
+            glysel='(segname '+' '.join(GlycanSegs)+')'
+            rotsel=loopsel+' or '+glysel
+        fp.write('set rotsel [atomselect $molid "{}"]\n'.format(rotsel))
+        fp.write('dict set atomind fa [[atomselect $molid "{}"] get index]\n'.format(fa_sel))
+        fp.write('dict set atomind i [[atomselect $molid "{}] get index]\n'.format(ca_sel))
+        fp.write('dict set atomind j [[atomselect $molid "{}] get index]\n'.format(c_sel))
+        fp.write('do_multiflex_mc $molid $rotsel atomind mcp [irand_dom 1000 9999] $logid {} {}\n'.format(logevery,logsaveevery))
+ #       fp.write('           }\n')
+ #       fp.write('set nloops [llength $loops]\n')
+        # build fa as list of all fixed atoms
 
-    if 'do_gly_mc' in PostMod and PostMod['do_gly_mc']:
-        nc=1000
-        rcut=4.0
-        sigma=1.8
-        epsilon=0.5
-        mctemperature=3.0
-        sstop=2.0
-        maxanglestep=60.0 # degrees
-        if 'gly_mc_params' in PostMod:
-            p=PostMod['gly_mc_params']
-            nc=nc if 'maxcycles' not in p else p['maxcycles']
-            rcut=rcut if 'rcut' not in p else p['rcut']
-            sigma=sigma if 'sigma' not in p else p['sigma']
-            epsilon=epsilon if 'epsilon' not in p else p['epsilon']
-            mctemperature=mctemperature if 'temperature' not in p else p['temperature']
-            sstop=sstop if 'sstop' not in p else p['sstop']
-            maxanglestep=maxanglestep if 'maxanglestep' not in p else p['maxanglestep']
-        fp.write('set mcp [dict create]\n')
-        fp.write('dict set mcp nc {}\n'.format(nc))
-        fp.write('dict set mcp rcut {}\n'.format(rcut))
-        fp.write('dict set mcp sigma {}\n'.format(sigma))
-        fp.write('dict set mcp epsilon {}\n'.format(epsilon))
-        fp.write('dict set mcp temperature {}\n'.format(mctemperature))
-        fp.write('dict set mcp sstop {}\n'.format(sstop))
-        fp.write('dict set mcp dstop -1\n')
-        fp.write('dict set mcp maxanglestep {}\n'.format(maxanglestep))
-        fp.write('set bg [atomselect $molid "noh"]\n')
-        fp.write('set glycan_segs [list '+' '.join(GlycanSegs)+']\n')
-        fp.write('set ng [llength $glycan_segs]\n')
-        fp.write('set gi 1\n')
-        fp.write('foreach g $glycan_segs {\n')
-        fp.write('   set sel [atomselect $molid "segname $g"]\n')
-        fp.write('   set rid [$sel get resid]\n')
-        fp.write('   set root [lindex [lsort -unique -real $rid] 0]\n')
-        fp.write('   set atomind [dict create]\n') 
-        fp.write('   dict set atomind fa  [[atomselect $molid "segname $g and name C1 and resid $root"] get index]\n')
-        fp.write('   dict set atomind ca  -1\n')
-        fp.write('   dict set atomind c  -1\n')
-        fp.write('   puts "Relaxing glycan $g ($gi/$ng) rootres $root..."\n')
-        fp.write('   do_flex_mc $molid $msel $bg atomind mcp [irand_dom 1000 9999] $logid {} {}\n'.format(logevery,logsaveevery))
-        fp.write('   set gi [expr $gi + 1]\n')
-        fp.write('}\n')
+        # build ca and c as lists of all ca-c indices (-1,-1 for glycans)
+
     
     new_pdb_out=prefix+'_mod.pdb'
     fp.write('$a writepdb {}\n'.format(new_pdb_out))
