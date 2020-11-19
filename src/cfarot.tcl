@@ -100,61 +100,29 @@ proc ring_nonrotatables { ri ringsize bs } {
     if { [llength $ri] == 0 } {
         return 0
     }
+    set bondsset 0
     for { set r 0 } { $r < [llength $ri] } { incr r $ringsize } {
         for {set j 0} {$j<$ringsize} {incr j} {
             set i [lindex $ri [expr $r + $j]]
             set k [lindex $ri [expr ($i+1)%$ringsize]]
             bondstruct_setbond_rotatable $bs $i $k 0
             bondstruct_setbond_rotatable $bs $k $i 0
+            set bondsset [expr $bondsset + 2]
         }
     }
-}
-# a and b are atom indices of a bond
-# ri is an ordered list of ring-atom indices; every block of $ringsize
-# entries is one unique ring
-# this procedure returns 1 if both a and b are located in any one 
-# ring
-proc bond_in_ring { a b ri ringsize } {
-#    puts "$a $b $ri $ringsize"
-    if { [llength $ri] == 0 } {
-        return 0
-    }
-    for { set i 0 } { $i < [llength $ri] } { incr i $ringsize } {
-        set this_ring {}
-        for {set j 0} {$j<$ringsize} {incr j} {
-            lappend this_ring [lindex $ri [expr $i + $j]]
-        }
-#       puts "searching ($this_ring) for $a-$b"
-#        flush stdout
-        if { [lsearch $this_ring $a] != -1 && [lsearch $this_ring $b] != -1 } {
-            return 1
-        }
-    }
-    return 0
-}
-
-proc bond_is_peptide { a b ci ni } {
-    if { [llength $ci] == 0 } {
-        return 0
-    }
-    if { [lsearch $ci $a] !=-1 && [lsearch $ni $b] != -1 } {
-        return 1
-    }
-    if { [lsearch $ci $b] !=-1 && [lsearch $ni $a] != -1 } {
-        return 1
-    }
-    return 0
+    return $bondsset
 }
 
 proc make_bondstruct { molid sel } {
     # get list of atom indices and bondlist
+    puts "BONDSTRUCT) Generating bondlists for sel with [$sel num] atoms..."
     set il [$sel get index]
     set bl [$sel getbonds]
     # get number of atoms
     set na [llength $il]
     # first, count the total number of bonds in the bondlist,
     # excluding bonds to atoms outside the sel
-    puts "BONDSTRUCT) Pruning from VMD sel getbonds..."
+    puts "BONDSTRUCT) Pruning bondlists..."
     flush stdout
     set bondcount 0
     for { set i 0 } { $i < $na } { incr i } {
@@ -171,7 +139,7 @@ proc make_bondstruct { molid sel } {
         incr bondcount [llength $bb]
     }
     
-    puts "BONDSTRUCT) Importing into bondstruct..."
+    puts "BONDSTRUCT) Importing $bondcount bonds into bondstruct..."
     flush stdout
     # set up an empty bondstruct and populate it atomwise
     set ia [intListToArray $il]
@@ -190,36 +158,32 @@ proc make_bondstruct { molid sel } {
     # is not rotatable
     set r5 [atomselect $molid "ringsize 5 from ([$sel text])"]
     set r5i [$r5 get index]
-    ring_nonrotatables $r5i 5 $bs
-    puts "BONDSTRUCT) Considering [expr [llength $r5i]/5] 5-membered rings"
+    set n5nr [ring_nonrotatables $r5i 5 $bs]
+    puts "BONDSTRUCT) Disabled rotation in $n5nr bonds in [expr [llength $r5i]/5] 5-membered rings"
     set r6 [atomselect $molid "ringsize 6 from ([$sel text])"]
     set r6i [$r6 get index]
-    ring_nonrotatables $r6i 6 $bs
-    puts "BONDSTRUCT) Considering [expr [llength $r6i]/6] 6-membered rings"
+    set n6nr [ring_nonrotatables $r6i 6 $bs]
+    puts "BONDSTRUCT) Disabled rotation in $n6nr bonds in [expr [llength $r6i]/6] 6-membered rings"
     set c [atomselect $molid "protein and name C and ([$sel text])"]
     set ci [$c get index]
     set n [atomselect $molid "protein and name N and ([$sel text])"]
     set ni [$n get index]
-    puts "BONDSTRUCT) Considering [llength $ci] peptide bonds"
-    puts "BONDSTRUCT) Labeling rotatables..."
-    flush stdout
-    foreach a $il ibl $bl {
-        foreach b $ibl {
-#            puts "Considering $a-$b"
-#            flush stdout
-            set rotatable 1
-            set ispeptidebond [bond_is_peptide $a $b $ni $ci]
-#            puts " -> 5 $in5ring 6 $in6ring p $ispeptidebond"
-            if { $ispeptidebond == 1 } {
-                set rotatable 0
-            }
-            if { [llength $ibl] == 1 } {
-                set rotatable 0
-            }
-            bondstruct_setbond_rotatable $bs $a $b $rotatable
-    #        puts "-> $a $b $rotatable"
+    set nn {}
+    set nnr 0
+    foreach cc $ci {
+        set cci [lsearch $il $cc]
+        set cbl [lindex $bl $cci]
+        foreach cbln $cbl {
+            set nn [lsearch $ni $cbln]
+        }
+        if { $nn != -1 } {
+            bondstruct_setbond_rotatable $bs $cc $n 0
+            bondstruct_setbond_rotatable $bs $n $cc 0
+            set nnr [expr $nnr + 1]
         }
     }
+    puts "BONDSTRUCT) Disabled rotation of $nnr peptide bonds"
+    flush stdout
     puts "BONDSTRUCT) Making right-sides..."
 #    puts "mapping rotatables..."
     # generate the count of rotatable bonds and the map to the bond array
