@@ -69,7 +69,8 @@ void bondstruct_deactivate_by_fixed ( bondstruct * bs, int fa );
 int bondstruct_arebonded ( bondstruct * bs, int a, int b );
 
 double my_roughenergy ( int * i1, double * x1, double * y1, double * z1, int n1, 
-                        int * i2, int n2, double cut,
-                        double sigma, double epsilon, bondstruct * bs, linkcell * ls );
+                        int * i2, int n2, double cutoff,
+                        double sigma, double epsilon, double shift,
+                        bondstruct * bs, linkcell * ls );
 void my_roughenergy_cleanup ( linkcell * ls );
 #endif

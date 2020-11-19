@@ -43,7 +43,7 @@ proc my_increment { numlet } {
 
 # computes overlap energy between atoms in sel1 and sel2.  "sel2" is assumed to be a static background that
 # does not include the atoms in sel1.  Atom indices in sel1 are assumed not to change.
-proc roughenergy_setup { sel1 sel2 cut } {
+proc roughenergy_setup { sel1 sel2 cellsize } {
   global _r1
   global _r2
   global _x1
@@ -65,7 +65,7 @@ proc roughenergy_setup { sel1 sel2 cut } {
   set _n1 [$sel1 num]
   set _n2 [$sel2 num]
   #puts "Calling my_roughenergy_setup"
-  set ls [my_roughenergy_setup $_x2 $_y2 $_z2 $_n2 $cut]
+  set ls [my_roughenergy_setup $_x2 $_y2 $_z2 $_n2 $cellsize]
   return $ls
 }
 
@@ -73,7 +73,7 @@ proc roughenergy_cleanup { ls } {
   my_roughenergy_cleanup $ls
 }
 
-proc roughenergy { sel1 cut sigma epsilon bs ls }  {
+proc roughenergy { sel1 cut sigma epsilon shift bs ls }  {
   global _r1
   global _r2
   global _x1
@@ -92,7 +92,7 @@ proc roughenergy { sel1 cut sigma epsilon bs ls }  {
   ListToArray_Data $_x1 [$sel1 get x]
   ListToArray_Data $_y1 [$sel1 get y]
   ListToArray_Data $_z1 [$sel1 get z]
-  set E [my_roughenergy $_r1 $_x1 $_y1 $_z1 $_n1 $_r2 $_n2 $cut $sigma $epsilon $bs $ls]
+  set E [my_roughenergy $_r1 $_x1 $_y1 $_z1 $_n1 $_r2 $_n2 $cut $sigma $epsilon $shift $bs $ls]
   
   return $E
 }
@@ -858,17 +858,21 @@ proc do_multiflex_mc { molid rotsel refatominddict paramsdict iseed logid logeve
    set sstop  [dict get $params sstop]
    set k  [dict get $params mck]
    set temperature  [dict get $params temperature]
-   set sigma  [dict get $params sigma]
-   set epsilon [dict get $params epsilon]
-   set rcut [dict get $params rcut]
    set maxanglestep [dict get $params maxanglestep]
 
-   puts "CFAFLEXMC) Max cycles $maxcycles dattr-thresh $dstop strc-thresh $sstop k $k"
-   puts "CFAFLEXMC) [bondstruct_getnrb $bs] rotatable bonds"
-   puts "CFAFLEXMC) MC-Temperature $temperature sigma $sigma epsilon $epsilon"
-   puts "CFAFLEXMC) Maximum angle displacement: $maxanglestep degrees"
+   set ljsigma  [dict get $params ljsigma]
+   set ljepsilon [dict get $params ljepsilon]
+   set ljcutoff  [dict get $params ljcutoff]
+   set ljshift [dict get $params ljshift]
+   set cellsize [dict get $params cellsize]
 
+   puts "CFAFLEXMC) Max cycles $maxcycles dattr-thresh $dstop strc-thresh $sstop k $k"
+   puts "CFAFLEXMC) Number of rotatable bonds [bondstruct_getnrb $bs]"
+   puts "CFAFLEXMC) MC-Temperature $temperature"
+   puts "CFAFLEXMC) sigma $ljsigma epsilon $ljepsilon cutoff $ljcutoff shift $ljshift"
+   puts "CFAFLEXMC) Maximum angle displacement: $maxanglestep degrees"
    flush stdout
+
    set ilist [dict get $refatoms i]
    set jlist [dict get $refatoms j]
    puts "CFAFLEXMC) ilist $ilist"
@@ -880,8 +884,8 @@ proc do_multiflex_mc { molid rotsel refatominddict paramsdict iseed logid logeve
         flush stdout
       }
    }
-
-   set maxanglestep [expr $maxanglestep / 10.0]
+   set anglegradationfactor 10
+   set maxanglestep [expr $maxanglestep / $anglegradationfactor]
    expr srand($iseed)
    set nacc 0
    set SE 0.0
@@ -891,16 +895,16 @@ proc do_multiflex_mc { molid rotsel refatominddict paramsdict iseed logid logeve
         set SE [expr $SE+0.5*$k*pow($dattr,2)]
       }
    }
-   set ls [roughenergy_setup $rotnoh $envex $rcut]
+   set ls [roughenergy_setup $rotnoh $envex $cellsize]
   #puts "calc ($mselnoh) ($rcut) ($sigma) ($epsilon) ($bs) ($ls)..."
-   set EE [roughenergy $rotnoh $rcut $sigma $epsilon $bs $ls]
+   set EE [roughenergy $rotnoh $ljcutoff $ljsigma $ljepsilon $ljshift $bs $ls]
    set E [expr $SE + $EE]
    set lastEE $EE
    set lastSE $SE
    set E0 $E
    puts "CFAFLEXMC) E0 $E0"
    set keep_cycling 1
-   if { $EE < $sstop && $dattr < $dstop } {
+   if { $EE < $sstop && $SE < $dstop } {
       set keep_cycling 0
    }
    set nrb [bondstruct_getnrb $bs]
@@ -908,19 +912,21 @@ proc do_multiflex_mc { molid rotsel refatominddict paramsdict iseed logid logeve
    set ngc 0
    for {set cyc 0} { $cyc < $maxcycles && $keep_cycling == 1 } { incr cyc } {
       set nacc 0
+      set SAVEPOS [$rotsel get {x y z}] ; # modify so only atoms on right-side of this bond are saved
       for {set r 0} {$r < $nrb} {incr r} {
-        set SAVEPOS [$rotsel get {x y z}] ; # modify so only atoms on right-side of this bond are saved
-        #get a random active bond
-        set rb [irand_dom 0 [expr $nrb-1]]
+         #get a random active bond
+        #set rb [irand_dom 0 [expr $nrb-1]]
         # get a random rotation angle
-        set av [expr $maxanglestep * [irand_dom -10 10]]
+        set av [expr $maxanglestep * [irand_dom -$anglegradationfactor $anglegradationfactor]]
         # get this active bonds index in the bondstruct (why don't I just delete nonrotatable bonds?)
-        set rr [bondstruct_r2b $bs $rb]
+#        set rr [bondstruct_r2b $bs $rb]
+        set rr [bondstruct_r2b $bs $r]
         # execute the rotation
-        if { [bondstruct_isactive $bs $rr] } {
+        #if { [bondstruct_isactive $bs $rr] } {
            bondrot_by_index $bs $molid $rr $av
-        }
-        # compute the change in energy
+        #}
+      }
+      if { 1 } {
         set SE 0.0
         foreach i $ilist j $jlist {
            if { $i != $j } {
@@ -928,7 +934,7 @@ proc do_multiflex_mc { molid rotsel refatominddict paramsdict iseed logid logeve
              set SE [expr $SE+0.5*$k*pow($dattr,2)]
            }
         }
-        set EE [roughenergy $rotnoh $rcut $sigma $epsilon $bs $ls]
+        set EE [roughenergy $rotnoh $ljcutoff $ljsigma $ljepsilon $ljshift $bs $ls]
         set E [expr $SE + $EE]
         # do metropolis
         set X [expr rand()]
@@ -947,7 +953,10 @@ proc do_multiflex_mc { molid rotsel refatominddict paramsdict iseed logid logeve
         } else {
           # accept the move
           set E0 $E
-          puts "$cyc $rb $E"
+#          puts "$cyc $rb $E"
+#          if { [expr $r%10 == 0] } {
+            puts "cyc $cyc/[expr $maxcycles -1] bond $r/[expr $nrb -1]"
+#          }
           incr nacc
         }
       }

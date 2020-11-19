@@ -159,11 +159,11 @@ proc make_bondstruct { molid sel falist } {
     set r5 [atomselect $molid "ringsize 5 from ([$sel text])"]
     set r5i [$r5 get index]
     set n5nr [ring_nonrotatables $r5i 5 $bs]
-    puts "BONDSTRUCT) Disabled rotation in $n5nr bonds in [expr [llength $r5i]/5] 5-membered rings"
+    puts "BONDSTRUCT) Disabled rotation of $n5nr bonds in [expr [llength $r5i]/5] 5-membered rings"
     set r6 [atomselect $molid "ringsize 6 from ([$sel text])"]
     set r6i [$r6 get index]
     set n6nr [ring_nonrotatables $r6i 6 $bs]
-    puts "BONDSTRUCT) Disabled rotation in $n6nr bonds in [expr [llength $r6i]/6] 6-membered rings"
+    puts "BONDSTRUCT) Disabled rotation of $n6nr bonds in [expr [llength $r6i]/6] 6-membered rings"
     set c [atomselect $molid "protein and name C and ([$sel text])"]
     set ci [$c get index]
     set n [atomselect $molid "protein and name N and ([$sel text])"]

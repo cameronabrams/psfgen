@@ -61,7 +61,7 @@ linkcell * linkcell_new ( double * x, double * y, double * z, int n, double cut,
     ls->nc=ls->xnc*ls->ync*ls->znc;
     
     if (verbose) {
-       printf("Linkcell %i particles with cut %.4f:\n",ls->n,ls->cut);
+       printf("Linkcell %i particles with cellsize %.4f:\n",ls->n,ls->cut);
        printf("   x: [%6.2f,%6.2f,%6.2f] %i\n",ls->xmin,ls->dx,ls->xmax,ls->xnc);
        printf("   y: [%6.2f,%6.2f,%6.2f] %i\n",ls->ymin,ls->dy,ls->ymax,ls->ync);
        printf("   z: [%6.2f,%6.2f,%6.2f] %i\n",ls->zmin,ls->dz,ls->zmax,ls->znc);
@@ -108,8 +108,9 @@ linkcell * linkcell_new ( double * x, double * y, double * z, int n, double cut,
     return ls;
 }
 
-linkcell * my_roughenergy_setup ( double * x2, double * y2, double * z2, int n2, double cut ) {
-   linkcell * ls = linkcell_new(x2,y2,z2,n2,cut,1);
+linkcell * my_roughenergy_setup ( double * x2, double * y2, double * z2, 
+                                  int n2, double cellsize ) {
+   linkcell * ls = linkcell_new(x2,y2,z2,n2,cellsize,1);
    return ls;
 }
 
