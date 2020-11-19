@@ -179,10 +179,10 @@ class Segment:
                     stanzastr+='   pdb {}\n'.format(f.pdb_str())
                 elif ss.typ=='LOOP':
                     if (i==0 or i==(len(self.subsegbounds)-1)) and not includeTerminalLoops:
-                       ''' shunt this if this is a terminal loop and includeTerminalLoops is False '''
+                        ''' shunt this if this is a terminal loop and includeTerminalLoops is False '''
                         pass
                     else:
-                       ''' this is either NOT a terminal loop, or if it is, includeTerminalLoops is True '''
+                        ''' this is either NOT a terminal loop, or if it is, includeTerminalLoops is True '''
                         l=ss.d
                         for rr in l.residues:
                            nm=ResnameCharmify(rr.name)
