@@ -187,20 +187,38 @@ class Segment:
                        for rr in l.residues:
                            nm=ResnameCharmify(rr.name)
                            stanzastr+='   residue {}{} {} {}\n'.format(rr.resseqnum,rr.insertion,nm,tmat.get_replica_chainID(rr.chainID))
+                        # insert sacrificial glycine
+                        rr=l.residues[-1]
+                        stanzastr+='   residue {}{} {} {}\n'format(rr.resseqnum,chr(ord(rr.insertion)+1),'GLY',tmat.get_replica_chainID(rr.chainID))
+                        ss.sacrins=chr(ord(rr.insertion)+1)
             ''' PART 2.1:  Include mutations '''
             #print('### {} mutations'.format(len(self.mutations)))
             for m in self.mutations:
                 stanzastr+=m.psfgen_segment_str()
             stanzastr+='}\n'
             ''' PART 3:  Issue coordinate-setting commands '''
-            for i,ss in enumerate(self.subsegbounds):
+            ''' coordpdb calls '''
+            for i in range(0,len(self.subsegbonds)):
+                ss=self.subsegbonds[i]
                 if ss.typ=='FRAGMENT':
                     stanzastr+='coordpdb {} {}\n'.format(ss.d.pdb_str(),rep_segname)
-                elif ss.typ=='LOOP':
+            ''' caco calls '''
+            for i in range(0,len(self.subsegbonds)):
+                ss=self.subsegbonds[i]
+                if ss.typ=='LOOP':
                     if (i==0 or i==(len(self.subsegbounds)-1)) and not includeTerminalLoops:
                         pass
                     else:
                         stanzastr+=ss.d.caco_str()
+            ''' slice calls '''
+             for i in range(0,len(self.subsegbonds)):
+                ss=self.subsegbonds[i]
+                if ss.typ=='LOOP':
+                    if (i>0 and i<(len(self.subsegbounds)-1)):
+                        fragss=self.subsegbonds[i+1]
+                        stanzastr+='patch cter {}:{}{}\n'.format(rep_segname,ss.residues[-1].resseqnum,ss.residues[-1].insertion)
+                        stanzastr+='patch nter {}:{}{}\n'.format(rep_segname,fragss.residues[0].resseqnum,fragss.residues[0].insertion)
+                        stanzastr+='delatom {} {}{}\n'.format(rep_segname,ss.residues[-1].resseqnum,ss.sacrins)
             return stanzastr,Loops
         elif self.segtype=='GLYCAN':
             stanzastr=''
