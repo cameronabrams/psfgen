@@ -20,7 +20,7 @@ typedef struct LINKCELL {
     int *** np; // particle counts 
 } linkcell;
 
-linkcell * linkcell_new ( double * x, double * y, double * z, int n, double cut );
+linkcell * linkcell_new ( double * x, double * y, double * z, int n, double cut, int verbose );
 linkcell * my_roughenergy_setup ( double * x2, double * y2, double * z2, int n2, double cut );
 void linkcell_free ( linkcell * ls );
 #endif

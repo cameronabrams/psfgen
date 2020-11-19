@@ -141,7 +141,7 @@ proc make_bondstruct { molid sel } {
     set na [llength $il]
     # first, count the total number of bonds in the bondlist,
     # excluding bonds to atoms outside the sel
-    puts "BONDSTRUCT) pruning from VMD sel getbonds..."
+    puts "BONDSTRUCT) Pruning from VMD sel getbonds..."
     flush stdout
     set bondcount 0
     for { set i 0 } { $i < $na } { incr i } {
@@ -186,7 +186,7 @@ proc make_bondstruct { molid sel } {
     set n [atomselect $molid "protein and name N and ([$sel text])"]
     set ni [$n get index]
 #    puts "Considering [llength $ci] peptide bonds"
-    puts "BONDSTRUCT) labeling rotatables..."
+    puts "BONDSTRUCT) Labeling rotatables..."
     flush stdout
     foreach a $il ibl $bl {
         foreach b $ibl {

@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <stdlib.h>
 #include "linkcell.h"
@@ -25,7 +24,7 @@ double min ( double * a, int n ) {
    return r;
 }
 
-linkcell * linkcell_new ( double * x, double * y, double * z, int n, double cut ) {
+linkcell * linkcell_new ( double * x, double * y, double * z, int n, double cut, int verbose ) {
     int i, j, k;
     int icx, icy, icz, pi, lci;
     int * npl;
@@ -60,14 +59,15 @@ linkcell * linkcell_new ( double * x, double * y, double * z, int n, double cut 
     ls->dz=ls->zspan/ls->znc;
 
     ls->nc=ls->xnc*ls->ync*ls->znc;
-
-    printf("Linkcell %i particles with cut %.4f:\n",ls->n,ls->cut);
-    printf("   x: [%6.2f,%6.2f,%6.2f] %i\n",ls->xmin,ls->dx,ls->xmax,ls->xnc);
-    printf("   y: [%6.2f,%6.2f,%6.2f] %i\n",ls->ymin,ls->dy,ls->ymax,ls->ync);
-    printf("   z: [%6.2f,%6.2f,%6.2f] %i\n",ls->zmin,ls->dz,ls->zmax,ls->znc);
-    printf("   total cells: %i\n",ls->nc);
-    fflush(stdout);
-
+    
+    if (verbose) {
+       printf("Linkcell %i particles with cut %.4f:\n",ls->n,ls->cut);
+       printf("   x: [%6.2f,%6.2f,%6.2f] %i\n",ls->xmin,ls->dx,ls->xmax,ls->xnc);
+       printf("   y: [%6.2f,%6.2f,%6.2f] %i\n",ls->ymin,ls->dy,ls->ymax,ls->ync);
+       printf("   z: [%6.2f,%6.2f,%6.2f] %i\n",ls->zmin,ls->dz,ls->zmax,ls->znc);
+       printf("   total cells: %i\n",ls->nc);
+       fflush(stdout);
+    }
     npl=(int*)malloc(ls->nc*sizeof(int));
     for (i=0;i<ls->nc;i++) {
         npl[i]=0;
@@ -109,7 +109,7 @@ linkcell * linkcell_new ( double * x, double * y, double * z, int n, double cut 
 }
 
 linkcell * my_roughenergy_setup ( double * x2, double * y2, double * z2, int n2, double cut ) {
-   linkcell * ls = linkcell_new(x2,y2,z2,n2,cut);
+   linkcell * ls = linkcell_new(x2,y2,z2,n2,cut,1);
    return ls;
 }
 

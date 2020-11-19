@@ -846,7 +846,7 @@ proc do_multiflex_mc { molid rotsel refatominddict paramsdict iseed logid logeve
    set falist [dict get $refatoms fa]
    set ilist [dict get $refatoms i]
    set jlist [dict get $refatoms j]
-   puts "CFAFLEXMC) making bondstruct..."
+   puts "CFAFLEXMC) Making bondstruct..."
    flush stdout 
    set bs [make_bondstruct $molid $rotsel]
    foreach fa $falist {
@@ -949,7 +949,7 @@ proc do_multiflex_mc { molid rotsel refatominddict paramsdict iseed logid logeve
         # accept the move
         set E0 $E
         incr nacc
-        puts -nonewline "CFAFLEXMC) cyc $cyc na $nacc [format "ar=%.5f" [expr (1.0*$nacc)/($cyc+1)]] [format "attr-pnlty %.2f " $SE] [format "strc-pnlty %.2f" $EE]"
+        puts "CFAFLEXMC) cyc $cyc na $nacc [format "ar=%.5f" [expr (1.0*$nacc)/($cyc+1)]] [format "attr-pnlty= %.2f " $SE] [format "strc-pnlty=%.2f" $EE]"
         if { [expr $nacc % $logevery == 0 ] } {
           log_addframe $molid $logid
           if { [expr $nacc % $logsaveevery == 0] } {
