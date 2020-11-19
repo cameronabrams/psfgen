@@ -847,7 +847,7 @@ proc do_multiflex_mc { molid rotsel refatominddict paramsdict iseed logid logeve
    set ilist [dict get $refatoms i]
    set jlist [dict get $refatoms j]
    puts "CFAFLEXMC) making bondstruct..."
-   flush(stdout)
+   flush stdout 
    set bs [make_bondstruct $molid $rotsel]
    foreach fa $falist {
       bondstruct_deactivate_by_fixed $bs $fa
