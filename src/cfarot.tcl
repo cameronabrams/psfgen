@@ -188,7 +188,7 @@ proc make_bondstruct { molid sel } {
     # any atom index which has only one bondlist member
     set nnr 0
     foreach a $il abl $bl {
-        if { [llength $abl == 1] } {
+        if { [llength $abl] == 1 } {
             bondstruct_setbond_rotatable $bs $a [lindex $abl 0] 0
             bondstruct_setbond_rotatable $bs [lindex $abl 0] $a 0
             set nnr [expr $nnr + 2]
