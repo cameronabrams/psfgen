@@ -363,7 +363,7 @@ double my_roughenergy ( int * i1, double * x1, double * y1, double * z1, int n1,
    double s6=sigma*sigma*sigma*sigma*sigma*sigma;
    double rcut=pow(2,1./6.)*sigma,rcut2;
    // build linkcell for the set1-set1 interactions
-   linkcell * f_ls = linkcell_new(x1,y1,z1,n1,ls->cut);
+   linkcell * f_ls = linkcell_new(x1,y1,z1,n1,ls->cut,0);
    if (rcut>cut) {
       rcut=cut;
    }
