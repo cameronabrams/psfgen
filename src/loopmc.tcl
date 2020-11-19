@@ -844,25 +844,17 @@ proc do_multiflex_mc { molid rotsel refatominddict paramsdict iseed logid logeve
    #set bl [$msel getbonds]
    #set il [$mselnoh get index]
    set falist [dict get $refatoms fa]
-   set ilist [dict get $refatoms i]
-   set jlist [dict get $refatoms j]
    puts "CFAFLEXMC) Making bondstruct..."
    flush stdout 
    set bs [make_bondstruct $molid $rotsel]
    foreach fa $falist {
       bondstruct_deactivate_by_fixed $bs $fa
    }
-  # bondstruct_print $bs
+   # remove movable atoms from the background
    set exind [$rotsel get index]
    set envex [atomselect $molid "noh and not index $exind"]
+
    puts "CFAFLEXMC) rotsel [$rotsel num] envex [$envex num] falist $falist"
-   flush stdout
-   foreach i $ilist j $jlist {
-      if { $i != $j } { 
-        puts "CFAFLEXMC) Initial ($i)-($j) distance [format "%.2f" [measure bond [list $i $j]]] A"
-        flush stdout
-      }
-   }
    set maxcycles [dict get $params nc]
    set dstop  [dict get $params dstop]
    set sstop  [dict get $params sstop]
@@ -877,14 +869,20 @@ proc do_multiflex_mc { molid rotsel refatominddict paramsdict iseed logid logeve
    puts "CFAFLEXMC) [bondstruct_getnrb $bs] rotatable bonds"
    puts "CFAFLEXMC) MC-Temperature $temperature sigma $sigma epsilon $epsilon"
    puts "CFAFLEXMC) Maximum angle displacement: $maxanglestep degrees"
+
    flush stdout
+   set ilist [dict get $refatoms i]
+   set jlist [dict get $refatoms j]
+   foreach i $ilist j $jlist {
+      if { $i != $j } { 
+        puts "CFAFLEXMC) Initial ($i)-($j) distance [format "%.2f" [measure bond [list $i $j]]] A"
+        flush stdout
+      }
+   }
 
    set maxanglestep [expr $maxanglestep / 10.0]
-
    expr srand($iseed)
-
    set nacc 0
-
    set SE 0.0
    foreach i $ilist j $jlist {
       if { $i != $j } {
