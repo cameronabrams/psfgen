@@ -195,8 +195,6 @@ proc make_bondstruct { molid sel falist } {
         }
     }
     puts "BONDSTRUCT) Disabled rotation of $nnr single-ligand bonds"
-    # generate the count of rotatable bonds and the map to the bond array
-    bondstruct_maprotatables $bs
     puts "BONDSTRUCT) Making right-sides..."
 #    puts "mapping rotatables..."
 #    puts "making right-sides..."
@@ -208,6 +206,8 @@ proc make_bondstruct { molid sel falist } {
     foreach fa $falist {
         bondstruct_deactivate_by_fixed $bs $fa
     }
+    # generate the count of rotatable bonds and the map to the bond array
+    bondstruct_maprotatables $bs
     puts "BONDSTRUCT) $bondcount total bonds, [bondstruct_getnrb $bs] rotatables"
     #puts "make_bondstruct returns"
     return $bs
