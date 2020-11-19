@@ -908,14 +908,14 @@ proc do_multiflex_mc { molid rotsel refatominddict paramsdict iseed logid logeve
    set ngc 0
    for {set cyc 0} { $cyc < $maxcycles && $keep_cycling == 1 } { incr cyc } {
       set nacc 0
-      for {set r 0} {$r < $nrb } {incr r} {
-        set SAVEPOS [$rotsel get {x y z}]
+      for {set r 0} {$r < $nrb} {incr r} {
+        set SAVEPOS [$rotsel get {x y z}] ; # modify so only atoms on right-side of this bond are saved
         #get a random active bond
         set rb [irand_dom 0 [expr $nrb-1]]
         # get a random rotation angle
         set av [expr $maxanglestep * [irand_dom -10 10]]
         # get this active bonds index in the bondstruct (why don't I just delete nonrotatable bonds?)
-        set rr [bondstruct_r2b $bs $r]
+        set rr [bondstruct_r2b $bs $rb]
         # execute the rotation
         if { [bondstruct_isactive $bs $rr] } {
            bondrot_by_index $bs $molid $rr $av
@@ -947,6 +947,7 @@ proc do_multiflex_mc { molid rotsel refatominddict paramsdict iseed logid logeve
         } else {
           # accept the move
           set E0 $E
+          puts "$cyc $rb $E"
           incr nacc
         }
       }
