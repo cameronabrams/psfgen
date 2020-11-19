@@ -846,6 +846,8 @@ proc do_multiflex_mc { molid rotsel refatominddict paramsdict iseed logid logeve
    set falist [dict get $refatoms fa]
    set ilist [dict get $refatoms i]
    set jlist [dict get $refatoms j]
+   puts "CFAFLEXMC) making bondstruct..."
+   flush(stdout)
    set bs [make_bondstruct $molid $rotsel]
    foreach fa $falist {
       bondstruct_deactivate_by_fixed $bs $fa
@@ -853,7 +855,7 @@ proc do_multiflex_mc { molid rotsel refatominddict paramsdict iseed logid logeve
   # bondstruct_print $bs
    set exind [$rotsel get index]
    set envex [atomselect $molid "noh and not index $exind"]
-   puts "CFAFLEXMC) msel [$msel num] envex [$envex num] falist $fa"
+   puts "CFAFLEXMC) rotsel [$rotsel num] envex [$envex num] falist $fa"
    flush stdout
    foreach i $ilist j $jlist {
       if { $i != $j } { 
