@@ -180,11 +180,11 @@ class Segment:
                 elif ss.typ=='LOOP':
                     if (i==0 or i==(len(self.subsegbounds)-1)) and not includeTerminalLoops:
                        ''' shunt this if this is a terminal loop and includeTerminalLoops is False '''
-                       pass
+                        pass
                     else:
                        ''' this is either NOT a terminal loop, or if it is, includeTerminalLoops is True '''
-                       l=ss.d
-                       for rr in l.residues:
+                        l=ss.d
+                        for rr in l.residues:
                            nm=ResnameCharmify(rr.name)
                            stanzastr+='   residue {}{} {} {}\n'.format(rr.resseqnum,rr.insertion,nm,tmat.get_replica_chainID(rr.chainID))
                         # insert sacrificial glycine
