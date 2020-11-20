@@ -1166,9 +1166,15 @@ proc ligateCN { molid residueC residueN } {
   }
   set pos [$jsel get {x y z}]
 
+  set dimax 0.0
   foreach o { OT1 OT2 } {
     foreach h { HT1 HT2 HT3 } {
-      puts "[measure dihed [list $index($o) $index(C) $index(N) $index($h)]]"
+      set thisdi [expr abs([measure dihed [list $index($o) $index(C) $index(N) $index($h)]])]
+      if { $thisdi > $dimax } {
+        set dimax $thisdi
+        set thetwo [list $index(o) $index(h)]
+      }
     }
   }
+  puts "$dimax $index(o) $index(h)"
 }
