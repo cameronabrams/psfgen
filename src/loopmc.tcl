@@ -171,6 +171,39 @@ proc Crot_psi_toCterm { r rend c molid deg } {
    $co delete
 }
 
+proc lay_loop { molid c loop maxcycles } {
+  set nr [llength $loop]
+  set loopsel [atomselect $molid "chain $c and resid [join $loop]"]
+  set residue_numbers [[atomselect $molid "[$loopsel text] and name CA"] get residue]
+  set env [atomselect $molid "same residue as exwithin 4.0 of (chain $c and resid [join $loop]])"]
+  set residuenum_end [lindex $residue_numbers end]
+  for { set i 0 } { $i < $nr } { incr i } {
+    # rotate phi angle and psi angle to minimize number of contacts between residue and 
+    # its environment
+    set rsel [atomselect $molid "chain $c and resid [lindex $loop $i]"]
+    set residuenum1 [lindex $residue_numbers $i]
+    set CON [measure contacts 2.0 $rsel $env]
+    for { set t 0 } { $t < $maxcycles } { incr t } {
+      set SAVEPOS [$loopsel get {x y z}]
+      set rphi [expr (1-2*rand())*60.0]
+      set rpsi [expr (1-2*rand())*60.0]
+      Crot_phi_toCterm $residuenum1 $residuenum_end $c $molid $rphi
+      Crot_psi_toCterm $residuenum1 $residuenum_end $c $molid $rphi
+      set TRICON [measure contacts 2.0 $rsel $env]
+      if { [expr $TRICON < $CON] } {
+        # accept this move
+        set CON $TRICON
+        puts "LAYLOOP) ${c}[lindex $loop $i] $t $CON"
+      } else {
+        # reject this move
+        $loopsel set {x y z} $SAVEPOS
+      }
+    }
+    $rsel delete
+  }
+  $env delete
+  $loopsel delete
+}
 
 # rotate the side chain of residue r of chain c in mol molid around
 # chi1 by deg degrees
@@ -194,7 +227,7 @@ proc SCrot_chi2 { r c molid deg } {
    set cb [atomselect $molid "residue $r and name CB"]; checknum [$cb num] "no CB in SCrot_chi1";
    set cg [atomselect $molid "residue $r and name CG"]; checknum [$cg num] "no CG in SCrot_chi1";
    set p1 [lindex [$cb get {x y z}] 0]
-   set p2 [lindex [$cg get {x y z}] 0]
+   set p2 [lindex [$cg get] {x y z}] 0]
    set ax [vecsub $p1 $p2]
    $rot move [trans center $p1 axis $ax $deg degrees]
    $rot delete
