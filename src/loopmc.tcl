@@ -201,9 +201,9 @@ proc lay_loop { molid c loop maxcycles } {
       if { $i > [expr $nr - 1] } {
         Crot_psi_toCterm $residuenum1 $residuenum_end $c $molid $rphi
       }
+      $env update
       set TRICON_STRUCT [measure contacts 2.0 $rsel $env]
       set TRICON  [llength [lindex $TRICON_STRUCT 0]]
-      $env update
       if { [expr $TRICON < $CON] } {
         # accept this move
         set CON $TRICON
