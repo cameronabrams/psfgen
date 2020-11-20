@@ -1178,6 +1178,7 @@ proc ligateCN { molid residueC residueN } {
 
   # pick the one OT and the one HT that would give the most "trans" peptide bond
   set dimax 0.0
+  set thetwo {}
   foreach o { OT1 OT2 } {
     foreach h { HT1 HT2 HT3 } {
       set thisdi [expr abs([measure dihed [list $index($o) $index(C) $index(N) $index($h)]])]
@@ -1190,6 +1191,6 @@ proc ligateCN { molid residueC residueN } {
   set fullset { OT1 OT2 HT1 HT2 HT3 }
   # symmetric difference
   set deleteus [difference $fullset $thetwo]
-  puts "deleteus $deleteus"
+  puts "thetwo $thetwo deleteus $deleteus"
   # delatom $segname xxx yyy
 }
