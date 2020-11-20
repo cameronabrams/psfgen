@@ -189,9 +189,9 @@ proc lay_loop { molid c loop maxcycles } {
       set rphi [expr (1-2*rand())*60.0]
       #set rpsi [expr (1-2*rand())*60.0]
       Crot_phi_toCterm $residuenum1 $residuenum_end $c $molid $rphi
-      #if { $i > [expr $nr - 1] } {
-      #  Crot_psi_toCterm $residuenum1 $residuenum_end $c $molid $rphi
-      #}
+      if { $i > [expr $nr - 1] } {
+        Crot_psi_toCterm $residuenum1 $residuenum_end $c $molid $rphi
+      }
       set TRICON_STRUCT [measure contacts 2.0 $rsel $env]
       set TRICON  [llength [lindex $TRICON_STRUCT 0]]
       if { [expr $TRICON < $CON] } {
