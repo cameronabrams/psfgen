@@ -1168,7 +1168,7 @@ proc ligateCN { molid residueC residueN } {
 
   foreach o { OT1 OT2 } {
     foreach h { HT1 HT2 HT3 } {
-      puts "[measure dihed $index($o) $index(C) $index(N) $index($h)]"
+      puts "[measure dihed [list $index($o) $index(C) $index(N) $index($h)]]"
     }
   }
 }
