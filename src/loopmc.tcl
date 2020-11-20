@@ -171,6 +171,14 @@ proc Crot_psi_toCterm { r rend c molid deg } {
    $co delete
 }
 
+proc range { from to step } {
+  set result {}
+  for {set i $from} {$i<=$to} {incr i $step} {
+    lappend result $i
+  }
+  return $result
+}
+
 proc lay_loop { molid c loop maxcycles } {
   set nr [llength $loop]
   set loopsel [atomselect $molid "chain $c and resid [join $loop]"]
