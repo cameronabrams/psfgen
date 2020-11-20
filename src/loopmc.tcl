@@ -180,16 +180,18 @@ proc lay_loop { molid c loop maxcycles } {
   for { set i 0 } { $i < $nr } { incr i } {
     # rotate phi angle and psi angle to minimize number of contacts between residue and 
     # its environment
-    set rsel [atomselect $molid "chain $c and resid [lindex $loop $i]"]
+    set rsel [atomselect $molid "chain $c and resid [lindex $loop $i] to [lindex $loop end]"]
     set residuenum1 [lindex $residue_numbers $i]
     set CON_STRUCT [measure contacts 2.0 $rsel $env]
     set CON [llength [lindex $CON_STRUCT 0]]
     for { set t 0 } { $t < $maxcycles } { incr t } {
       set SAVEPOS [$loopsel get {x y z}]
-      set rphi [expr (1-2*rand())*60.0]
-      set rpsi [expr (1-2*rand())*60.0]
+      set rphi [expr (1-2*rand())*6.0]
+      set rpsi [expr (1-2*rand())*6.0]
       Crot_phi_toCterm $residuenum1 $residuenum_end $c $molid $rphi
-      Crot_psi_toCterm $residuenum1 $residuenum_end $c $molid $rphi
+      if { $i > [expr $nr - 1] } {
+        Crot_psi_toCterm $residuenum1 $residuenum_end $c $molid $rphi
+      }
       set TRICON_STRUCT [measure contacts 2.0 $rsel $env]
       set TRICON  [llength [lindex $TRICON_STRUCT 0]]
       if { [expr $TRICON < $CON] } {
