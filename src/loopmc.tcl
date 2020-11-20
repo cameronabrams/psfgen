@@ -203,6 +203,7 @@ proc lay_loop { molid c loop maxcycles } {
       }
       set TRICON_STRUCT [measure contacts 2.0 $rsel $env]
       set TRICON  [llength [lindex $TRICON_STRUCT 0]]
+      $env update
       if { [expr $TRICON < $CON] } {
         # accept this move
         set CON $TRICON
