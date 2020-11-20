@@ -1158,3 +1158,17 @@ proc check_pierced_rings { molid ringsize TOL } {
   }
 }
 
+proc ligateCN { molid residueC residueN } {
+  set jsel [atomselect $molid "(residue $residueC and name C OT1 OT2) or (residue $residueN and name N HN1 HN2 HN3)"]
+  set an [$jsel get name]
+  for { set i 0 } { $i < [llength $an] } { incr i } {
+    set index([lindex $an $i]) $i
+  }
+  set pos [$jsel get {x y z}]
+
+  foreach o { OT1 OT2 } {
+    foreacn h { HN1 HN2 HN3 } {
+      puts "[measure dihed $index($o) $index(C) $index(N) $index($h)"
+    }
+  }
+}
