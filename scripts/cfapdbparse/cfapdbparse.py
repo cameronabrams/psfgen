@@ -84,7 +84,7 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
     if 'do_preheal_min_smd' in PostMod and PostMod['do_preheal_min_smd']:
         # 1. use sequential rotations to optimize the unterminated loops
         # 2. prepare namd config for minimization and cv steering to 
-        #    bring the CNEU loop termini close to their partner NNEU's
+        #    bring the CTER loop termini close to their partner NTER's
         pass
     if 'do_multiflex_mc' in PostMod and PostMod['do_multiflex_mc']:
         nc=1000
