@@ -144,10 +144,10 @@ class Segment:
                  #print('{} {} {} {} {}'.format(j,b.d.chainID,b.d.residues[0].resseqnum,b.d.residues[-1].resseqnum,'terminated' if b.d.term else 'not terminated'))
         for j,b in enumerate(self.subsegbounds):
             if b.typ=='LOOP':
-                b.l.nextfragntermres='0'
+                b.d.nextfragntermres='0'
                 if not b.d.term:
                     # look ahead
-                    b.l.nextfragntermres=self.subsegbounds[j+1].d.resseqnum1
+                    b.d.nextfragntermres=self.subsegbounds[j+1].d.resseqnum1
         return Loops
 
     def write_psfgen_stanza(self,includeTerminalLoops=False,tmat=None):
