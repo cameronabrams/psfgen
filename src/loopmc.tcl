@@ -1158,6 +1158,15 @@ proc check_pierced_rings { molid ringsize TOL } {
   }
 }
 
+proc difference { a b } {
+  set r {}
+  foreach i $a {
+    if { $a ni $b } {
+      lappend r $i
+    }
+  }
+  return $r
+}
 proc ligateCN { molid residueC residueN } {
   set jsel [atomselect $molid "(residue $residueC and name C OT1 OT2) or (residue $residueN and name N HT1 HT2 HT3)"]
   set segname xxx
@@ -1180,7 +1189,7 @@ proc ligateCN { molid residueC residueN } {
   }
   set fullset { OT1 OT2 HT1 HT2 HT3 }
   # symmetric difference
-  set deleteus [ lmap item $fullset { if {$item ni $thetwo} { set item } else {continue}} ]
+  set deleteus [difference $fullset $thetwo]
   puts "deleteus $deleteus"
   # delatom $segname xxx yyy
 }
