@@ -180,7 +180,7 @@ proc lay_loop { molid c loop maxcycles } {
   for { set i 0 } { $i < $nr } { incr i } {
     # rotate phi angle and psi angle to minimize number of contacts between residue and 
     # its environment
-    set rsel [atomselect $molid "chain $c and resid [lindex $loop $i]"]
+    set rsel [atomselect $molid "chain $c and resid [lindex $loop $i] to [lindex $loop end]"]
     set residuenum1 [lindex $residue_numbers $i]
     set CON_STRUCT [measure contacts 2.0 $rsel $env]
     set CON [llength [lindex $CON_STRUCT 0]]
