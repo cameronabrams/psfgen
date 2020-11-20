@@ -175,7 +175,7 @@ proc lay_loop { molid c loop maxcycles } {
   set nr [llength $loop]
   set loopsel [atomselect $molid "chain $c and resid [join $loop]"]
   set residue_numbers [[atomselect $molid "[$loopsel text] and name CA"] get residue]
-  set env [atomselect $molid "same residue as exwithin 4.0 of (chain $c and resid [join $loop]])"]
+  set env [atomselect $molid "same residue as exwithin 4.0 of (chain $c and resid [join $loop])"]
   set residuenum_end [lindex $residue_numbers end]
   for { set i 0 } { $i < $nr } { incr i } {
     # rotate phi angle and psi angle to minimize number of contacts between residue and 
