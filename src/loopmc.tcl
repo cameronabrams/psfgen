@@ -1160,11 +1160,12 @@ proc check_pierced_rings { molid ringsize TOL } {
 
 proc ligateCN { molid residueC residueN } {
   set jsel [atomselect $molid "(residue $residueC and name C OT1 OT2) or (residue $residueN and name N HT1 HT2 HT3)"]
+  set segname xxx
+  set resids xxx
   set an [$jsel get name]
   for { set i 0 } { $i < [llength $an] } { incr i } {
     set index([lindex $an $i]) $i
   }
-  set pos [$jsel get {x y z}]
 
   # pick the one OT and the one HT that would give the most "trans" peptide bond
   set dimax 0.0
@@ -1177,5 +1178,9 @@ proc ligateCN { molid residueC residueN } {
       }
     }
   }
-  puts "$dimax [lindex $thetwo 0] [lindex $thetwo 1]"
+  set fullset { OT1 OT2 HT1 HT2 HT3 }
+  # symmetric difference
+  set deleteus [ lmap item $fullset { if {$item ni $thetwo} { set item } else {continue}} ]
+  puts "deleteus $deleteus"
+  # delatom $segname xxx yyy
 }
