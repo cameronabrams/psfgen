@@ -145,7 +145,7 @@ class Segment:
         for j,b in enumerate(self.subsegbounds):
             if b.typ=='LOOP':
                 b.d.nextfragntermres='0'
-                if not b.d.term:
+                if b.d.term:  # should be a terminated loop (has a frag c-terminal to it)
                     # look ahead
                     b.d.nextfragntermres=self.subsegbounds[j+1].d.resseqnum1
         return Loops
