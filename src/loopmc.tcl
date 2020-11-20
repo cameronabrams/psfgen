@@ -185,7 +185,7 @@ proc lay_loop { molid c loop maxcycles } {
     set CON_STRUCT [measure contacts 2.0 $rsel $env]
     set CON [llength [lindex $CON_STRUCT 0]]
     puts "LAYLOOP) ${c}[lindex $loop $i] INIT $CON"
-    for { set t 0 } { $t < $maxcycles and $CON > 0 } { incr t } {
+    for { set t 0 } { $t < $maxcycles && $CON > 0 } { incr t } {
       set SAVEPOS [$loopsel get {x y z}]
       set rphi [expr (1-2*rand())*120.0]
       #set rpsi [expr (1-2*rand())*60.0]
