@@ -1196,6 +1196,7 @@ proc ligateCN { molid residueC residueN } {
   set deleteus [difference $fullset $thetwo]
   puts "thetwo $thetwo deleteus $deleteus"
   foreach db $deleteus {
-    puts "-> delatom $segname($db) $resid($db) $db"
+    delatom $segname($db) $resid($db) $db
   }
+  
 }

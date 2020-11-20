@@ -595,7 +595,8 @@ class Molecule:
                     for p in s.pdbfiles:
                         if removePDBs:
                             fp.write('file delete {}\n'.format(p))
-        fp.write('#### SSBONDS:\n')
+        fp.write('#### END SEGMENTS\n')
+        fp.write('#### BEGIN PATCHES\n')
         for ss in self.SSBonds:
             if ss.chainID1 not in userIgnoreChains and ss.chainID2 not in userIgnoreChains:
                 fp.write(ss.psfgen_patchline())
@@ -613,11 +614,10 @@ class Molecule:
                 attributes of each link instance. '''
             l.updateSegnames(self.Residues,self.Biomolecules)
             fp.write(l.psfgen_patchline())
-
+        fp.write('#### END PATCHES\n')
         for b in self.Biomolecules:
             pass
 
-        fp.write('#### END OF SEGMENTS\n')
 
         fp.write('guesscoord\n')
         fp.write('regenerate angles dihedrals\n')
