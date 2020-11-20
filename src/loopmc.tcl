@@ -1170,11 +1170,13 @@ proc difference { a b } {
 
 proc ligateCN { molid residueC residueN } {
   set jsel [atomselect $molid "(residue $residueC and name C OT1 OT2) or (residue $residueN and name N HT1 HT2 HT3)"]
-  set segname xxx
-  set resids xxx
   set an [$jsel get name]
+  set segnames [$jsel get segname]
+  set resids [$jsel get resid]
   for { set i 0 } { $i < [llength $an] } { incr i } {
     set index([lindex $an $i]) $i
+    set resid([lindex $an $i]) [lindex $resids $i]
+    set segname([lindex $an $i]) [lindex $segnames $i]
   }
 
   # pick the one OT and the one HT that would give the most "trans" peptide bond
@@ -1193,5 +1195,7 @@ proc ligateCN { molid residueC residueN } {
   # symmetric difference
   set deleteus [difference $fullset $thetwo]
   puts "thetwo $thetwo deleteus $deleteus"
-  # delatom $segname xxx yyy
+  foreach db $deleteus {
+    puts "-> delatom $segname($db) $resid($db) $db"
+  }
 }
