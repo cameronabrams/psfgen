@@ -136,12 +136,18 @@ class Segment:
                  for i in range(b.l+1,b.r+1):
                      L.add_residue(self.residues[i])
                  Loops.append(L)
-                 b.d=L
+                 b.d=Loops[-1]
                  if j==0 or j==len(self.subsegbounds)-1:
                      b.d.term=False # not a terminated loop (this is an end!)
                  else:
                      b.d.term=True
                  #print('{} {} {} {} {}'.format(j,b.d.chainID,b.d.residues[0].resseqnum,b.d.residues[-1].resseqnum,'terminated' if b.d.term else 'not terminated'))
+        for j,b in enumerate(self.subsegbounds):
+            if b.typ=='LOOP':
+                b.l.nextfragntermres='0'
+                if not b.d.term:
+                    # look ahead
+                    b.l.nextfragntermres=self.subsegbounds[j+1].d.resseqnum1
         return Loops
 
     def write_psfgen_stanza(self,includeTerminalLoops=False,tmat=None):
@@ -222,9 +228,8 @@ class Segment:
                     else:
                         if (ss.sacrins!='0' and i>0 and i<(len(self.subsegbounds)-1)):
                             fragss=self.subsegbounds[i+1]
-                            ss.nextres=fragss.d.resseqnum1
                             stanzastr+='patch cneu {}:{}{}\n'.format(rep_segname,l.residues[-1].resseqnum,l.residues[-1].insertion)
-                            stanzastr+='patch nneu {}:{}\n'.format(rep_segname,fragss.d.resseqnum1)
+                            stanzastr+='patch nneu {}:{}\n'.format(rep_segname,l.nextfragntermres)
                             stanzastr+='delatom {} {}{}\n'.format(rep_segname,l.residues[-1].resseqnum,ss.sacrins)
             return stanzastr,Loops
         elif self.segtype=='GLYCAN':
