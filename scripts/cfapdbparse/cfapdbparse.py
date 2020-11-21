@@ -450,8 +450,8 @@ if __name__=='__main__':
     fp.write('  grep pierces ringp'+r'${TASK}'+'.log\n')
     fp.write('  echo "Change your relaxation parameters and try again."\n')
     fp.write('  exit\n')
-    fp.write('else\n')
-    fp.write('  echo "No pierced rings found."\n')
+#    fp.write('else\n')
+#    fp.write('  echo "No pierced rings found."\n')
     fp.write('fi\n')
     if 'do_preheal_min_smd' in PostMod and PostMod['do_preheal_min_smd']:
         fp.write('cat > heal_these.inp << EOF\n')
@@ -462,7 +462,7 @@ if __name__=='__main__':
 #                fp.write('lay_loop $molid {} [range {} {} 1] {}\n'.format(l.replica_chainID,l.residues[0].resseqnum,l.residues[-1].resseqnum,100))
         fp.write('EOF\n')
         # measures to find the initial distances; generated fixed.pdb to fix the N atoms 
-        fp.write('echo "Setting up bond healing. Log is heal'+r'${TASK}'+'.log"\n')
+        fp.write('echo "Setting up bond healing; log is heal'+r'${TASK}'+'.log"\n')
         fp.write(r'$VMD -dispdev text -e $PSFGEN_BASEDIR/scripts/measure_bonds.tcl -args '+'{} {} heal_these.inp 2&> heal'.format(Base.psf_outfile,'config.pdb')+r'${TASK}'+'.log\n')
         fp.write('if [ -f cv.inp ]; then rm cv.inp; fi\n')
         fp.write('touch cv.inp\n')
