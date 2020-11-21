@@ -21,11 +21,14 @@ topology $TOPPARDIR/stream/carb/toppar_all36_carb_glycopeptide.str
 topology $LOCAL_TOPPARDIR/top_all36_carb.rtf
 topology $LOCAL_TOPPARDIR/toppar_water_ions.str
 topology $LOCAL_TOPPARDIR/mylink.top
-#topology patches
-#coordpdb segname_A.pdb 
 
-mol new x01_6vxx.psf
-mol addfile config2.coor
+set psf [lindex $argv 0]
+set coor [lindex $argv 1]
+set outpsf [lindex $argv 2]
+set outpdb [lindex $argv $3]
+
+mol new $psf
+mol addfile $coor
 set m0 [molinfo top get id]
 
 set segnames [lsort -unique [[atomselect $m0 "all"] get segname]]
@@ -39,19 +42,13 @@ foreach s $segnames {
 }
 
 source patches.inp
-foreach c { A B C } {
-  set ilist {185 79 164 688 461 262 488 853 640}
-  foreach i $ilist {
-    set cc [expr $i - 1]
-    set n [expr $i + 1]
-    set nn [expr $i + 2]
-    patch HEAL $c:$cc $c:$i $c:$n $c:$nn
-  } 
-}
+
+### LIGATION LIST STARTS
+### LIGATION LIST ENDS
 
 regenerate angles dihedrals
 guesscoord
 
-writepsf "ligated.psf"
-writepdb "ligated.pdb"
+writepsf $outpsf
+writepdb $outpdb
 exit

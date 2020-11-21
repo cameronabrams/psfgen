@@ -149,7 +149,7 @@ for pi in `seq 0 $((nparse-1))`; do
    CURRPSFGEN=psfgen${TASK}.tcl
 #   CURRPSFLOG=`echo $CURRPSFGEN | sed s/tcl/log/`
    $PYTHON3 $PYPARSER ${pyparser_args[$pi]} -postscript ps${TASK}.sh -psfgen ${CURRPSFGEN} ${CURRPDB}
-   ./ps${TASK}.sh
+   ./ps${TASK}.sh $TASK
    read CURRPSF CURRPDB < .tmpvar
 done
 
