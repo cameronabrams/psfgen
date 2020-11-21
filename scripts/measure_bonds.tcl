@@ -8,6 +8,8 @@
 
 set psf [lindex $argv 0]
 set coor [lindex $argv 1]
+mol new $psf
+mol addfile $coor
 
 set fp [open [lindex $argv 2] "r"]
 set lines [split [read $fp] \n]

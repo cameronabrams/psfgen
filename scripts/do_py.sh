@@ -151,37 +151,6 @@ for pi in `seq 0 $((nparse-1))`; do
    $PYTHON3 $PYPARSER ${pyparser_args[$pi]} -postscript ps${TASK}.sh -psfgen ${CURRPSFGEN} ${CURRPDB}
    ./ps${TASK}.sh
    read CURRPSF CURRPDB .tmpvar
-
-   echo "structure ${CURRPSF}" > namd_header.${TASK}
-   echo "coordinates ${CURRPDB}" >> namd_header.${TASK}
-   cat namd_header.${TASK} $PSFGEN_BASEDIR/templates/vac.namd | \
-       sed s/%OUT%/config${TASK}/g | \
-       sed s/%SEED%/${seed}/g | \
-       sed s/%TEMPERATURE%/${temperature}/g > run${TASK}.namd
-   rm namd_header.${TASK}
-   echo "        ->  Running namd2 on vacuum system ${CURRPSF}+${CURRPDB}..."
-   $CHARMRUN +p${NPE} $NAMD2 run${TASK}.namd > run${TASK}.log
-   $VMD -dispdev text -e $PSFGEN_BASEDIR/scripts/namdbin2pdb.tcl -args ${CURRPSF} config${TASK}.coor tmp.pdb 2&>1
-   cat charmm_header.pdb tmp.pdb > config${TASK}.pdb
-   rm charmm_header.pdb tmp.pdb
-   CURRPDB=config${TASK}.pdb
-   cat > ringp.tcl << EOF
-source $PSFGEN_BASEDIR/src/loopmc.tcl
-mol new $CURRPSF
-mol addfile $CURRPDB
-check_pierced_rings 0 6 1.5
-check_pierced_rings 0 5 1.5
-exit
-EOF
-   echo "        ->  Checking for pierced rings in system ${CURRPSF}+${CURRPDB}..."
-   $VMD -dispdev text -e ringp.tcl > ringp.log 2>&1
-   npiercings=`grep -c pierces ringp.log`
-   if [[ $npiercings -gt 0 ]]; then
-      echo "Error: There are $npiercings piercings in $CURRPDB"
-      grep pierces ringp.log
-      echo "Change your relaxation parameters and try again."
-      exit
-   fi
 done
 
 # solvate
