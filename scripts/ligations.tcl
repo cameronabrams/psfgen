@@ -25,7 +25,7 @@ topology $LOCAL_TOPPARDIR/mylink.top
 set psf [lindex $argv 0]
 set coor [lindex $argv 1]
 set outpsf [lindex $argv 2]
-set outpdb [lindex $argv $3]
+set outpdb [lindex $argv 3]
 
 mol new $psf
 mol addfile $coor
@@ -43,8 +43,8 @@ foreach s $segnames {
 
 source patches.inp
 
-### LIGATION LIST STARTS
-### LIGATION LIST ENDS
+#### LIGATION LIST STARTS
+#### LIGATION LIST ENDS
 
 regenerate angles dihedrals
 guesscoord

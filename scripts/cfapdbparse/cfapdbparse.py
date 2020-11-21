@@ -267,6 +267,7 @@ if __name__=='__main__':
     nummin=500
     numsteps=100
     target_numsteps=20000
+    namdp='+p16'
     parser=argparse.ArgumentParser()
     print('cfapdbparser {} / python {}'.format(date.today(),sys.version.replace('\n',' ').split(' ')[0]))
     i=1
@@ -436,8 +437,8 @@ if __name__=='__main__':
     fp.write('echo "coordinates {}" >> tmpnamdheader\n'.format(post_pdb))
     fp.write('cat tmpnamdheader $PSFGEN_BASEDIR/templates/vac.namd | sed s/%NUMMIN%/{}/ | sed s/%NUMSTEPS%/{}/ | sed s/%OUT%/tmpconfig/g | sed s/%SEED%/{}/g | sed s/%TEMPERATURE%/{}/g > run.namd\n'.format(nummin,numsteps,seed,temperature))
     fp.write('rm tmpnamdheader\n')
-    fp.write('echo "Running namd2 on vacuum system {} {}; output to run'+r'${TASK}'+'-1.log"\n'.format(Base.psf_outfile,post_pdb))
-    fp.write(r'$CHARMRUN +p8 $NAMD2 run.namd > run${TASK}.log'+'\n')
+    fp.write('echo "Running namd2 on vacuum system {} {}; output to run'.format(Base.psf_outfile,post_pdb)+r'${TASK}'+'-1.log"\n')
+    fp.write(r'$CHARMRUN '+namdp+' $NAMD2 run.namd > run${TASK}-1.log'+'\n')
     fp.write(r'$VMD -dispdev text -e $PSFGEN_BASEDIR/scripts/namdbin2pdb.tcl -args '+'{} tmpconfig.coor tmp.pdb 2&> namdbin2pdb.log\n'.format(Base.psf_outfile))
     fp.write('cat charmm_header.pdb tmp.pdb > config.pdb\n')
     #fp.write('rm charmm_header.pdb tmp.pdb\n')
@@ -482,8 +483,8 @@ if __name__=='__main__':
         fp.write(r' sed "45 i colvarsconfig cv.inp" ')
         fp.write(' > run2.namd\n')
         fp.write('rm tmpnamdheader\n')
-        fp.write('echo "Running namd2 SMD on vacuum system {} {}; output in run'+r'${TASK}'+'-2.log"\n'.format(Base.psf_outfile,'config.pdb'))
-        fp.write(r'$CHARMRUN +p8 $NAMD2 run2.namd > run${TASK}-2.log'+'\n')
+        fp.write('echo "Running namd2 SMD on vacuum system {} {}; output in run'.format(Base.psf_outfile,'config.pdb')+r'${TASK}'+'-2.log"\n')
+        fp.write(r'$CHARMRUN '+namdp+' $NAMD2 run2.namd > run${TASK}-2.log'+'\n')
         fp.write(r'$VMD -dispdev text -e $PSFGEN_BASEDIR/scripts/namdbin2pdb.tcl -args '+'{} tmpconfig.coor tmpconfig2.pdb 2&> namdbin2pdb.log\n'.format(Base.psf_outfile))
         # prepend the charmm header to the pdb file
         fp.write('cat charmm_header.pdb tmp.pdb > config2.pdb\n')
@@ -506,7 +507,7 @@ if __name__=='__main__':
         fp.write(' > run3.namd\n')
         fp.write('rm tmpnamdheader\n')
         fp.write('echo "Running namd2 min on ligated system {} {}; output in run'+r'${TASK}'+'-3.log"\n'.format('ligated.psf','tmp2config2.pdb'))
-        fp.write(r'$CHARMRUN +p8 $NAMD2 run3.namd > run${TASK}-3.log'+'\n')
+        fp.write(r'$CHARMRUN '+namdp+' $NAMD2 run3.namd > run${TASK}-3.log'+'\n')
         fp.write(r'$VMD -dispdev text -e $PSFGEN_BASEDIR/scripts/namdbin2pdb.tcl -args '+'{} tmpconfig3.coor tmpconfig4.pdb 2&> namdbin2pdb.log\n'.format(Base.psf_outfile))
         fp.write('cat charmm_header.pdb tmpconfig4.pdb > config2.pdb\n')
         fp.write('echo {} {} > .tmpvar\n'.format(Base.psf_outfile,'config3.pdb'))
