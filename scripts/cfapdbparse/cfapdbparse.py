@@ -439,7 +439,7 @@ if __name__=='__main__':
     fp.write('check_pierced_rings 0 5 1.5\n')
     fp.write('exit\n')
     fp.write('EOF\n')
-    fp.write('echo "Checking for pierced rings in system {} {}...\n"'.format(Base.psf_outfile,'config.pdb'))
+    fp.write('echo "Checking for pierced rings in system {} {}..."\n'.format(Base.psf_outfile,'config.pdb'))
     fp.write(r'$VMD -dispdev text -e ringp.tcl > ringp.log 2>&1\n')
     fp.write('npiercings=`grep -c pierces ringp.log`\n')
     fp.write(r'if [[ $npiercings -gt 0 ]]; then'+'\n')
@@ -454,8 +454,7 @@ if __name__=='__main__':
     os.system('chmod 744 {}'.format(postscriptname))
     fp.close()
  #  if 'do_preheal_min_smd' in PostMod and PostMod['do_preheal_min_smd']:
-        # 2. NAMD: Minimize
-        # 3. VMD: Check for pierced rings
+
         # 4. NAMD: SMD loop closure
         #     - generate cv.inp
         # 5. VMD: Ligate loop-frag peptide bonds
