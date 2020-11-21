@@ -51,7 +51,7 @@ class Biomolecule:
                 print(' '.join(words))
     def show(self,indent='    '):
         print('{}Biomolecule {:d}'.format(indent,self.index))
-        print(self.pdbx_struct,self.chains)
+        print(indent,self.pdbx_struct,self.chains)
         for b in self.biomt:
             b.show(indent)
     def parseBIOMT(self,words):
