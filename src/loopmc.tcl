@@ -207,7 +207,7 @@ proc lay_loop { molid c loop maxcycles } {
       if { [expr $TRICON < $CON] } {
         # accept this move
         set CON $TRICON
-        puts "LAYLOOP) ${c}[lindex $loop $i] $t $CON"
+        puts "LAYLOOP) ${c}:[lindex $loop 0]-[lindex $loop $i] $t $CON"
       } else {
         # reject this move
         $loopsel set {x y z} $SAVEPOS
@@ -1198,5 +1198,5 @@ proc ligateCN { molid residueC residueN } {
   foreach db $deleteus {
     delatom $segname($db) $resid($db) $db
   }
-  
+
 }
