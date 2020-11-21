@@ -83,7 +83,8 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
             fp.write('log_addframe $molid $logid\n')
     if 'do_preheal_min_smd' in PostMod and PostMod['do_preheal_min_smd']:
         # 1. VMD: For each loop, lay down
-        for l in Loops:
+
+        for l in sorted(Loops, lambda x: len(x.residues)):
             if (l.term and len(l.residues)>2):
                 fp.write('lay_loop $molid {} [range {} {} 1] {}\n'.format(l.replica_chainID,l.residues[0].resseqnum,l.residues[-1].resseqnum,100))
         # 2. NAMD: Minimize
