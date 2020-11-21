@@ -148,11 +148,10 @@ for pi in `seq 0 $((nparse-1))`; do
    TASK=$((TASK+1))
    CURRPSFGEN=psfgen${TASK}.tcl
    CURRPSFLOG=`echo $CURRPSFGEN | sed s/tcl/log/`
-   $PYTHON3 $PYPARSER ${pyparser_args[$pi]} -psfgen ${CURRPSFGEN} ${CURRPDB}
-   CURRPSF=`grep ^writepsf ${CURRPSFGEN} | tail -1 | awk '{print $2}'`
-   CURRPDB=`grep writepdb ${CURRPSFGEN} | tail -1 | awk '{print $NF}'`
-   echo "TASK $TASK: Generating system ${CURRPSF}/${CURRPDB}..."
-   $VMD -dispdev text -e ${CURRPSFGEN} > ${CURRPSFLOG} 2>&1
+   $PYTHON3 $PYPARSER ${pyparser_args[$pi]} -postscript ps${TASK}.sh -psfgen ${CURRPSFGEN} ${CURRPDB}
+   ./ps${TASK}.sh
+   read CURRPSF CURRPDB .tmpvar
+
    echo "structure ${CURRPSF}" > namd_header.${TASK}
    echo "coordinates ${CURRPDB}" >> namd_header.${TASK}
    cat namd_header.${TASK} $PSFGEN_BASEDIR/templates/vac.namd | \
