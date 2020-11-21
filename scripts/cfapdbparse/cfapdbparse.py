@@ -512,7 +512,7 @@ if __name__=='__main__':
                             ll=l.residues[-2].resseqnum,l=l.residues[-1].resseqnum,r=l.nextfragntermres,rr=(l.nextfragntermres+1)))
         fp.write('EOF\n')
         fp.write('cat $PSFGEN_BASEDIR/scripts/ligations.tcl | sed "/#### LIGATION LIST STARTS/r the_healing_patches.inp"  > do_the_healing.tcl\n')
-        fp.write('echo "VMD) script=do_the_healing.tcl args={} {} {} {}'format(Base.psf_outfile,
+        fp.write('echo "VMD) script=do_the_healing.tcl args={} {} {} {}'.format(Base.psf_outfile,
         'tmpconfig2.pdb','ligated.psf','tmp2config2.pdb'))
         fp.write(' log=ligations'+r'${TASK}'+'.log"\n')
         fp.write(r'$VMD -dispdev text -e do_the_healing.tcl -args '+'{} {} {} {} 2&> ligations'.+r'${TASK}'+'.log\n')
