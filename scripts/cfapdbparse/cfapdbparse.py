@@ -488,10 +488,10 @@ if __name__=='__main__':
         # prepend the charmm header to the pdb file
         fp.write('cat charmm_header.pdb tmp.pdb > config2.pdb\n')
         fp.write('cat > the_healing_patches.inp << EOF\n')
-            for l in sorted(Loops, key=lambda x: len(x.residues)):
-                if (l.term and len(l.residues)>2):
-                    #fp.write('# will try to heal bond between {} and {} on chain {}...\n'.format(l.residues[-1].resseqnum,l.nextfragntermres,l.replica_chainID))
-                   fp.write('patch HEAL {c}:{ll} {c}:{l} {c}:{r} {c}:{rr}\n'.format(c=l.replica_chainID,
+        for l in sorted(Loops, key=lambda x: len(x.residues)):
+            if (l.term and len(l.residues)>2):
+                #fp.write('# will try to heal bond between {} and {} on chain {}...\n'.format(l.residues[-1].resseqnum,l.nextfragntermres,l.replica_chainID))
+                fp.write('patch HEAL {c}:{ll} {c}:{l} {c}:{r} {c}:{rr}\n'.format(c=l.replica_chainID,
                             ll=l.residues[-2].resseqnum,l=l.residues[-1].resseqnum,r=l.nextfragntermres,rr=(l.nextfragntermres+1)))
         fp.write('EOF\n')
         fp.write('cat $PSFGEN_BASEDIR/scripts/ligations.tcl | sed "/#### LIGATION LIST STARTS/r the_healing_patches.inp"  > do_the_healing.tcl\n')
