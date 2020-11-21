@@ -422,7 +422,7 @@ if __name__=='__main__':
     fp.write(r'#!/bin/bash'+'\n')
     fp.write('# {}: completes the build of {}\n'.format(postscriptname,Base.psf_outfile))
     fp.write('echo "{}: completes the build of {}"\n'.format(postscriptname,Base.psf_outfile))
-    fp.write('echo "Running vmd/psfgen on {}...\n'.format(psfgen))
+    fp.write('echo "Running vmd/psfgen on {}..."\n'.format(psfgen))
     fp.write(r'$VMD -dispdev text -e '+'{} 2&> {}\n'.format(psfgen,psfgen.replace('psf','log')))
     fp.write('echo "structure {}" > tmpnamdheader\n'.format(Base.psf_outfile))
     fp.write('echo "coordinates {}" >> tmpnamdheader\n'.format(post_pdb))
