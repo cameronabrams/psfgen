@@ -84,7 +84,7 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
     if 'do_preheal_min_smd' in PostMod and PostMod['do_preheal_min_smd']:
         # 1. VMD: For each loop, lay down
         for l in Loops:
-            fp.write('lay_loop $molid {} [range {} {} 1] {}\n'.format(l.replica_chainID,l.residues[0],l.residues[-1],100))
+            fp.write('lay_loop $molid {} [range {} {} 1] {}\n'.format(l.replica_chainID,l.residues[0].resseqnum,l.residues[-1].resseqnum,100))
         # 2. NAMD: Minimize
         # 3. VMD: Check for pierced rings
         # 4. NAMD: SMD loop closure
