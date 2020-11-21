@@ -474,7 +474,7 @@ if __name__=='__main__':
     fp.write(r' sed "42 i fixedatomsfile fixed.pdb" |')
     fp.write(r' sed "43 i fixedatomscol B" |')
     fp.write(r' sed "44 i colvars on" |')
-    fp.write(r' sed "45 i colvarsconfig cv.inp" |')
+    fp.write(r' sed "45 i colvarsconfig cv.inp" ')
     fp.write(' > run2.namd\n')
     fp.write('rm tmpnamdheader\n')
     fp.write('echo "Running namd2 SMD on vacuum system {} {}; output in run2.log"\n'.format(Base.psf_outfile,'config.pdb'))
