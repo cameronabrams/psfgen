@@ -8,6 +8,7 @@
 import sys
 import operator
 import argparse
+import os
 from datetime import date 
 from molecule import Molecule
 from cleavage import Cleavage
@@ -410,12 +411,14 @@ if __name__=='__main__':
     
     fp=open(postscriptname,'w')
     fp.write(r'#!/bin/bash'+'\n')
-    fp.write('# {}: completes the build of {}'.format(postscriptname,Base.psf_outfile))
+    fp.write('# {}: completes the build of {}\n'.format(postscriptname,Base.psf_outfile))
     fp.write(r'$VMD -dispdev text -e '+'{}\n'.format(psfgen))
     
     fp.write('echo {} {} > .tmpvar\n'.format(Base.psf_outfile,post_pdb))
     fp.write('# {} finishes.\n'.format(postscriptname))
+    os.system('chmod 744 {}'.format(postscriptname))
     fp.close()
+
 #    print('"vmd -dispdev text -e {}" will generate {}/{}'.format(psfgen,Base.psf_outfile,post_pdb))
 
   #  if 'do_preheal_min_smd' in PostMod and PostMod['do_preheal_min_smd']:
