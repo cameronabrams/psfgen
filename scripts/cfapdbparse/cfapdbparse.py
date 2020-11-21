@@ -417,7 +417,7 @@ if __name__=='__main__':
     fp.close()
 #    print('"vmd -dispdev text -e {}" will generate {}/{}'.format(psfgen,Base.psf_outfile,post_pdb))
 
-    if 'do_preheal_min_smd' in PostMod and PostMod['do_preheal_min_smd']:
+  #  if 'do_preheal_min_smd' in PostMod and PostMod['do_preheal_min_smd']:
         # 2. NAMD: Minimize
         # 3. VMD: Check for pierced rings
         # 4. NAMD: SMD loop closure
