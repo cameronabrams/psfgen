@@ -467,7 +467,7 @@ if __name__=='__main__':
     fp.write('echo "structure {}" > tmpnamdheader\n'.format(Base.psf_outfile))
     fp.write('echo "coordinates {}" >> tmpnamdheader\n'.format('config.pdb'))
     fp.write('cat tmpnamdheader $PSFGEN_BASEDIR/templates/vac.namd |')
-    fp.write(' sed s/%NUMMIN%/{}/ | sed s/%NUMSTEPS%/{}/ |'.format(0,2*target_numsteps)
+    fp.write(' sed s/%NUMMIN%/{}/ | sed s/%NUMSTEPS%/{}/ |'.format(0,2*target_numsteps))
     fp.write(' sed s/%OUT%/tmpconfig/g | sed s/%SEED%/{}/g |'.format(random.randint(0,10000)))
     fp.write(' sed s/%TEMPERATURE%/{}/g > run2.namd\n'.format(temperature))
     fp.write('rm tmpnamdheader\n')
