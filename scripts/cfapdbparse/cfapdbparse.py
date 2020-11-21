@@ -262,6 +262,7 @@ def DictFromString(string):
 if __name__=='__main__':
     seed=random.randint(0,100000)
     temperature=310
+    numsteps=100
     parser=argparse.ArgumentParser()
     print('cfapdbparser {} / python {}'.format(date.today(),sys.version.replace('\n',' ').split(' ')[0]))
     i=1
@@ -426,7 +427,7 @@ if __name__=='__main__':
     fp.write(r'$VMD -dispdev text -e '+'{} 2&> {}\n'.format(psfgen,psfgen.replace('psf','log')))
     fp.write('echo "structure {}" > tmpnamdheader\n'.format(Base.psf_outfile))
     fp.write('echo "coordinates {}" >> tmpnamdheader\n'.format(post_pdb))
-    fp.write('cat tmpnamdheader $PSFGEN_BASEDIR/templates/vac.namd | sed s/%OUT%/tmpconfig/g | sed s/%SEED%/{}/g | sed s/%TEMPERATURE%/{}/g > run.namd\n'.format(seed,temperature))
+    fp.write('cat tmpnamdheader $PSFGEN_BASEDIR/templates/vac.namd | sed s/%NUMSTEPS%/{}/ | sed s/%OUT%/tmpconfig/g | sed s/%SEED%/{}/g | sed s/%TEMPERATURE%/{}/g > run.namd\n'.format(numsteps,seed,temperature))
     fp.write('rm tmpnamdheader\n')
     fp.write('echo "Running namd2 on vacuum system {} {}..."\n'.format(Base.psf_outfile,post_pdb))
     fp.write(r'$CHARMRUN +p8 $NAMD2 run.namd > run.log'+'\n')
@@ -445,11 +446,17 @@ if __name__=='__main__':
     fp.write('  echo "No pierced rings found."\n')
     fp.write('fi\n')
     if 'do_preheal_min_smd' in PostMod and PostMod['do_preheal_min_smd']:
+        fp.write('cat > heal_these.inp << EOF\n')
         for l in sorted(Loops, key=lambda x: len(x.residues)):
             if (l.term and len(l.residues)>2):
                 fp.write('# will try to heal bond between {} and {} on chain {}...\n'.format(l.residues[-1].resseqnum,l.nextfragntermres,l.replica_chainID))
+                fp.write('echo {} {} {} >> heal_these.inp\n'.format(l.replica_chainID,l.residues[-1].resseqnum,l.nextfragntermres))
 #                fp.write('lay_loop $molid {} [range {} {} 1] {}\n'.format(l.replica_chainID,l.residues[0].resseqnum,l.residues[-1].resseqnum,100))
-        pass
+        fp.write('EOF\n')
+    # measures to find the initial distances
+    fp.write(r'$VMD -dispdev text -e $PSFGEN_BASEDIR/scripts/measure_bonds.tcl -args '+'{} {} heal_these.inp 2&> heal.log\n'.format(Base.psf_outfile,'config.pdb'))
+#    fp.write('while IFS=" " read -r C L R; do\n')
+#    fp.write('  cat ')
     fp.write('echo {} {} > .tmpvar\n'.format(Base.psf_outfile,'config.pdb'))
     fp.write('# {} finishes.\n'.format(postscriptname))
     fp.close()
