@@ -515,7 +515,7 @@ if __name__=='__main__':
         fp.write('echo "VMD) script=do_the_healing.tcl args={} {} {} {}'.format(Base.psf_outfile,
         'tmpconfig2.pdb','ligated.psf','tmp2config2.pdb'))
         fp.write(' log=ligations'+r'${TASK}'+'.log"\n')
-        fp.write(r'$VMD -dispdev text -e do_the_healing.tcl -args '+'{} {} {} {} 2&> ligations'format(Base.psf_outfile,
+        fp.write(r'$VMD -dispdev text -e do_the_healing.tcl -args '+'{} {} {} {} 2&> ligations'.format(Base.psf_outfile,
         'tmpconfig2.pdb','ligated.psf','tmp2config2.pdb')+r'${TASK}'+'.log\n')
         fp.write('echo "structure {}" > tmpnamdheader\n'.format('ligated.psf'))
         fp.write('echo "coordinates {}" >> tmpnamdheader\n'.format('tmp2config2.pdb'))
