@@ -434,7 +434,7 @@ if __name__=='__main__':
     fp.write(r'$CHARMRUN +p8 $NAMD2 run.namd > run.log'+'\n')
     fp.write(r'$VMD -dispdev text -e $PSFGEN_BASEDIR/scripts/namdbin2pdb.tcl -args '+'{} tmpconfig.coor tmp.pdb 2&> namdbin2pdb.log\n'.format(Base.psf_outfile))
     fp.write('cat charmm_header.pdb tmp.pdb > config.pdb\n')
-    fp.write('rm charmm_header.pdb tmp.pdb\n')
+    #fp.write('rm charmm_header.pdb tmp.pdb\n')
     fp.write('echo "Checking {} for pierced rings..."'.format('config.pdb'))
     fp.write(r'$VMD -dispdev text -e $PSFGEN_BASEDIR/scripts/ringp.tcl -args '+'{} {} 2&> ringp.log\n'.format(Base.psf_outfile,'config.pdb'))
     fp.write('npiercings=`grep -c pierces ringp.log`\n')
@@ -456,8 +456,11 @@ if __name__=='__main__':
         fp.write('EOF\n')
     # measures to find the initial distances
     fp.write(r'$VMD -dispdev text -e $PSFGEN_BASEDIR/scripts/measure_bonds.tcl -args '+'{} {} heal_these.inp 2&> heal.log\n'.format(Base.psf_outfile,'config.pdb'))
+
 #    fp.write('while IFS=" " read -r C L R; do\n')
 #    fp.write('  cat ')
+    # prepend the charmm header to the pdb file
+    fp.write('cat charmm_header.pdb tmp.pdb > config.pdb\n')
     fp.write('echo {} {} > .tmpvar\n'.format(Base.psf_outfile,'config.pdb'))
     fp.write('# {} finishes.\n'.format(postscriptname))
     fp.close()

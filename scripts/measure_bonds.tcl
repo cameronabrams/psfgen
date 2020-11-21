@@ -18,9 +18,11 @@ set RES1 {}
 set RES2 {}
 set CH {}
 foreach l $lines {
-    lappend CH [lindex $l 0]
-    lappend RES1 [lindex $l 1]
-    lappend RES2 [lindex $l 2]
+    if { [llength $l] > 0} {}
+       lappend CH [lindex $l 0]
+       lappend RES1 [lindex $l 1]
+       lappend RES2 [lindex $l 2]
+    }
 }
 
 set bl {}
@@ -32,7 +34,7 @@ foreach c $CH i $RES1 j $RES2 {
 
 set fp [open [lindex $argv 2] "w"]
 foreach c $CH i $RES1 j $RES2 b $bl {
-    puts $fp "$c $i $j $b"
+    puts $fp "$c $i $j [format %.4f $b]"
 }
 close $fp
 exit
