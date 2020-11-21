@@ -266,7 +266,7 @@ if __name__=='__main__':
     temperature=310
     nummin=500
     numsteps=100
-    target_numsteps=20000
+    target_numsteps=10000
     namdp='+p16'
     parser=argparse.ArgumentParser()
     print('cfapdbparser {} / python {}'.format(date.today(),sys.version.replace('\n',' ').split(' ')[0]))
@@ -444,10 +444,10 @@ if __name__=='__main__':
     #fp.write('rm charmm_header.pdb tmp.pdb\n')
     fp.write('echo "Checking {} for pierced rings; log is ringp'.format('config.pdb')+r'${TASK}'+'.log"\n')
     fp.write(r'$VMD -dispdev text -e $PSFGEN_BASEDIR/scripts/ringp.tcl -args '+'{} {} 2&> ringp'+r'${TASK}'+'.log\n'.format(Base.psf_outfile,'config.pdb'))
-    fp.write('npiercings=`grep -c pierces ringp.log`\n')
+    fp.write('npiercings=`grep -c pierces ringp'+r'${TASK}'+'.log`\n')
     fp.write(r'if [[ $npiercings -gt 0 ]]; then'+'\n')
     fp.write(r'  echo "Error: There are $npiercings piercings in '+'{}"\n'.format('config.pdb'))
-    fp.write('  grep pierces ringp.log\n')
+    fp.write('  grep pierces ringp'+r'${TASK}'+'.log\n')
     fp.write('  echo "Change your relaxation parameters and try again."\n')
     fp.write('  exit\n')
     fp.write('else\n')
@@ -462,8 +462,8 @@ if __name__=='__main__':
 #                fp.write('lay_loop $molid {} [range {} {} 1] {}\n'.format(l.replica_chainID,l.residues[0].resseqnum,l.residues[-1].resseqnum,100))
         fp.write('EOF\n')
         # measures to find the initial distances; generated fixed.pdb to fix the N atoms 
-        fp.write('echo "Setting up bond healing. Log is heal'+r'${TASK}'+'.log\n"')
-        fp.write(r'$VMD -dispdev text -e $PSFGEN_BASEDIR/scripts/measure_bonds.tcl -args '+'{} {} heal_these.inp 2&> heal.log\n'.format(Base.psf_outfile,'config.pdb'))
+        fp.write('echo "Setting up bond healing. Log is heal'+r'${TASK}'+'.log"\n')
+        fp.write(r'$VMD -dispdev text -e $PSFGEN_BASEDIR/scripts/measure_bonds.tcl -args '+'{} {} heal_these.inp 2&> heal'.format(Base.psf_outfile,'config.pdb')'+r'${TASK}'+'.log\n')
         fp.write('if [ -f cv.inp ]; then rm cv.inp; fi\n')
         fp.write('touch cv.inp\n')
         fp.write('while IFS=" " read -r C L R B; do\n')
