@@ -413,8 +413,7 @@ if __name__=='__main__':
     fp.write('# {}: completes the build of {}'.format(postscriptname,Base.psf_outfile))
     fp.write(r'$VMD -dispdev text -e '+'{}\n'.format(psfgen))
     
-    fp.write('export CURRPSF={}\n'.format(Base.psf_outfile))
-    fp.write('export CURRPDB={}\n'.format(post_pdb))
+    fp.write('echo $CURRPSF $CURRPDB > .tmpvar\n'.format(Base.psf_outfile,post_pdb))
     fp.write('# {} finishes.\n'.format(postscriptname))
     fp.close()
 #    print('"vmd -dispdev text -e {}" will generate {}/{}'.format(psfgen,Base.psf_outfile,post_pdb))
