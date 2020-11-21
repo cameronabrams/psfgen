@@ -546,7 +546,7 @@ if __name__=='__main__':
 #        fp.write('else\n')
 #        fp.write('  echo "No pierced rings found."\n')
         fp.write('fi\n')
-        fp.write('echo {} {} > .tmpvar\n'.format('ligated.psf','config3.pdb'))
+        fp.write('echo {} {} > .tmpvar\n'.format('ligated.psf','config2.pdb'))
     else:
         fp.write('echo {} {} > .tmpvar\n'.format(Base.psf_outfile,'config2.pdb'))
     fp.write('# {} finishes.\n'.format(postscriptname))

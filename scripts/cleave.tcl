@@ -1,3 +1,6 @@
+# cleaves chains
+# not yet implemented -- do not use!
+
 if {![info exists PSFGEN_BASEDIR]} {
     if {[info exists env(PSFGEN_BASEDIR)]} {
         set PSFGEN_BASEDIR $env(PSFGEN_BASEDIR)
@@ -43,9 +46,6 @@ foreach s $segnames {
 }
 
 source patches.inp
-
-#### LIGATION LIST STARTS
-#### LIGATION LIST ENDS
 
 regenerate angles dihedrals
 guesscoord
