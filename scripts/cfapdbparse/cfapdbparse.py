@@ -431,7 +431,7 @@ if __name__=='__main__':
     fp.write('cat charmm_header.pdb tmp.pdb > config.pdb\n')
     fp.write('rm charmm_header.pdb tmp.pdb\n')
     fp.write('echo {} {} > .tmpvar\n'.format(Base.psf_outfile,'config.pdb'))
-    fp.write('cat > ringp.tcl << EOF')
+    fp.write('cat > ringp.tcl << EOF\n')
     fp.write(r'source $PSFGEN_BASEDIR/src/loopmc.tcl'+'\n')
     fp.write('mol new {}\n'.format(Base.psf_outfile))
     fp.write('mol addfile {}\n'.format('config.pdb'))
