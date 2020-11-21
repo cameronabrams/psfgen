@@ -49,11 +49,11 @@ class Biomolecule:
             else:
                 print('#### ERROR: Unrecognized PDB-format REMARK 350 line:')
                 print(' '.join(words))
-    def show(self):
-        print('Biomolecule {:d}'.format(self.index))
+    def show(self,indent='    '):
+        print('{}Biomolecule {:d}'.format(indent,self.index))
         print(self.pdbx_struct,self.chains)
         for b in self.biomt:
-            b.show()
+            b.show(indent)
     def parseBIOMT(self,words):
         ax=int(words[2][-1])
         if ax==1:
@@ -83,13 +83,13 @@ class BiomT:
                 self.tmat[i][j]=float(cifdict['matrix[{}][{}]'.format(i+1,j+1)])
             self.tmat[i][3]=float(cifdict['vector[{}]'.format(i+1)])
 
-    def show(self):
-        print('BIOMT {:d}'.format(self.index))
+    def show(self,indent='    '):
+        print('{}BIOMT {:d}'.format(indent,self.index))
         if not self.isidentity()
-            print('    TMAT',self.tmat)
-            print('    REPC',self.replicachainID_from_sourcechainID)
+            print('{}    TMAT'.format(indent),self.tmat)
+            print('{}    REPC'.format(indent),self.replicachainID_from_sourcechainID)
         else:
-            print('    IDENTITY')
+            print('{}    IDENTITY'.format(indent))
     def isidentity(self):
         t=self.tmat
         if t[0][0]==1.0 and t[1][1]==1.0 and t[2][2]==1.0:
