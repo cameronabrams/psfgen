@@ -92,8 +92,8 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
         # 4. NAMD: SMD loop closure
         #     - generate cv.inp
         # 5. VMD: Ligate loop-frag peptide bonds
-        # 6. NAMD: Minimize
-        pass
+        # 6. NAMD: Minimize (this is already the next step in the workflow)
+        
     if 'do_multiflex_mc' in PostMod and PostMod['do_multiflex_mc']:
         nc=1000
         rcut=4.0
@@ -378,8 +378,11 @@ if __name__=='__main__':
     if len(Clv)>0:
         Base.CleaveChains(Clv)
 
+    ''' this will issue the final 'writepsf' and 'writepdb commands '''
     Loops=Base.WritePsfgenInput(psfgen_fp,userMutations=Mut,fixConflicts=fixConflicts,fixEngineeredMutations=fixEngineeredMutations,prefix=prefix,userGrafts=Gra,userAttach=Att,userSSBonds=Uss,userIgnoreChains=UIC,removePDBs=True)
 
+
+    ''' PostMods are done to alter coordinates to ease minimization; psf is not modified further '''
     ''' identify glycan segments '''
     glycan_segs=[]
     for c in Base.Chains.values():
@@ -401,5 +404,24 @@ if __name__=='__main__':
 
     psfgen_fp.write('exit\n')
     psfgen_fp.write('### thank you for using cfapdbparse.py!\n')
-    print('"vmd -dispdev text -e {}" will generate {}/{}'.format(psfgen,Base.psf_outfile,post_pdb))
+    print('Run the script {} to complete the build.'.format(postscriptname))
+    
+    fp=open(postscriptname,'w')
+    fp.write(r'#!/bin/bash'+'\n')
+    fp.write('# {}: completes the build of {}'.format(postscriptname,Base.psf_outfile))
+    fp.write(r'$VMD -dispdev text -e '+'{}\n'.format(psfgen))
+    
+    fp.write('export CURRPSF={}\n'.format(Base.psf_outfile))
+    fp.write('export CURRPDB={}\n'.format(post_pdb))
+    fp.write('# {} finishes.\n'.format(postscriptname))
+    fp.close()
+#    print('"vmd -dispdev text -e {}" will generate {}/{}'.format(psfgen,Base.psf_outfile,post_pdb))
+
+    if 'do_preheal_min_smd' in PostMod and PostMod['do_preheal_min_smd']:
+        # 2. NAMD: Minimize
+        # 3. VMD: Check for pierced rings
+        # 4. NAMD: SMD loop closure
+        #     - generate cv.inp
+        # 5. VMD: Ligate loop-frag peptide bonds
+        # 6. NAMD: Minimize (this is already the next step in the workflow)
     
