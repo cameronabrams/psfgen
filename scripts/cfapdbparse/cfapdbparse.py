@@ -431,7 +431,7 @@ if __name__=='__main__':
     fp.write('echo "Running vmd/psfgen on {} to generate {} and {}.  Log is psfgen'.format(psfgen,Base.psf_outfile,post_pdb)+r'${TASK}'+'.log"\n')
     fp.write(r'$VMD -dispdev text -e '+'{}'.format(psfgen)+r' 2&> psfgen${TASK}.log'+'\n')
     # save the patches!
-    fp.write(r'cat '+psfgen+r' | sed "1,/#### BEGIN PATCHES/d;/#### END PATCHES/,$d > patches.inp')
+    fp.write(r'cat '+psfgen+r' | sed "1,/#### BEGIN PATCHES/d;/#### END PATCHES/,$d > patches.inp'+'\n')
     fp.write('echo "structure {}" > tmpnamdheader\n'.format(Base.psf_outfile))
     fp.write('echo "coordinates {}" >> tmpnamdheader\n'.format(post_pdb))
     fp.write('cat tmpnamdheader $PSFGEN_BASEDIR/templates/vac.namd | sed s/%NUMMIN%/{}/ | sed s/%NUMSTEPS%/{}/ | sed s/%OUT%/tmpconfig/g | sed s/%SEED%/{}/g | sed s/%TEMPERATURE%/{}/g > run.namd\n'.format(nummin,numsteps,seed,temperature))
@@ -497,7 +497,18 @@ if __name__=='__main__':
         fp.write('cat $PSFGEN_BASEDIR/scripts/ligations.tcl | sed "/#### LIGATION LIST STARTS/r the_healing_patches.inp"  > do_the_healing.tcl\n')
         fp.write(r'$VMD -dispdev text -e do_the_healing.tcl -args '+'{} {} {} {}\n'.format(Base.psf_outfile,
         'tmpconfig2.pdb','ligated.psf','tmp2config2.pdb'))
-        fp.write('cat charmm_header.pdb tmp2config2.pdb > config2.pdb\n')
+        fp.write('echo "structure {}" > tmpnamdheader\n'.format('ligated.psf'))
+        fp.write('echo "coordinates {}" >> tmpnamdheader\n'.format('tmp2config2.pdb'))
+        fp.write('cat tmpnamdheader $PSFGEN_BASEDIR/templates/vac.namd |')
+        fp.write(' sed s/%NUMMIN%/{}/ | sed s/%NUMSTEPS%/{}/ |'.format(nummin,numsteps))
+        fp.write(' sed s/%OUT%/tmpconfig3/g | sed s/%SEED%/{}/g |'.format(random.randint(0,10000)))
+        fp.write(' sed s/%TEMPERATURE%/{}/g '.format(temperature))
+        fp.write(' > run3.namd\n')
+        fp.write('rm tmpnamdheader\n')
+        fp.write('echo "Running namd2 min on ligated system {} {}; output in run'+r'${TASK}'+'-3.log"\n'.format('ligated.psf','tmp2config2.pdb'))
+        fp.write(r'$CHARMRUN +p8 $NAMD2 run3.namd > run${TASK}-3.log'+'\n')
+        fp.write(r'$VMD -dispdev text -e $PSFGEN_BASEDIR/scripts/namdbin2pdb.tcl -args '+'{} tmpconfig3.coor tmpconfig4.pdb 2&> namdbin2pdb.log\n'.format(Base.psf_outfile))
+        fp.write('cat charmm_header.pdb tmpconfig4.pdb > config2.pdb\n')
         fp.write('echo {} {} > .tmpvar\n'.format(Base.psf_outfile,'config3.pdb'))
     else:
         fp.write('echo {} {} > .tmpvar\n'.format(Base.psf_outfile,'config2.pdb'))
