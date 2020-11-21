@@ -431,7 +431,7 @@ if __name__=='__main__':
     fp.write('echo "coordinates {}" >> tmpnamdheader\n'.format(post_pdb))
     fp.write('cat tmpnamdheader $PSFGEN_BASEDIR/templates/vac.namd | sed s/%NUMMIN%/{}/ | sed s/%NUMSTEPS%/{}/ | sed s/%OUT%/tmpconfig/g | sed s/%SEED%/{}/g | sed s/%TEMPERATURE%/{}/g > run.namd\n'.format(nummin,numsteps,seed,temperature))
     fp.write('rm tmpnamdheader\n')
-    fp.write('echo "Running namd2 on vacuum system {} {}..."\n'.format(Base.psf_outfile,post_pdb))
+    fp.write('echo "Running namd2 on vacuum system {} {}; output to run.log"\n'.format(Base.psf_outfile,post_pdb))
     fp.write(r'$CHARMRUN +p8 $NAMD2 run.namd > run.log'+'\n')
     fp.write(r'$VMD -dispdev text -e $PSFGEN_BASEDIR/scripts/namdbin2pdb.tcl -args '+'{} tmpconfig.coor tmp.pdb 2&> namdbin2pdb.log\n'.format(Base.psf_outfile))
     fp.write('cat charmm_header.pdb tmp.pdb > config.pdb\n')
