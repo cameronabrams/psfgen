@@ -414,8 +414,9 @@ if __name__=='__main__':
 
     psfgen_fp.write('exit\n')
     psfgen_fp.write('### thank you for using cfapdbparse.py!\n')
+
+    ''' Generate the postscript '''
     print('Run the script {} to complete the build.'.format(postscriptname))
-    
     fp=open(postscriptname,'w')
     fp.write(r'#!/bin/bash'+'\n')
     fp.write('# {}: completes the build of {}\n'.format(postscriptname,Base.psf_outfile))
@@ -430,15 +431,29 @@ if __name__=='__main__':
     fp.write('cat charmm_header.pdb tmp.pdb > config.pdb\n')
     fp.write('rm charmm_header.pdb tmp.pdb\n')
     fp.write('echo {} {} > .tmpvar\n'.format(Base.psf_outfile,'config.pdb'))
+    fp.write('cat > ringp.tcl << EOF')
+    fp.write(r'source $PSFGEN_BASEDIR/src/loopmc.tcl'+'\n')
+    fp.write('mol new {}\n'.format(Base.psf_outfile))
+    fp.write('mol addfile {}\n'.format('config.pdb'))
+    fp.write('check_pierced_rings 0 6 1.5\n')
+    fp.write('check_pierced_rings 0 5 1.5\n')
+    fp.write('exit\n')
+    fp.write('EOF\n')
+    fp.write('echo "Checking for pierced rings in system {} {}...\n"'.format(Base.psf_outfile,'config.pdb'))
+    fp.write(r'$VMD -dispdev text -e ringp.tcl > ringp.log 2>&1\n')
+    fp.write('npiercings=`grep -c pierces ringp.log`\n')
+    fp.write(r'if [[ $npiercings -gt 0 ]]; then'+'\n')
+    fp.write(r'  echo "Error: There are $npiercings piercings in '+'{}\n'.format('config.pdb'))
+    fp.write('  grep pierces ringp.log\n')
+    fp.write('  echo "Change your relaxation parameters and try again."\n')
+    fp.write('  exit\n')
+    fp.write('fi\n')
     if 'do_preheal_min_smd' in PostMod and PostMod['do_preheal_min_smd']:
         pass
     fp.write('# {} finishes.\n'.format(postscriptname))
     os.system('chmod 744 {}'.format(postscriptname))
     fp.close()
-
-#    print('"vmd -dispdev text -e {}" will generate {}/{}'.format(psfgen,Base.psf_outfile,post_pdb))
-
-  #  if 'do_preheal_min_smd' in PostMod and PostMod['do_preheal_min_smd']:
+ #  if 'do_preheal_min_smd' in PostMod and PostMod['do_preheal_min_smd']:
         # 2. NAMD: Minimize
         # 3. VMD: Check for pierced rings
         # 4. NAMD: SMD loop closure
