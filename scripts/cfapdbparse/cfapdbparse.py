@@ -456,9 +456,11 @@ if __name__=='__main__':
         fp.write('EOF\n')
     # measures to find the initial distances
     fp.write(r'$VMD -dispdev text -e $PSFGEN_BASEDIR/scripts/measure_bonds.tcl -args '+'{} {} heal_these.inp 2&> heal.log\n'.format(Base.psf_outfile,'config.pdb'))
-
-#    fp.write('while IFS=" " read -r C L R; do\n')
-#    fp.write('  cat ')
+    fp.write('if [ -f cv.inp ]; then rm cv.inp; fi\n')
+    fp.write('touch cv.inp\n')
+    fp.write('while IFS=" " read -r C L R B; do\n')
+    fp.write(r'  cat $PSFGEN_BASEDIR/templates/cv-template.in | sed s/%NAME%/${C}${L}/g | sed s/%I%/$L/g | sed s/%J%/$R/g | sed s/%R0%/$B/g >> cv.inp'+';\n')
+    fp.write('done < heal_these.inp\n')
     # prepend the charmm header to the pdb file
     fp.write('cat charmm_header.pdb tmp.pdb > config.pdb\n')
     fp.write('echo {} {} > .tmpvar\n'.format(Base.psf_outfile,'config.pdb'))
