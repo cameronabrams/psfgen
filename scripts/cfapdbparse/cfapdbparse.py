@@ -417,6 +417,7 @@ if __name__=='__main__':
 
     ''' Generate the postscript '''
     print('Run the script {} to complete the build.'.format(postscriptname))
+    print('After running {}, "read CURRPSF CURRPDB < .tmpvar" will set those variables.'.format(postscriptname))
     fp=open(postscriptname,'w')
     fp.write(r'#!/bin/bash'+'\n')
     fp.write('# {}: completes the build of {}\n'.format(postscriptname,Base.psf_outfile))
@@ -430,30 +431,24 @@ if __name__=='__main__':
     fp.write(r'$VMD -dispdev text -e $PSFGEN_BASEDIR/scripts/namdbin2pdb.tcl -args '+'{} tmpconfig.coor tmp.pdb 2&>1\n'.format(Base.psf_outfile))
     fp.write('cat charmm_header.pdb tmp.pdb > config.pdb\n')
     fp.write('rm charmm_header.pdb tmp.pdb\n')
-    fp.write('echo {} {} > .tmpvar\n'.format(Base.psf_outfile,'config.pdb'))
-    fp.write('cat > ringp.tcl << EOF\n')
-    fp.write(r'source $PSFGEN_BASEDIR/src/loopmc.tcl'+'\n')
-    fp.write('mol new {}\n'.format(Base.psf_outfile))
-    fp.write('mol addfile {}\n'.format('config.pdb'))
-    fp.write('check_pierced_rings 0 6 1.5\n')
-    fp.write('check_pierced_rings 0 5 1.5\n')
-    fp.write('exit\n')
-    fp.write('EOF\n')
-    fp.write('echo "Checking for pierced rings in system {} {}..."\n'.format(Base.psf_outfile,'config.pdb'))
-    fp.write(r'$VMD -dispdev text -e ringp.tcl > ringp.log 2>&1'+'\n')
+    fp.write(r'$VMD -dispdev text -e $PSFGEN_BASEDIR/scripts/ringp.tcl -args '+'{} {} 2&> ringp.log\n'.format(Base.psf_outfile,'config.pdb'))
     fp.write('npiercings=`grep -c pierces ringp.log`\n')
     fp.write(r'if [[ $npiercings -gt 0 ]]; then'+'\n')
-    fp.write(r'  echo "Error: There are $npiercings piercings in '+'{}\n'.format('config.pdb'))
+    fp.write(r'  echo "Error: There are $npiercings piercings in '+'{}"\n'.format('config.pdb'))
     fp.write('  grep pierces ringp.log\n')
     fp.write('  echo "Change your relaxation parameters and try again."\n')
     fp.write('  exit\n')
     fp.write('fi\n')
     if 'do_preheal_min_smd' in PostMod and PostMod['do_preheal_min_smd']:
+#        for l in sorted(Loops, key=lambda x: len(x.residues)):
+#            if (l.term and len(l.residues)>2):
+#                fp.write('lay_loop $molid {} [range {} {} 1] {}\n'.format(l.replica_chainID,l.residues[0].resseqnum,l.residues[-1].resseqnum,100))
         pass
+    fp.write('echo {} {} > .tmpvar\n'.format(Base.psf_outfile,'config.pdb'))
     fp.write('# {} finishes.\n'.format(postscriptname))
-    os.system('chmod 744 {}'.format(postscriptname))
     fp.close()
- #  if 'do_preheal_min_smd' in PostMod and PostMod['do_preheal_min_smd']:
+    os.system('chmod 744 {}'.format(postscriptname))
+#  if 'do_preheal_min_smd' in PostMod and PostMod['do_preheal_min_smd']:
 
         # 4. NAMD: SMD loop closure
         #     - generate cv.inp
