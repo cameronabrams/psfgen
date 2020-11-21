@@ -59,7 +59,7 @@ RCSB=https://files.rcsb.org/download
 ARGC=$#
 PDB=()  # array of input PDB file names
 STAGE=0  # indicator of staged equilibration
-NPE=8  # number of processors to use in MD
+NPE=16  # number of processors to use in MD
 i=1
 seed=$RANDOM
 temperature=310
@@ -168,7 +168,7 @@ cp namd_header.${TASK} namd_header.${TASK}-0
 firsttimestep=0
 ls=`echo "${#numsteps[@]} - 1" | bc`
 for s in `seq 0 $ls`; do
-    echo "          -> Running namd2 (stage $s) on solvated system..."
+    echo "Running namd2 (stage $s) on solvated system..."
     lastnamd=run${TASK}_stage${s}.namd
     cat namd_header.${TASK}-$s $PSFGEN_BASEDIR/templates/solv.namd | \
         sed s/%STAGE%/${s}/g | \
