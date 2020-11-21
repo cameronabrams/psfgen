@@ -85,7 +85,7 @@ class BiomT:
 
     def show(self,indent='    '):
         print('{}BIOMT {:d}'.format(indent,self.index))
-        if not self.isidentity()
+        if not self.isidentity():
             print('{}    TMAT'.format(indent),self.tmat)
             print('{}    REPC'.format(indent),self.replicachainID_from_sourcechainID)
         else:
