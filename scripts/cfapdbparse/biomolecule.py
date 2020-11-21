@@ -85,8 +85,11 @@ class BiomT:
 
     def show(self):
         print('BIOMT {:d}'.format(self.index))
-        print('    TMAT',self.tmat)
-        print('    REPC',self.replicachainID_from_sourcechainID)
+        if not self.isidentity()
+            print('    TMAT',self.tmat)
+            print('    REPC',self.replicachainID_from_sourcechainID)
+        else:
+            print('    IDENTITY')
     def isidentity(self):
         t=self.tmat
         if t[0][0]==1.0 and t[1][1]==1.0 and t[2][2]==1.0:
