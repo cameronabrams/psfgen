@@ -385,18 +385,22 @@ if __name__=='__main__':
         Base.CleaveChains(Clv)
 
     ''' this will issue the final 'writepsf' and 'writepdb commands '''
-    Loops=Base.WritePsfgenInput(psfgen_fp,userMutations=Mut,fixConflicts=fixConflicts,fixEngineeredMutations=fixEngineeredMutations,prefix=prefix,userGrafts=Gra,userAttach=Att,userSSBonds=Uss,userIgnoreChains=UIC,removePDBs=True)
+    Loops=Base.WritePsfgenInput(psfgen_fp,userMutations=Mut,fixConflicts=fixConflicts,
+                               fixEngineeredMutations=fixEngineeredMutations,prefix=prefix,
+                               userGrafts=Gra,userAttach=Att,userSSBonds=Uss,userIgnoreChains=UIC,
+                               removePDBs=True)
 
+    ''' PostMods alter coordinates to ease minimization; psf is not modified further
+        Regardless of whether any modifications are done or not, this will always write 
+        a *_mod.pdb coordinate file '''
 
-    ''' PostMods are done to alter coordinates to ease minimization; psf is not modified further '''
     ''' identify glycan segments '''
     glycan_segs=[]
     for c in Base.Chains.values():
         for s in c.Segments:
             if s.segtype=="GLYCAN":
                 glycan_segs.append(s.segname)
-
-    ''' fix crot replicas '''
+    ''' generate crot replicas '''
     newcrots=[]
     for b in Base.Biomolecules:
         for t in b.biomt:
@@ -420,12 +424,12 @@ if __name__=='__main__':
     fp.write('echo "coordinates {}" >> tmpnamdheader\n'.format(post_pdb))
     fp.write('cat tmpnamdheader $PSFGEN_BASEDIR/templates/vac.namd | sed s/%OUT%/tmpconfig/g | sed s/%SEED%/{}/g | sed s/%TEMPERATURE%/{}/g > run.namd\n'.format(seed,temperature))
     fp.write('rm tmpnamdheader\n')
-    fp.write('echo "        ->  Running namd2 on vacuum system {}+{}..."\n'.format(Base.psf_outfile,post_pdb))
+    fp.write('echo "Running namd2 on vacuum system {}+{}..."\n'.format(Base.psf_outfile,post_pdb))
     fp.write(r'$CHARMRUN +p8 $NAMD2 run.namd > run.log'+'\n')
     fp.write(r'$VMD -dispdev text -e $PSFGEN_BASEDIR/scripts/namdbin2pdb.tcl -args '+'{} tmpconfig.coor tmp.pdb 2&>1\n'.format(Base.psf_outfile))
     fp.write('cat charmm_header.pdb tmp.pdb > config.pdb\n')
     fp.write('rm charmm_header.pdb tmp.pdb\n')
-    fp.write('echo {} {} > .tmpvar\n'.format(Base.psf_outfile,post_pdb))
+    fp.write('echo {} {} > .tmpvar\n'.format(Base.psf_outfile,'config.pdb'))
     if 'do_preheal_min_smd' in PostMod and PostMod['do_preheal_min_smd']:
         pass
     fp.write('# {} finishes.\n'.format(postscriptname))
