@@ -433,7 +433,7 @@ if __name__=='__main__':
     fp.write('echo "VMD/PSFGEN) script={}'.format(psfgen))
     fp.write(' log=psfgen'+r'${TASK}'+'.log')
     fp.write(' psf={}'.format(Base.psf_outfile))
-    fp.write(' pdb={}\n'.format(post_pdb))
+    fp.write(' pdb={}"\n'.format(post_pdb))
     fp.write(r'$VMD -dispdev text -e '+'{}'.format(psfgen)+r' 2&> psfgen${TASK}.log'+'\n')
     # save the patches!
     fp.write("cat {} | sed \'1,/#### BEGIN PATCHES/d;/#### END PATCHES/,$d\' > patches.inp\n".format(psfgen))
