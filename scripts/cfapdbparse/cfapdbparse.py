@@ -474,7 +474,8 @@ if __name__=='__main__':
         # measures to find the initial distances; generated fixed.pdb to fix the N atoms 
         fp.write('echo "VMD) script=\$PSFGEN_BASEDIR/scripts/measure_bonds.tcl args={} {} heal_these.inp'.format(Base.psf_outfile,'config.pdb'))
         fp.write(' log=heal'+r'${TASK}'+'.log"\n')
-        fp.write(r'$VMD -dispdev text -e $PSFGEN_BASEDIR/scripts/measure_bonds.tcl -args '+'{} {} heal_these.inp 2&> heal'.format(Base.psf_outfile,'config.pdb')+r'${TASK}'+'.log\n'))
+        fp.write(r'$VMD -dispdev text -e $PSFGEN_BASEDIR/scripts/measure_bonds.tcl -args ')
+        fp.write('{} {} heal_these.inp 2&> heal'.format(Base.psf_outfile,'config.pdb')+r'${TASK}'+'.log\n')
         fp.write('if [ -f cv.inp ]; then rm cv.inp; fi\n')
         fp.write('touch cv.inp\n')
         fp.write('while IFS=" " read -r C L R B; do\n')
