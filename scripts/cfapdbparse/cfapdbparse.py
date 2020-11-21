@@ -440,7 +440,7 @@ if __name__=='__main__':
     fp.write('exit\n')
     fp.write('EOF\n')
     fp.write('echo "Checking for pierced rings in system {} {}..."\n'.format(Base.psf_outfile,'config.pdb'))
-    fp.write(r'$VMD -dispdev text -e ringp.tcl > ringp.log 2>&1\n')
+    fp.write(r'$VMD -dispdev text -e ringp.tcl > ringp.log 2>&1'+'\n')
     fp.write('npiercings=`grep -c pierces ringp.log`\n')
     fp.write(r'if [[ $npiercings -gt 0 ]]; then'+'\n')
     fp.write(r'  echo "Error: There are $npiercings piercings in '+'{}\n'.format('config.pdb'))
