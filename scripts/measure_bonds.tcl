@@ -20,7 +20,7 @@ set RES1 {}
 set RES2 {}
 set CH {}
 foreach l $lines {
-    if { [llength $l] > 0} {}
+    if { [llength $l] > 0 } {
        lappend CH [lindex $l 0]
        lappend RES1 [lindex $l 1]
        lappend RES2 [lindex $l 2]

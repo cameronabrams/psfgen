@@ -147,10 +147,10 @@ CURRPDB=$BASEPDB
 for pi in `seq 0 $((nparse-1))`; do
    TASK=$((TASK+1))
    CURRPSFGEN=psfgen${TASK}.tcl
-   CURRPSFLOG=`echo $CURRPSFGEN | sed s/tcl/log/`
+#   CURRPSFLOG=`echo $CURRPSFGEN | sed s/tcl/log/`
    $PYTHON3 $PYPARSER ${pyparser_args[$pi]} -postscript ps${TASK}.sh -psfgen ${CURRPSFGEN} ${CURRPDB}
    ./ps${TASK}.sh
-   read CURRPSF CURRPDB .tmpvar
+   read CURRPSF CURRPDB < .tmpvar
 done
 
 # solvate
