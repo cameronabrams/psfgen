@@ -248,7 +248,7 @@ def MrgCmdLineAndFileContents(cl_list,filename,typ):
     return cl_list
 
 def DictFromString(string):
-    print('parsing {}'.format(string))
+    #print('parsing {}'.format(string))
     my_dict = {}
     if len(string)>0:
         items=string.split(',')
