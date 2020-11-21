@@ -439,7 +439,7 @@ if __name__=='__main__':
     fp.write("cat {} | sed \'1,/#### BEGIN PATCHES/d;/#### END PATCHES/,$d\' > patches.inp\n".format(psfgen))
     fp.write('echo "structure {}" > tmpnamdheader\n'.format(Base.psf_outfile))
     fp.write('echo "coordinates {}" >> tmpnamdheader\n'.format(post_pdb))
-    fp.write('cat tmpnamdheader $PSFGEN_BASEDIR/templates/vac.namd | sed s/%NUMMIN%/{}/ |'.format(nummin)
+    fp.write('cat tmpnamdheader $PSFGEN_BASEDIR/templates/vac.namd | sed s/%NUMMIN%/{}/ |'.format(nummin))
     fp.write(' sed s/%NUMSTEPS%/{}/ | sed s/%OUT%/tmpconfig/g | sed s/%SEED%/{}/g |'.format(numsteps,random.randint(0,10000))
     fp.write(' sed s/%TEMPERATURE%/{}/g'.format(temperature)
     fp.write(r' > run${TASK}-1.namd'+'\n')
