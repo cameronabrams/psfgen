@@ -445,8 +445,9 @@ if __name__=='__main__':
     fp.write('  echo "No pierced rings found."\n')
     fp.write('fi\n')
     if 'do_preheal_min_smd' in PostMod and PostMod['do_preheal_min_smd']:
-#        for l in sorted(Loops, key=lambda x: len(x.residues)):
-#            if (l.term and len(l.residues)>2):
+        for l in sorted(Loops, key=lambda x: len(x.residues)):
+            if (l.term and len(l.residues)>2):
+                fp.write('# will try to heal bond between {} and {} on chain {}...\n'.format(l.residues[-1].resseqnum,l.nextfragntermres,l.replica_chainID))
 #                fp.write('lay_loop $molid {} [range {} {} 1] {}\n'.format(l.replica_chainID,l.residues[0].resseqnum,l.residues[-1].resseqnum,100))
         pass
     fp.write('echo {} {} > .tmpvar\n'.format(Base.psf_outfile,'config.pdb'))
