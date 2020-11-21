@@ -431,7 +431,7 @@ if __name__=='__main__':
     fp.write('echo "Running vmd/psfgen on {} to generate {} and {}.  Log is psfgen'.format(psfgen,Base.psf_outfile,post_pdb)+r'${TASK}'+'.log"\n')
     fp.write(r'$VMD -dispdev text -e '+'{}'.format(psfgen)+r' 2&> psfgen${TASK}.log'+'\n')
     # save the patches!
-    fp.write(r'cat '+psfgen+r' | sed "1,/#### BEGIN PATCHES/d;/#### END PATCHES/,$d > patches.inp'+'\n')
+    fp.write(r'cat '+psfgen+r' | sed "1,/#### BEGIN PATCHES/d;/#### END PATCHES/,$d" > patches.inp'+'\n')
     fp.write('echo "structure {}" > tmpnamdheader\n'.format(Base.psf_outfile))
     fp.write('echo "coordinates {}" >> tmpnamdheader\n'.format(post_pdb))
     fp.write('cat tmpnamdheader $PSFGEN_BASEDIR/templates/vac.namd | sed s/%NUMMIN%/{}/ | sed s/%NUMSTEPS%/{}/ | sed s/%OUT%/tmpconfig/g | sed s/%SEED%/{}/g | sed s/%TEMPERATURE%/{}/g > run.namd\n'.format(nummin,numsteps,seed,temperature))
