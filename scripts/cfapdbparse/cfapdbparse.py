@@ -499,9 +499,9 @@ if __name__=='__main__':
                             ll=l.residues[-2].resseqnum,l=l.residues[-1].resseqnum,r=l.nextfragntermres,rr=(l.nextfragntermres+1)))
         fp.write('EOF\n')
         fp.write('cat $PSFGEN_BASEDIR/scripts/ligations.tcl | sed "/#### LIGATION LIST STARTS/r the_healing_patches.inp"  > do_the_healing.tcl\n')
-        fp.write('echo "Ligating bonds; log is ligations'+r'${TASK}'+'"\n')
+        fp.write('echo "Ligating bonds; log is ligations'+r'${TASK}'+'.log"\n')
         fp.write(r'$VMD -dispdev text -e do_the_healing.tcl -args '+'{} {} {} {} 2&> ligations'.format(Base.psf_outfile,
-        'tmpconfig2.pdb','ligated.psf','tmp2config2.pdb')+r'${TASK}'+'\n')
+        'tmpconfig2.pdb','ligated.psf','tmp2config2.pdb')+r'${TASK}'+'.log\n')
         fp.write('echo "structure {}" > tmpnamdheader\n'.format('ligated.psf'))
         fp.write('echo "coordinates {}" >> tmpnamdheader\n'.format('tmp2config2.pdb'))
         fp.write('cat tmpnamdheader $PSFGEN_BASEDIR/templates/vac.namd |')
