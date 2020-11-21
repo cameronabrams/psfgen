@@ -10,6 +10,8 @@ set psf [lindex $argv 0]
 set coor [lindex $argv 1]
 mol new $psf
 mol addfile $coor
+set a [atomselect top "all"]
+$a set occupancy 0
 
 set fp [open [lindex $argv 2] "r"]
 set lines [split [read $fp] \n]
@@ -28,7 +30,8 @@ foreach l $lines {
 set bl {}
 foreach c $CH i $RES1 j $RES2 {
     set ii [[atomselect top "chain $c and resid $i and name C"] get index]
-    set jj [[atomselect top "chain $c and resid $j and name CA"] get index]
+    set jj [[atomselect top "chain $c and resid $j and name N"] get index]
+    [atomselect top "chain $c and resid $j and name N"] set occupancy 1
     lappend bl [measure bond [list $ii $jj]]
 }
 
@@ -37,4 +40,5 @@ foreach c $CH i $RES1 j $RES2 b $bl {
     puts $fp "$c $i $j [format %.4f $b]"
 }
 close $fp
+$a writepdb "fixed.pdb"
 exit

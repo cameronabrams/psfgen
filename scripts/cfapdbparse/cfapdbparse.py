@@ -264,6 +264,7 @@ if __name__=='__main__':
     temperature=310
     nummin=500
     numsteps=100
+    target_numsteps=20000
     parser=argparse.ArgumentParser()
     print('cfapdbparser {} / python {}'.format(date.today(),sys.version.replace('\n',' ').split(' ')[0]))
     i=1
@@ -454,23 +455,30 @@ if __name__=='__main__':
                 fp.write('{} {} {}\n'.format(l.replica_chainID,l.residues[-1].resseqnum,l.nextfragntermres))
 #                fp.write('lay_loop $molid {} [range {} {} 1] {}\n'.format(l.replica_chainID,l.residues[0].resseqnum,l.residues[-1].resseqnum,100))
         fp.write('EOF\n')
-    # measures to find the initial distances
+    # measures to find the initial distances; generated fixed.pdb to fix the N atoms 
     fp.write(r'$VMD -dispdev text -e $PSFGEN_BASEDIR/scripts/measure_bonds.tcl -args '+'{} {} heal_these.inp 2&> heal.log\n'.format(Base.psf_outfile,'config.pdb'))
     fp.write('if [ -f cv.inp ]; then rm cv.inp; fi\n')
     fp.write('touch cv.inp\n')
     fp.write('while IFS=" " read -r C L R B; do\n')
-    fp.write(r'  cat $PSFGEN_BASEDIR/templates/cv-template.in | sed s/%NAME%/${C}${L}/g | sed s/%I%/$L/g | sed s/%J%/$R/g | sed s/%R0%/$B/g >> cv.inp'+';\n')
+    fp.write(r'  cat $PSFGEN_BASEDIR/templates/cv-template.in | sed s/%C%/$C/g |')
+    fp.write(r' sed s/%NAME%/${C}${L}/g | sed s/%I%/$L/g | sed s/%J%/$R/g | sed s/%R0%/$B/g |')
+    fp.write(' sed s/%TARGETNUMSTEPS%/{}/ >> cv.inp ;\n'.format(target_numsteps))
     fp.write('done < heal_these.inp\n')
+    fp.write('echo "structure {}" > tmpnamdheader\n'.format(Base.psf_outfile))
+    fp.write('echo "coordinates {}" >> tmpnamdheader\n'.format('config.pdb'))
+    fp.write('cat tmpnamdheader $PSFGEN_BASEDIR/templates/vac.namd |')
+    fp.write(' sed s/%NUMMIN%/{}/ | sed s/%NUMSTEPS%/{}/ |'.format(0,2*target_numsteps)
+    fp.write(' sed s/%OUT%/tmpconfig/g | sed s/%SEED%/{}/g |'.format(random.randint(0,10000)))
+    fp.write(' sed s/%TEMPERATURE%/{}/g > run2.namd\n'.format(temperature))
+    fp.write('rm tmpnamdheader\n')
+    fp.write('echo "Running namd2 SMD on vacuum system {} {}; output in run2.log"\n'.format(Base.psf_outfile,'config.pdb'))
+    fp.write(r'$CHARMRUN +p8 $NAMD2 run2.namd > run2.log'+'\n')
+    fp.write(r'$VMD -dispdev text -e $PSFGEN_BASEDIR/scripts/namdbin2pdb.tcl -args '+'{} tmpconfig.coor tmp.pdb 2&> namdbin2pdb.log\n'.format(Base.psf_outfile))
     # prepend the charmm header to the pdb file
-    fp.write('cat charmm_header.pdb tmp.pdb > config.pdb\n')
-    fp.write('echo {} {} > .tmpvar\n'.format(Base.psf_outfile,'config.pdb'))
+    fp.write('cat charmm_header.pdb tmp.pdb > config2.pdb\n')
+    fp.write('echo {} {} > .tmpvar\n'.format(Base.psf_outfile,'config2.pdb'))
     fp.write('# {} finishes.\n'.format(postscriptname))
     fp.close()
     os.system('chmod 744 {}'.format(postscriptname))
-#  if 'do_preheal_min_smd' in PostMod and PostMod['do_preheal_min_smd']:
-
-        # 4. NAMD: SMD loop closure
-        #     - generate cv.inp
-        # 5. VMD: Ligate loop-frag peptide bonds
 
     

@@ -17,5 +17,5 @@ harmonic {
   forceConstant 20.0
   centers %R0%         # initial distance
   targetCenters 2.0  # final distance
-  targetNumSteps 20000
+  targetNumSteps %TARGETNUMSTEPS%
 } 
