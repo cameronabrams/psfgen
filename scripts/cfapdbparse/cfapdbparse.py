@@ -303,6 +303,7 @@ if __name__=='__main__':
     parser.add_argument('-rlxmcparams',metavar='<param1=val1,param2=val2,...>',default='',help='Loop Monte Carlo parameters')
  #   parser.add_argument('-rlxgly',action='store_true',help='asks psfgen to use the loopMC module to relax modeled-in glycans missing from PDB')
  #   parser.add_argument('-glymcparams',metavar='<param1=val1,param2=val2,...>',default='',help='Glycan Monte Carlo parameters')
+    parser.add_argument('-heal',action='store_true',help='asks psfgen to prep for a healing MD simulations to close missing loops')
     parser.add_argument('-kc',action='store_true',help='ignores SEQADV records indicating conflicts; if unset, residues in conflict are mutated to their proper identities')
     parser.add_argument('-rem',action='store_true',help='revert engineered mutations listed in SEQADV records')
     parser.add_argument('-noc',action='store_true',help='do not center the protein at the origin of the coordinate system')
@@ -331,6 +332,7 @@ if __name__=='__main__':
 #    PostMod['gly_mc_params']=DictFromString(args.glymcparams)
     PostMod['do_multiflex_mc']=args.rlxmc
     PostMod['multiflex_mc_params']=DictFromString(args.rlxmcparams)
+    PostMod['do_preheal_min_smd']=args.heal
     PostMod['Crot']=MrgCmdLineAndFileContents(args.crot,args.crotfile,Crot)
     PostMod['log_dcd_file']=args.logdcd
     PostMod['log_every']=args.logevery
