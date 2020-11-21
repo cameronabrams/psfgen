@@ -442,7 +442,7 @@ if __name__=='__main__':
     fp.write('  echo "Change your relaxation parameters and try again."\n')
     fp.write('  exit\n')
     fp.write('else\n')
-    fp.write('  echo "No pierced rings found."')
+    fp.write('  echo "No pierced rings found."\n')
     fp.write('fi\n')
     if 'do_preheal_min_smd' in PostMod and PostMod['do_preheal_min_smd']:
 #        for l in sorted(Loops, key=lambda x: len(x.residues)):
