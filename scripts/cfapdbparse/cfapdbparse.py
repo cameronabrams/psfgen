@@ -165,7 +165,7 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
         fp.write('dict set mcp ljsigma {}\n'.format(sigma))
         fp.write('dict set mcp ljepsilon {}\n'.format(epsilon))
         fp.write('dict set mcp ljcutoff {}\n'.format(cutoff))
-        fp.write('dict set mcp ljshift {}\n'.format(ljshift))
+        fp.write('dict set mcp ljshift {}\n'.format(shift))
         fp.write('dict set mcp temperature {}\n'.format(mctemperature))
         fp.write('dict set mcp mck {}\n'.format(mck))
         fp.write('dict set mcp dstop {}\n'.format(dstop))
