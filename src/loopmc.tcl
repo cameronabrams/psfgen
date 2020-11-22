@@ -1022,7 +1022,7 @@ proc do_multiflex_mc { molid rotsel refatominddict paramsdict iseed logid logeve
           # accept the move
           set E0 $E
           puts "CFAFLEXMC) cyc $cyc na $nacc [format "ar=%.5f" [expr (1.0*$nacc)/($cyc+1)]] [format "attr-pnlty= %.2f " $SE] [format "strc-pnlty=%.2f" $EE]"
-          if { [expr $nacc % $logevery == 0 ] } {
+          if { [expr $nacc % $logevery == 0 ] && $logid != -1 } {
             log_addframe $molid $logid
             if { [expr $nacc % $logsaveevery == 0] } {
                 set loga [atomselect $logid all]
