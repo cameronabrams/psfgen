@@ -535,7 +535,7 @@ if __name__=='__main__':
         fp.write(' log=namdbin2pdb'+r'${TASK}'+'-3.log"\n')
         fp.write(r'$VMD -dispdev text -e $PSFGEN_BASEDIR/scripts/namdbin2pdb.tcl -args '+'{} tmpconfig3.coor tmpconfig4.pdb 2&> namdbin2pdb'.format('ligated.psf')+r'${TASK}'+'-3.log\n')
         fp.write('cat charmm_header.pdb tmpconfig4.pdb > config2.pdb\n')
-        fp.write('echo "VMD) script=$PSFGEN_BASEDIR/scripts/ringp.tcl args={} {}'.format('ligated.psf','config2pdb'))
+        fp.write('echo "VMD) script=$PSFGEN_BASEDIR/scripts/ringp.tcl args={} {}'.format('ligated.psf','config2.pdb'))
         fp.write(' log=ringp'+r'${TASK}'+'-2.log"\n')
         #fp.write('echo "Checking {} for pierced rings; log is ringp'.format('config2.pdb')+r'${TASK}'+'-2.log"\n')
         fp.write(r'$VMD -dispdev text -e $PSFGEN_BASEDIR/scripts/ringp.tcl -args '+'{} {} 2&> ringp'+r'${TASK}'+'-2.log\n'.format('ligated.psf','config2.pdb'))
