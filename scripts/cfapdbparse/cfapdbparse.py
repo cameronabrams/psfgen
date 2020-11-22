@@ -30,7 +30,7 @@ def vmd_instructions(fp,script,logname='tmp.log',args='',message=''):
     else:
         fp.write(r'$VMD -dispdev text -e '+script+r' 2&> '+logname+'\n')
     fp.write('if [ $? -ne 0 ]; then\n')
-    fp.write('   echo "VMD failed.  Check the log file {}\n'.logname)
+    fp.write('   echo "VMD failed.  Check the log file {}\n'.format(logname))
     fp.write('fi\n')
 
 def namd_instructions(fp,cfgname,psf,coor,outname,logname,npe=8,outpdb='config.pdb',
@@ -548,7 +548,7 @@ if __name__=='__main__':
         fp.write('  grep pierces {}\n'.format(logname))
         fp.write('  echo "Change your relaxation parameters and try again."\n')
         fp.write('  exit\n')
-        
+
     fp.write('echo {} {} > .tmpvar\n'.format(currpsf,currpdb))
     fp.write('# {} finishes.\n'.format(postscriptname))
     fp.close()
