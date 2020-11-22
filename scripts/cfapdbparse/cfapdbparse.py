@@ -512,7 +512,7 @@ if __name__=='__main__':
         logname=r'run${TASK}-2.log'
         extras=r'sed "41 i fixedatoms on" | sed "42 i fixedatomsfile fixed.pdb" | sed "43 i fixedatomscol B" | sed "44 i colvars on" | sed "45 i colvarsconfig cv.inp"'
         namd_instructions(fp,cfgname,currpsf,currpdb,outname,logname,npe=npe,
-                      numminsteps=0,numsteps=1.5*target_numsteps,seed=random.randint(0,10000),
+                      numminsteps=0,numsteps=int(1.5*target_numsteps),seed=random.randint(0,10000),
                       template='vac.namd',temperature=temperature,extras=extras)
         namdbin='{}.coor'.format(outname)
         currpdb='{}.pdb'.format(outname)
