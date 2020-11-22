@@ -7,7 +7,7 @@ class Crot:
         self.record=record
         dat=record.split(',')
         self.angle=dat[0].upper()
-        print(self.angle)
+        print(dat)
         if self.angle=='PHI' or self.angle=='PSI' or self.angle=='OMEGA':
             # this is a backbone torsion, so we need both an owner
             # residue and a residue indicating the end of the 
