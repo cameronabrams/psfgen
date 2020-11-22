@@ -267,7 +267,6 @@ if __name__=='__main__':
     nummin=1000
     numsteps=2000
     target_numsteps=20000
-    namdp='+p{:d}'.format(npe)
     parser=argparse.ArgumentParser()
     print('cfapdbparse {} / python {}'.format(date.today(),sys.version.replace('\n',' ').split(' ')[0]))
     i=1
@@ -361,7 +360,8 @@ if __name__=='__main__':
         PostMod['reorselstr']=args.ror.split(',')
     postscriptname=args.postscript
     npe=args.pe
-
+    namdp='+p{:d}'.format(npe)
+ 
     PDBfiles=args.pdbcif
     Molecules=[]
     if '.cif' in PDBfiles[0]:
