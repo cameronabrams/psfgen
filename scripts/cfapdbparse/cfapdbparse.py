@@ -134,6 +134,8 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
         rcut=4.0
         sigma=1.8
         epsilon=0.5
+        cutoff=math.pow(2,(1./6.))*sigma
+        shift=epsilon
         mctemperature=3.0
         mck=10.0
         dstop=2.0
@@ -147,6 +149,8 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
             rcut=rcut if 'rcut' not in p else p['rcut']
             sigma=sigma if 'sigma' not in p else p['sigma']
             epsilon=epsilon if 'epsilon' not in p else p['epsilon']
+            shift=shift if 'shift' not in p else p['shift']
+            cutoff=cutoff if 'cutoff' not in p else p['cutoff']
             mctemperature=mctemperature if 'temperature' not in p else p['temperature']
             mck=mck if 'k' not in p else p['k']
             dstop=dstop if 'dstop' not in p else p['dstop']
@@ -156,9 +160,11 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
             do_gly=do_gly if 'gly' not in p else p['gly']
         fp.write('set mcp [dict create]\n')
         fp.write('dict set mcp nc {}\n'.format(nc))
-        fp.write('dict set mcp rcut {}\n'.format(rcut))
-        fp.write('dict set mcp sigma {}\n'.format(sigma))
-        fp.write('dict set mcp epsilon {}\n'.format(epsilon))
+        fp.write('dict set mcp cellsize {}\n'.format(rcut))
+        fp.write('dict set mcp ljsigma {}\n'.format(sigma))
+        fp.write('dict set mcp ljepsilon {}\n'.format(epsilon))
+        fp.write('dict set mcp ljcutoff {}\n'.format(cutoff))
+        fp.write('dict set mcp ljshift {}\n'.format(ljshift))
         fp.write('dict set mcp temperature {}\n'.format(mctemperature))
         fp.write('dict set mcp mck {}\n'.format(mck))
         fp.write('dict set mcp dstop {}\n'.format(dstop))
