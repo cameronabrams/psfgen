@@ -529,7 +529,7 @@ if __name__=='__main__':
         fp.write('cat $PSFGEN_BASEDIR/scripts/ligations.tcl | sed "/#### LIGATION LIST STARTS/r the_healing_patches.inp"  > do_the_healing.tcl\n')
         newpsf='ligated.psf'
         newpdb='ligated.pdb'
-        vmd_instructions(fp,'do_the_healing.tcl',args='{} {} {} {}'.format(currpsf,currpdb,newpsf,newpdb),log=r'ligations${TASK}.log')
+        vmd_instructions(fp,'do_the_healing.tcl',args='{} {} {} {}'.format(currpsf,currpdb,newpsf,newpdb),logname=r'ligations${TASK}.log')
         currpsf=newpsf
         currpdb=newpdb
         outname=r'postnamd${TASK}-3'
