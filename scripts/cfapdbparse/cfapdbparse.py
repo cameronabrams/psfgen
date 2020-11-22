@@ -23,7 +23,7 @@ from atom import _PDBAtomNameDict_
 from residue import Residue, _PDBResName123_, _pdb_glycans_, _pdb_ions_, _ResNameDict_PDB_to_CHARMM_, _ResNameDict_CHARMM_to_PDB_, get_residue
 
 def vmd_instructions(fp,script,logname='tmp.log',args='',message=''):
-    fp.write('echo "VMD/PSFGEN) script={} log={} msg: {}"\n'.format(script,logname,message))
+    fp.write('echo "VMD) script={} log={} msg: {}"\n'.format(script,logname,message))
     if args!='':
         fp.write(r'$VMD -dispdev text -e '+script+r' -args '+args+r' 2&> '+logname+'\n')
     else:
@@ -48,7 +48,7 @@ def namd_instructions(fp,cfgname,psf,coor,outname,logname,
     fp.write('rm tmpnamdheader\n')
     namdp='+p{:d}'.format(npe)
     fp.write('echo "NAMD2) config={} log={} outputname={}"\n'.format(cfgname,logname,outname))
-    fp.write(r'$CHARMRUN '+namdp+r' $NAMD2 '+cfgname+r' 2&> '+logname+'\n')
+    fp.write(r'$CHARMRUN '+namdp+r' $NAMD2 '+cfgname+r' > '+logname+'\n')
     fp.write('if [ $? -ne 0 ]; then\n')
     fp.write('   echo "NAMD failed.  Check log file {}."\n'.format(logname))
     fp.write('   exit\n')
