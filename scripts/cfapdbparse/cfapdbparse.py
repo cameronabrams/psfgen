@@ -528,7 +528,7 @@ if __name__=='__main__':
         fp.write('EOF\n')
         fp.write('cat $PSFGEN_BASEDIR/scripts/ligations.tcl | sed "/#### LIGATION LIST STARTS/r the_healing_patches.inp"  > do_the_healing.tcl\n')
         newpsf='ligated.psf'
-        newpsb='ligated.pdb'
+        newpdb='ligated.pdb'
         vmd_instructions(fp,'do_the_healing.tcl',args='{} {} {} {}'.format(currpsf,currpdb,newpsf,newpdb),log=r'ligations${TASK}.log')
         currpsf=newpsf
         currpdb=newpdb
