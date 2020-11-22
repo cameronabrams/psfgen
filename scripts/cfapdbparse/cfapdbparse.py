@@ -24,7 +24,7 @@ from residue import Residue, _PDBResName123_, _pdb_glycans_, _pdb_ions_, _ResNam
 
 def vmd_instructions(fp,script,logname='tmp.log',args='',message=''):
     fp.write('echo "VMD/PSFGEN) script={}'.format(psfgen))
-    fp.write(' log={} {}'.format(logname,message))
+    fp.write(' log={} {}\n'.format(logname,message))
     if args!='':
         fp.write(r'$VMD -dispdev text -e '+script+r' -args '+args+r' 2&> '+logname+'\n')
     else:
