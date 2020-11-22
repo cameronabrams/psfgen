@@ -43,7 +43,7 @@ def namd_instructions(fp,cfgname,psf,coor,outname,logname,
     fp.write('  | sed s/%SEED%/{}/g'.format(seed))
     fp.write('  | sed s/%TEMPERATURE%/{}/g'.format(temperature))
     if extras!='':
-        fp.write(extras)
+        fp.write('  | '+extras)
     fp.write(' > {}\n'.format(cfgname))
     fp.write('rm tmpnamdheader\n')
     namdp='+p{:d}'.format(npe)
@@ -472,7 +472,8 @@ if __name__=='__main__':
     outname=r'postnamd${TASK}-1'
     cfgname=r'run${TASK}-1.namd'
     namd_instructions(fp,cfgname,currpsf,currpdb,outname,r'run${TASK}-1.log',npe=npe,
-                      numminsteps=nummin,seed=random.randint(0,10000),template='vac.namd',temperature=temperature)
+                      numminsteps=nummin,numsteps=numsteps,seed=random.randint(0,10000),
+                      template='vac.namd',temperature=temperature)
     namdbin='{}.coor'.format(outname)
     currpdb='{}.pdb'.format(outname)
     vmd_instructions(fp,r'$PSFGEN_BASEDIR/scripts/namdbin2pdb.tcl',logname=r'namdbin2pdb${TASK}-1.log',
