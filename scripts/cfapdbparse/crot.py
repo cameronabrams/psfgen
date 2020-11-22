@@ -54,7 +54,7 @@ class Crot:
             retstr+='set sel [atomselect {} "segname {}"]\n'.format(molid,self.segname)
             retstr+='set i [[atomselect {} "segname {} and resid {} and name {}"]\n'.format(molid,self.segname,self.resseqnum1,self.atom1)
             retstr+='set j [[atomselect {} "segname {} and resid {} and name {}"]\n'.format(molid,self.segname,self.resseqnum2,self.atom2)
-            retstr+='genbondrot $sel $i $j {}\n'.format(self.degrees)
+            retstr+='genbondrot {} $sel $i $j {}\n'.format(molid,self.degrees)
         else:
             print('Warning: buggy crot {}'.format(self.record))
         return retstr
