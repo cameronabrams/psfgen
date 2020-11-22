@@ -228,9 +228,9 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
             rotsel=glysel
 
         fp.write('set rotsel [atomselect $molid "{}"]\n'.format(rotsel))
-        fp.write('dict set atomind fa $fa\n'.format(fa))
-        fp.write('dict set atomind i $i\n'.format(i))
-        fp.write('dict set atomind j $j\n'.format(j))
+        fp.write('dict set atomind fa $fa\n')
+        fp.write('dict set atomind i $i\n')
+        fp.write('dict set atomind j $j\n')
         fp.write('do_multiflex_mc $molid $rotsel atomind mcp [irand_dom 1000 9999] $logid {} {}\n'.format(logevery,logsaveevery))
     
     new_pdb_out=prefix+'_mod.pdb'
