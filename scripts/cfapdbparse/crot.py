@@ -21,11 +21,21 @@ class Crot:
             self.resseqnum1=int(dat[2])
             self.resseqnum2=-1
             self.degrees=float(dat[3])
+        elif self.angle=='GLYCAN':
+            self.segname=dat[1]
+            self.resseqnum1=int(dat[2])
+            self.atom1=dat[3]
+            self.resseqnum2=int(dat[4])
+            self.atom2=dat[4]
+            self.degrees=float(dat[5])
         else:
             print('Error: unable to parse Crot argument {}'.format(record))
-    def replicate(self,newc):
+    def replicate(self,newc='',newsegname=''):
         newcrot=Crot(self.record)
-        newcrot.chainID=newc
+        if newc!='':
+            newcrot.chainID=newc
+        if newsegname!='':
+            newcrot.segname=newsegname
         return newcrot
     def __str__(self):
         return self.record
@@ -39,6 +49,11 @@ class Crot:
         elif self.resseqnum2==-1:  # this is a side-chain bond
             retstr+='set r1 [[atomselect {} "chain {} and resid {} and name CA"] get residue]\n'.format(molid,self.chainID,self.resseqnum1)
             retstr+='SCrot_{} $r1 {} {} {}\n'.format(self.angle.lower(),self.chainID,molid,self.degrees)
+        elif self.angle=='GLYCAN':
+            retstr+='set sel [atomselect {} "segname {}"]\n'.format(molid,self.segname)
+            retstr+='set i [[atomselect {} "segname {} and resid {} and name {}"]\n'.format(molid,self.segname,self.resseqnum1,self.atom1)
+            retstr+='set j [[atomselect {} "segname {} and resid {} and name {}"]\n'.format(molid,self.segname,self.resseqnum2,self.atom2)
+            retstr+='genbondrot $sel $i $j {}\n'.format(self.degrees)
         else:
             print('Warning: buggy crot {}'.format(self.record))
         return retstr
