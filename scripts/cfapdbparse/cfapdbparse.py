@@ -446,7 +446,7 @@ if __name__=='__main__':
     fp.write(' sed s/%TEMPERATURE%/{}/g'.format(temperature))
     fp.write(r' > run${TASK}-1.namd'+'\n')
     fp.write('rm tmpnamdheader\n')
-    fp.write('echo "NAMD2) config=run'+r'${TASK}'+'-1.run log=run'+r'${TASK}'+'-1.log outputname=tmpconfig"\n')
+    fp.write('echo "NAMD2) {} config=run'+r'${TASK}'+'-1.run log=run'.format(namdp)+r'${TASK}'+'-1.log outputname=tmpconfig"\n')
     fp.write(r'$CHARMRUN '+namdp+r' $NAMD2 run${TASK}-1.namd > run${TASK}-1.log'+'\n')
     fp.write('echo "VMD) script=\$PSFGEN_BASEDIR/scripts/namdbin2pdb.tcl args={} tmpconfig.coor tmp.pdb'.format(Base.psf_outfile))
     fp.write(' log=namdbin2pdb'+r'${TASK}'+'-1.log"\n')
