@@ -10,6 +10,7 @@ import operator
 import argparse
 import os
 import random
+import math
 from datetime import date 
 from molecule import Molecule
 from cleavage import Cleavage
