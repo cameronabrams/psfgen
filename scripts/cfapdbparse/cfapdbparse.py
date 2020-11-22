@@ -172,6 +172,7 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
  #       fp.write('set loops {\n')
         # build rotsel as as all atom indices in selection with rotatable bonds
         #  that is all atoms in all residues except for the C and O of last residue in each loop
+        rotsel=''
         if len(Loops)>0 and do_loops == 1:
             loopsel_substr=[]
             fa_substr=[]
@@ -199,10 +200,11 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
             fp.write(r'set fa [list {*}$fa {*}$lfa]'+'\n')
             fp.write(r'set i [list {*}$i {*}$lca]'+'\n')
             fp.write(r'set j [list {*}$j {*}$lc]'+'\n')
+            rotsel=loopsel
+            
 
         if len(GlycanSegs)>0 and do_gly == 1:
             glysel='(segname '+' '.join(GlycanSegs)+')'
-            rotsel=loopsel+' or '+glysel
             fp.write('set gra {}\n')
             fp.write('set gi {}\n')
             fp.write('set gj {}\n')
@@ -219,6 +221,10 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
             fp.write(r'set fa [list {*}$fa {*}$gra]'+'\n')
             fp.write(r'set i [list {*}$i {*}$gi]'+'\n')
             fp.write(r'set j [list {*}$j {*}$gj]'+'\n')
+            if len(rotsel)>0:
+                rotsel=rotsel+' or '+glycel
+            else:
+                rotsel=glycel
 
         fp.write('set rotsel [atomselect $molid "{}"]\n'.format(rotsel))
         fp.write('dict set atomind fa $fa\n'.format(fa_sel))
@@ -356,8 +362,8 @@ if __name__=='__main__':
     parser.add_argument('-rlxmc',action='store_true',help='asks psfgen to use do_multiflex_mc module to relax modeled-in loops of residues missing from PDB and glycans')
 #    parser.add_argument('-loopmcparams',metavar='<param1=val1,param2=val2,...>',default='',help='Loop Monte Carlo parameters')
     parser.add_argument('-rlxmcparams',metavar='<param1=val1,param2=val2,...>',default='',help='Loop Monte Carlo parameters')
-    parser.add_argument('-rlxgly',action='store_true',help='asks psfgen to use the loopMC module to relax modeled-in glycans missing from PDB')
-    parser.add_argument('-glymcparams',metavar='<param1=val1,param2=val2,...>',default='',help='Glycan Monte Carlo parameters')
+#    parser.add_argument('-rlxgly',action='store_true',help='asks psfgen to use the loopMC module to relax modeled-in glycans missing from PDB')
+#    parser.add_argument('-glymcparams',metavar='<param1=val1,param2=val2,...>',default='',help='Glycan Monte Carlo parameters')
     parser.add_argument('-smdheal',action='store_true',help='asks psfgen to prep for a healing MD simulations to close missing loops')
     parser.add_argument('-kc',action='store_true',help='ignores SEQADV records indicating conflicts; if unset, residues in conflict are mutated to their proper identities')
     parser.add_argument('-rem',action='store_true',help='revert engineered mutations listed in SEQADV records')
@@ -385,8 +391,8 @@ if __name__=='__main__':
     prefix=args.prefix
 #    PostMod['do_loop_mc']=args.rlxloops
 #    PostMod['loop_mc_params']=DictFromString(args.loopmcparams)
-    PostMod['do_gly_mc']=args.rlxgly
-    PostMod['gly_mc_params']=DictFromString(args.glymcparams)
+ #   PostMod['do_gly_mc']=args.rlxgly
+ #   PostMod['gly_mc_params']=DictFromString(args.glymcparams)
     PostMod['do_multiflex_mc']=args.rlxmc
     PostMod['multiflex_mc_params']=DictFromString(args.rlxmcparams)
     PostMod['do_preheal_min_smd']=args.smdheal
