@@ -33,14 +33,14 @@ def vmd_instructions(fp,script,logname='tmp.log',args='',message=''):
     fp.write('   echo "VMD failed.  Check the log file {}\n'.format(logname))
     fp.write('fi\n')
 
-def namd_instructions(fp,cfgname,psf,coor,outname,logname,npe=8,outpdb='config.pdb',
-                      numminsteps=0,numsteps=0,seed=0,template='vac.namd',temperature=310,extras=''):
+def namd_instructions(fp,cfgname,psf,coor,outname,logname,
+                      npe=8,numminsteps=0,numsteps=0,seed=0,template='vac.namd',temperature=310,extras=''):
     fp.write('echo "structure {}" > tmpnamdheader\n'.format(psf))
     fp.write('echo "coordinates {}" >> tmpnamdheader\n'.format(coor))
     fp.write('cat tmpnamdheader $PSFGEN_BASEDIR/templates/{}'.format(template))
+    fp.write('  | sed s/%OUT%/{}/g'.format(outname))
     fp.write('  | sed s/%NUMMIN%/{}/'.format(numminsteps))
     fp.write('  | sed s/%NUMSTEPS%/{}/'.format(numsteps))
-    fp.write('  | sed s/%OUT%/{}/g'.format(outname))
     fp.write('  | sed s/%SEED%/{}/g'.format(seed))
     fp.write('  | sed s/%TEMPERATURE%/{}/g'.format(temperature))
     if extras!='':
@@ -472,7 +472,7 @@ if __name__=='__main__':
     fp.write("cat {} | sed \'1,/#### BEGIN PATCHES/d;/#### END PATCHES/,$d\' > patches.inp\n".format(psfgen))
     outname=r'postnamd${TASK}-1'
     cfgname=r'run${TASK}-1.namd'
-    namd_instructions(fp,cfgname,currpsf,currpdb,outname,logname=r'run${TASK}-1.log',
+    namd_instructions(fp,cfgname,currpsf,currpdb,outname,r'run${TASK}-1.log',npe=npe,
                       numminsteps=nummin,seed=random.randint(0,10000),template='vac.namd',temperature=temperature)
     namdbin='{}.coor'.format(outname)
     currpdb='{}.pdb'.format(outname)
@@ -511,7 +511,7 @@ if __name__=='__main__':
         cfgname=r'run${TASK}-2.namd'
         logname=r'run${TASK}-2.log'
         extras=r'sed "41 i fixedatoms on" | sed "42 i fixedatomsfile fixed.pdb" | sed "43 i fixedatomscol B" | sed "44 i colvars on" | sed "45 i colvarsconfig cv.inp"'
-        namd_instructions(fp,cfgname,currpsf,currpdb,outname,logname=logname,
+        namd_instructions(fp,cfgname,currpsf,currpdb,outname,logname,npe=npe,
                       numminsteps=0,numsteps=1.5*target_numsteps,seed=random.randint(0,10000),
                       template='vac.namd',temperature=temperature,extras=extras)
         namdbin='{}.coor'.format(outname)
@@ -533,7 +533,8 @@ if __name__=='__main__':
         currpsf=newpsf
         currpdb=newpdb
         outname=r'postnamd${TASK}-3'
-        namd_instructions(fp,r'run${TASK}-3.namd',currpsf,currpdb,outname=outname,numminsteps=nummin,numsteps=numsteps,seed=random.randint(0,10000),
+        namd_instructions(fp,r'run${TASK}-3.namd',currpsf,currpdb,outname,r'run${TASK}-3.log',npe=npe,
+                      numminsteps=nummin,numsteps=numsteps,seed=random.randint(0,10000),
                       template='vac.namd',temperature=temperature)
         namdbin='{}.coor'.format(outname)
         currpdb='{}.pdb'.format(outname)
