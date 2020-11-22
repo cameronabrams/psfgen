@@ -209,7 +209,6 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
             fp.write(r'set j [list {*}$j {*}$lc]'+'\n')
             rotsel=loopsel
             
-
         if len(GlycanSegs)>0 and do_gly == 1:
             glysel='(segname '+' '.join(GlycanSegs)+')'
             fp.write('set gra {}\n')
