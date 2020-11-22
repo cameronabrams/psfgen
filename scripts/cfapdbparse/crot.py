@@ -7,7 +7,7 @@ class Crot:
         self.record=record
         dat=record.split(',')
         self.angle=dat[0].upper()
-        print(dat)
+#        print(dat)
         if self.angle=='PHI' or self.angle=='PSI' or self.angle=='OMEGA':
             # this is a backbone torsion, so we need both an owner
             # residue and a residue indicating the end of the 
@@ -27,8 +27,8 @@ class Crot:
             self.resseqnum1=int(dat[2])
             self.atom1=dat[3]
             self.resseqnum2=int(dat[4])
-            self.atom2=dat[4]
-            self.degrees=float(dat[5])
+            self.atom2=dat[5]
+            self.degrees=float(dat[6])
         else:
             print('Error: unable to parse Crot argument {}'.format(record))
     def replicate(self,newc='',newsegname=''):
