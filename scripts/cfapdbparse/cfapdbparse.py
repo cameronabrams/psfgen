@@ -22,8 +22,8 @@ from link import Link
 from atom import _PDBAtomNameDict_
 from residue import Residue, _PDBResName123_, _pdb_glycans_, _pdb_ions_, _ResNameDict_PDB_to_CHARMM_, _ResNameDict_CHARMM_to_PDB_, get_residue
 
-def vmd_instructions(fp,script,logname='tmp.log',args='',message=''):
-    fp.write('echo "VMD) script={} log={} msg: {}"\n'.format(script,logname,message))
+def vmd_instructions(fp,script,logname='tmp.log',args='',msg=''):
+    fp.write('echo "VMD) script={} log={} msg: {}"\n'.format(script,logname,msg))
     if args!='':
         fp.write(r'$VMD -dispdev text -e '+script+r' -args '+args+r' 2&> '+logname+'\n')
     else:
@@ -468,7 +468,7 @@ if __name__=='__main__':
     fp.write('# {}: completes the build of {}\n'.format(postscriptname,currpsf))
     fp.write('TASK=$1\n')
     fp.write('echo "Completing the task-'+r'${TASK}'+' build of {}"\n'.format(currpsf))
-    vmd_instructions(fp,psfgen,logname=r'psfgen${TASK}.log',message='generates psf={} pdb={}'.format(currpsf,currpdb))
+    vmd_instructions(fp,psfgen,logname=r'psfgen${TASK}.log',msg='generates psf={} pdb={}'.format(currpsf,currpdb))
     fp.write("cat {} | sed \'1,/#### BEGIN PATCHES/d;/#### END PATCHES/,$d\' > patches.inp\n".format(psfgen))
     outname=r'postnamd${TASK}-1'
     cfgname=r'run${TASK}-1.namd'
