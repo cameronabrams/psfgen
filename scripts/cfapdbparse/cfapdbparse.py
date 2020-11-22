@@ -360,6 +360,7 @@ if __name__=='__main__':
         PostMod['reorselstr']=args.ror.split(',')
     postscriptname=args.postscript
     npe=args.pe
+    print('NAMD will use {:d} processors.'.format(npe))
     namdp='+p{:d}'.format(npe)
  
     PDBfiles=args.pdbcif
