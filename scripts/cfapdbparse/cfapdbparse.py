@@ -221,10 +221,11 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
             fp.write(r'set fa [list {*}$fa {*}$gra]'+'\n')
             fp.write(r'set i [list {*}$i {*}$gi]'+'\n')
             fp.write(r'set j [list {*}$j {*}$gj]'+'\n')
-            if len(rotsel)>0:
-                rotsel=rotsel+' or '+glysel
-            else:
-                rotsel=glysel
+
+        if len(rotsel)>0:
+            rotsel = rotsel+' or '+glysel
+        else:
+            rotsel=glysel
 
         fp.write('set rotsel [atomselect $molid "{}"]\n'.format(rotsel))
         fp.write('dict set atomind fa $fa\n'.format(fa_sel))
