@@ -22,6 +22,39 @@ from link import Link
 from atom import _PDBAtomNameDict_
 from residue import Residue, _PDBResName123_, _pdb_glycans_, _pdb_ions_, _ResNameDict_PDB_to_CHARMM_, _ResNameDict_CHARMM_to_PDB_, get_residue
 
+def vmd_instructions(fp,script,logname='tmp.log',args='',message=''):
+    fp.write('echo "VMD/PSFGEN) script={}'.format(psfgen))
+    fp.write(' log={} {}'.format(logname,message))
+    if args!='':
+        fp.write(r'$VMD -dispdev text -e '+script+r' -args '+args+r' 2&> '+logname+'\n')
+    else:
+        fp.write(r'$VMD -dispdev text -e '+script+r' 2&> '+logname+'\n')
+    fp.write('if [ $? -ne 0 ]; then\n')
+    fp.write('   echo "VMD failed.  Check the log file {}\n'.logname)
+    fp.write('fi\n')
+
+def namd_instructions(fp,cfgname,psf,coor,outname,logname,npe=8,outpdb='config.pdb',
+                      numminsteps=0,numsteps=0,seed=0,template='vac.namd',temperature=310,extras=''):
+    fp.write('echo "structure {}" > tmpnamdheader\n'.format(psf))
+    fp.write('echo "coordinates {}" >> tmpnamdheader\n'.format(coor))
+    fp.write('cat tmpnamdheader $PSFGEN_BASEDIR/templates/{}'.format(template))
+    fp.write('  | sed s/%NUMMIN%/{}/'.format(numminsteps))
+    fp.write('  | sed s/%NUMSTEPS%/{}/'.format(numsteps))
+    fp.write('  | sed s/%OUT%/{}/g'.format(outname))
+    fp.write('  | sed s/%SEED%/{}/g'.format(seed))
+    fp.write('  | sed s/%TEMPERATURE%/{}/g'.format(temperature))
+    if extras!='':
+        fp.write(extras)
+    fp.write(' > {}\n'.format(cfgname))
+    fp.write('rm tmpnamdheader\n')
+    namdp='+p{:d}'.format(npe)
+    fp.write('echo "NAMD2) config={} log={} outputname={}"\n'.format(cfgname,logname,outname))
+    fp.write(r'$CHARMRUN '+namdp+r' $NAMD2 '+cfgname+r' 2&> '+logname+'\n')
+    fp.write('if [ $? -ne 0 ]; then\n')
+    fp.write('   echo "NAMD failed.  Check log file {}."\n'.format(logname))
+    fp.write('   exit\n')
+    fp.write('fi\n')
+
 def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
     """ Writes TcL/VMD commands that encode modifications once the
         the base psfgen structure has been written.  'PostMods' include
@@ -425,46 +458,32 @@ if __name__=='__main__':
     psfgen_fp.write('### thank you for using cfapdbparse.py!\n')
 
     ''' Generate the postscript '''
+    currpdb=post_pdb
+    currpsf=Base.psf_outfile
     print('Run the script {} to complete the build.'.format(postscriptname))
     print('After running {}, "read CURRPSF CURRPDB < .tmpvar" will set those variables.'.format(postscriptname))
     print('cfapdbpyparse ends.')
     fp=open(postscriptname,'w')
     fp.write(r'#!/bin/bash'+'\n')
-    fp.write('# {}: completes the build of {}\n'.format(postscriptname,Base.psf_outfile))
+    fp.write('# {}: completes the build of {}\n'.format(postscriptname,currpsf))
     fp.write('TASK=$1\n')
-    fp.write('echo "Completing the task-'+r'${TASK}'+' build of {}"\n'.format(Base.psf_outfile))
-    fp.write('echo "VMD/PSFGEN) script={}'.format(psfgen))
-    fp.write(' log=psfgen'+r'${TASK}'+'.log')
-    fp.write(' psf={}'.format(Base.psf_outfile))
-    fp.write(' pdb={}"\n'.format(post_pdb))
-    fp.write(r'$VMD -dispdev text -e '+'{}'.format(psfgen)+r' 2&> psfgen${TASK}.log'+'\n')
-    # save the patches!
+    fp.write('echo "Completing the task-'+r'${TASK}'+' build of {}"\n'.format(currpsf))
+    vmd_instructions(fp,psfgen,logname=r'psfgen${TASK}.log',message='generates psf={} pdb={}'.format(currpsf,currpdb))
     fp.write("cat {} | sed \'1,/#### BEGIN PATCHES/d;/#### END PATCHES/,$d\' > patches.inp\n".format(psfgen))
-    fp.write('echo "structure {}" > tmpnamdheader\n'.format(Base.psf_outfile))
-    fp.write('echo "coordinates {}" >> tmpnamdheader\n'.format(post_pdb))
-    fp.write('cat tmpnamdheader $PSFGEN_BASEDIR/templates/vac.namd | sed s/%NUMMIN%/{}/ |'.format(nummin))
-    fp.write(' sed s/%NUMSTEPS%/{}/ | sed s/%OUT%/tmpconfig/g | sed s/%SEED%/{}/g |'.format(numsteps,random.randint(0,10000)))
-    fp.write(' sed s/%TEMPERATURE%/{}/g'.format(temperature))
-    fp.write(r' > run${TASK}-1.namd'+'\n')
-    fp.write('rm tmpnamdheader\n')
-    fp.write('echo "NAMD2) {} config=run'.format(namdp)+r'${TASK}'+'-1.run log=run'+r'${TASK}'+'-1.log outputname=tmpconfig"\n')
-    fp.write(r'$CHARMRUN '+namdp+r' $NAMD2 run${TASK}-1.namd > run${TASK}-1.log'+'\n')
-    fp.write('if [ $? -ne 0 ]; then\n')
-    fp.write('   echo "NAMD failed.  Check log file run'+r'${TASK}'+'-1.log."\n')
-    fp.write('   exit\n')
-    fp.write('fi\n')
-    fp.write('echo "VMD) script=\$PSFGEN_BASEDIR/scripts/namdbin2pdb.tcl args={} tmpconfig.coor tmp.pdb'.format(Base.psf_outfile))
-    fp.write(' log=namdbin2pdb'+r'${TASK}'+'-1.log"\n')
-    fp.write(r'$VMD -dispdev text -e $PSFGEN_BASEDIR/scripts/namdbin2pdb.tcl -args '+'{} tmpconfig.coor tmp.pdb 2&> namdbin2pdb'.format(Base.psf_outfile)+r'${TASK}'+'-1.log\n')
-    fp.write('cat charmm_header.pdb tmp.pdb > config.pdb\n')
-    #fp.write('rm charmm_header.pdb tmp.pdb\n')
-    fp.write('echo "VMD) script=$PSFGEN_BASEDIR/scripts/ringp.tcl args={} {}'.format(Base.psf_outfile,'config.pdb'))
-    fp.write(' log=ringp'+r'${TASK}'+'-1.log"\n')
-    fp.write(r'$VMD -dispdev text -e $PSFGEN_BASEDIR/scripts/ringp.tcl -args '+'{} {} 2&> ringp'+r'${TASK}'+'-1.log\n')
-    fp.write('npiercings=`grep -c pierces ringp'+r'${TASK}'+'-1.log`\n')
+    outname=r'postnamd${TASK}-1'
+    namd_instructions(fp,cfgname,currpsf,currpdb,outname,logname=r'run${TASK}-1.log',
+                      numminsteps=nummin,seed=random.randint(0,10000),template='vac.namd',temperature=temperature)
+    namdbin='{}.coor'.format(outname)
+    currpdb='{}.pdb'.format(outname)
+    vmd_instructions(fp,r'$PSFGEN_BASEDIR/scripts/namdbin2pdb.tcl',logname=r'namdbin2pdb${TASK}-1.log',
+                        args='{} {} {}'.format(currpsf,namdbin,'tmp.pdb'))
+    fp.write('cat charmm_header.pdb tmp.pdb > {}\n'.format(currpdb))
+    logname=r'ringp${TASK}-1.log'
+    vmd_instructions(fp,r'$PSFGEN_BASEDIR/scripts/ringp.tcl',logname=logname,args='{} {}'.format(currpsf,currpdb))
+    fp.write('npiercings=`grep -c pierces {}`\n'.format(logname))
     fp.write(r'if [[ $npiercings -gt 0 ]]; then'+'\n')
-    fp.write(r'  echo "Error: There are $npiercings piercings in '+'{}"\n'.format('config.pdb'))
-    fp.write('  grep pierces ringp'+r'${TASK}'+'-1.log\n')
+    fp.write(r'  echo "Error: There are $npiercings piercings in '+'{}"\n'.format(currpdb))
+    fp.write('  grep pierces {}\n'.format(logname))
     fp.write('  echo "Change your relaxation parameters and try again."\n')
     fp.write('  exit\n')
 #    fp.write('else\n')
@@ -474,15 +493,12 @@ if __name__=='__main__':
         fp.write('cat > heal_these.inp << EOF\n')
         for l in sorted(Loops, key=lambda x: len(x.residues)):
             if (l.term and len(l.residues)>2):
-                #fp.write('# will try to heal bond between {} and {} on chain {}...\n'.format(l.residues[-1].resseqnum,l.nextfragntermres,l.replica_chainID))
                 fp.write('{} {} {}\n'.format(l.replica_chainID,l.residues[-1].resseqnum,l.nextfragntermres))
-#                fp.write('lay_loop $molid {} [range {} {} 1] {}\n'.format(l.replica_chainID,l.residues[0].resseqnum,l.residues[-1].resseqnum,100))
         fp.write('EOF\n')
         # measures to find the initial distances; generated fixed.pdb to fix the N atoms 
-        fp.write('echo "VMD) script=\$PSFGEN_BASEDIR/scripts/measure_bonds.tcl args={} {} heal_these.inp'.format(Base.psf_outfile,'config.pdb'))
-        fp.write(' log=heal'+r'${TASK}'+'.log"\n')
-        fp.write(r'$VMD -dispdev text -e $PSFGEN_BASEDIR/scripts/measure_bonds.tcl -args ')
-        fp.write('{} {} heal_these.inp 2&> heal'.format(Base.psf_outfile,'config.pdb')+r'${TASK}'+'.log\n')
+        logname=r'heal${TASK}.log'
+        args='{} {} heal_these.inp'.format(currpsf,currpdb)
+        vmd_instructions(fp,r'$PSFGEN_BASEDIR/scripts/measure_bonds.tcl',logname=logname,args=args)
         fp.write('if [ -f cv.inp ]; then rm cv.inp; fi\n')
         fp.write('touch cv.inp\n')
         fp.write('while IFS=" " read -r C L R B; do\n')
@@ -490,30 +506,18 @@ if __name__=='__main__':
         fp.write(r' sed s/%NAME%/${C}${L}/g | sed s/%I%/$L/g | sed s/%J%/$R/g | sed s/%R0%/$B/g |')
         fp.write(' sed s/%TARGETNUMSTEPS%/{}/ >> cv.inp ;\n'.format(target_numsteps))
         fp.write('done < heal_these.inp\n')
-        fp.write('echo "structure {}" > tmpnamdheader\n'.format(Base.psf_outfile))
-        fp.write('echo "coordinates {}" >> tmpnamdheader\n'.format('config.pdb'))
-        fp.write('cat tmpnamdheader $PSFGEN_BASEDIR/templates/vac.namd |')
-        fp.write(' sed s/%NUMMIN%/{}/ | sed s/%NUMSTEPS%/{}/ |'.format(0,int(1.5*target_numsteps)))
-        fp.write(' sed s/%OUT%/tmpconfig/g | sed s/%SEED%/{}/g |'.format(random.randint(0,10000)))
-        fp.write(' sed s/%TEMPERATURE%/{}/g |'.format(temperature))
-        fp.write(r' sed "41 i fixedatoms on" |')
-        fp.write(r' sed "42 i fixedatomsfile fixed.pdb" |')
-        fp.write(r' sed "43 i fixedatomscol B" |')
-        fp.write(r' sed "44 i colvars on" |')
-        fp.write(r' sed "45 i colvarsconfig cv.inp" ')
-        fp.write(' > run'+r'${TASK}'+'-2.namd\n')
-        fp.write('rm tmpnamdheader\n')
-        fp.write('echo "NAMD2) config=run'+r'${TASK}'+'-2.namd log=run'+r'${TASK}'+'-2.log outputname=tmpconfig"\n')
-        fp.write(r'$CHARMRUN '+namdp+' $NAMD2 run'+r'${TASK}'+'-2.namd > run${TASK}-2.log'+'\n')
-        fp.write('if [ $? -ne 0 ]; then\n')
-        fp.write('   echo "NAMD failed.  Check log file run'+r'${TASK}'+'-2.log."\n')
-        fp.write('   exit\n')
-        fp.write('fi\n')
-        fp.write('echo "VMD) script=\$PSFGEN_BASEDIR/scripts/namdbin2pdb.tcl args={} tmpconfig.coor tmpconfig2.pdb'.format(Base.psf_outfile))
-        fp.write(' log=namdbin2pdb'+r'${TASK}'+'-2.log"\n')
-        fp.write(r'$VMD -dispdev text -e $PSFGEN_BASEDIR/scripts/namdbin2pdb.tcl -args '+'{} tmpconfig.coor tmpconfig2.pdb 2&> namdbin2pdb'.format(Base.psf_outfile)+r'${TASK}'+'-2.log\n')
-        # prepend the charmm header to the pdb file
-        fp.write('cat charmm_header.pdb tmp.pdb > config2.pdb\n')
+        outname=r'postnamd${TASK}-2'
+        cfgname=r'run${TASK}-2.namd'
+        logname=r'run${TASK}-2.log'
+        extras=r'sed "41 i fixedatoms on" | sed "42 i fixedatomsfile fixed.pdb" | sed "43 i fixedatomscol B" | sed "44 i colvars on" | sed "45 i colvarsconfig cv.inp"'
+        namd_instructions(fp,cfgname,currpsf,currpdb,outname,logname=logname,
+                      numminsteps=0,numsteps=1.5*target_numsteps,seed=random.randint(0,10000),
+                      template='vac.namd',temperature=temperature,extras=extras)
+        namdbin='{}.coor'.format(outname)
+        currpdb='{}.pdb'.format(outname)
+        vmd_instructions(fp,r'$PSFGEN_BASEDIR/scripts/namdbin2pdb.tcl',logname=r'namdbin2pdb${TASK}-1.log',
+                        args='{} {} {}'.format(currpsf,namdbin,'tmp.pdb'))
+        fp.write('cat charmm_header.pdb tmp.pdb > {}\n'.format(currpdb))
         fp.write('cat > the_healing_patches.inp << EOF\n')
         for l in sorted(Loops, key=lambda x: len(x.residues)):
             if (l.term and len(l.residues)>2):
@@ -522,46 +526,30 @@ if __name__=='__main__':
                             ll=l.residues[-2].resseqnum,l=l.residues[-1].resseqnum,r=l.nextfragntermres,rr=(l.nextfragntermres+1)))
         fp.write('EOF\n')
         fp.write('cat $PSFGEN_BASEDIR/scripts/ligations.tcl | sed "/#### LIGATION LIST STARTS/r the_healing_patches.inp"  > do_the_healing.tcl\n')
-        fp.write('echo "VMD/PSFGEN) script=do_the_healing.tcl args={} {} {} {}'.format(Base.psf_outfile,
-        'tmpconfig2.pdb','ligated.psf','tmp2config2.pdb'))
-        fp.write(' log=ligations'+r'${TASK}'+'.log"\n')
-        fp.write(r'$VMD -dispdev text -e do_the_healing.tcl -args '+'{} {} {} {} 2&> ligations'.format(Base.psf_outfile,
-        'tmpconfig2.pdb','ligated.psf','tmp2config2.pdb')+r'${TASK}'+'.log\n')
-        fp.write('echo "structure {}" > tmpnamdheader\n'.format('ligated.psf'))
-        fp.write('echo "coordinates {}" >> tmpnamdheader\n'.format('tmp2config2.pdb'))
-        fp.write('cat tmpnamdheader $PSFGEN_BASEDIR/templates/vac.namd |')
-        fp.write(' sed s/%NUMMIN%/{}/ | sed s/%NUMSTEPS%/{}/ |'.format(nummin,numsteps))
-        fp.write(' sed s/%OUT%/tmpconfig3/g | sed s/%SEED%/{}/g |'.format(random.randint(0,10000)))
-        fp.write(' sed s/%TEMPERATURE%/{}/g '.format(temperature))
-        fp.write(' > run'+r'${TASK}'+'-3.namd\n')
-        fp.write('rm tmpnamdheader\n')
-       # fp.write('echo "Running namd2 min on ligated system {} {}; output in run'.format('ligated.psf','tmp2config2.pdb')+r'${TASK}'+'-3.log"\n')
-        fp.write('echo "NAMD2) config=run'+r'${TASK}'+'-3.namd log=run'+r'${TASK}'+'-3.log outputname=tmpconfig3"\n')
-        fp.write(r'$CHARMRUN '+namdp+' $NAMD2 run'+r'${TASK}'+'-3.namd > run'+r'${TASK}'+'-3.log'+'\n')
-        fp.write('if [ $? -ne 0 ]; then\n')
-        fp.write('   echo "NAMD failed.  Check log file run'+r'${TASK}'+'-3.log."\n')
-        fp.write('   exit\n')
-        fp.write('fi\n')
-        fp.write('echo "VMD) script=\$PSFGEN_BASEDIR/scripts/namdbin2pdb.tcl args={} tmpconfig3.coor tmpconfig4.pdb'.format('ligated.psf'))
-        fp.write(' log=namdbin2pdb'+r'${TASK}'+'-3.log"\n')
-        fp.write(r'$VMD -dispdev text -e $PSFGEN_BASEDIR/scripts/namdbin2pdb.tcl -args '+'{} tmpconfig3.coor tmpconfig4.pdb 2&> namdbin2pdb'.format('ligated.psf')+r'${TASK}'+'-3.log\n')
-        fp.write('cat charmm_header.pdb tmpconfig4.pdb > config2.pdb\n')
-        fp.write('echo "VMD) script=$PSFGEN_BASEDIR/scripts/ringp.tcl args={} {}'.format('ligated.psf','config2.pdb'))
-        fp.write(' log=ringp'+r'${TASK}'+'-2.log"\n')
-        #fp.write('echo "Checking {} for pierced rings; log is ringp'.format('config2.pdb')+r'${TASK}'+'-2.log"\n')
-        fp.write(r'$VMD -dispdev text -e $PSFGEN_BASEDIR/scripts/ringp.tcl -args '+'{} {} 2&> ringp'+r'${TASK}'+'-2.log\n'.format('ligated.psf','config2.pdb'))
-        fp.write('npiercings=`grep -c pierces ringp'+r'${TASK}'+'-2.log`\n')
+        newpsf='ligated.psf'
+        newpsb='ligated.pdb'
+        vmd_instructions(fp,'do_the_healing.tcl',args='{} {} {} {}'.format(currpsf,currpdb,newpsf,newpdb),log=r'ligations${TASK}.log')
+        currpsf=newpsf
+        currpdb=newpdb
+        outname=r'postnamd${TASK}-3'
+        namd_instructions(fp,r'run${TASK}-3.namd',currpsf,currpdb,outname=outname,numminsteps=nummin,numsteps=numsteps,seed=random.randint(0,10000),
+                      template='vac.namd',temperature=temperature)
+        namdbin='{}.coor'.format(outname)
+        currpdb='{}.pdb'.format(outname)
+        vmd_instructions(fp,r'$PSFGEN_BASEDIR/scripts/namdbin2pdb.tcl',logname=r'namdbin2pdb${TASK}-1.log',
+                        args='{} {} {}'.format(currpsf,namdbin,'tmp.pdb'))
+        fp.write('cat charmm_header.pdb tmp.pdb > {}\n'.format(currpdb))
+ 
+        logname=r'ringp${TASK}-2.log'
+        vmd_instructions(fp,r'$PSFGEN_BASEDIR/scripts/ringp.tcl',logname=logname,args='{} {}'.format(currpsf,currpdb))
+        fp.write('npiercings=`grep -c pierces {}`\n'.format(logname))
         fp.write(r'if [[ $npiercings -gt 0 ]]; then'+'\n')
-        fp.write(r'  echo "Error: There are $npiercings piercings in '+'{}"\n'.format('config2.pdb'))
-        fp.write('  grep pierces ringp'+r'${TASK}'+'-2.log\n')
+        fp.write(r'  echo "Error: There are $npiercings piercings in '+'{}"\n'.format(currpdb))
+        fp.write('  grep pierces {}\n'.format(logname))
         fp.write('  echo "Change your relaxation parameters and try again."\n')
         fp.write('  exit\n')
-#        fp.write('else\n')
-#        fp.write('  echo "No pierced rings found."\n')
-        fp.write('fi\n')
-        fp.write('echo {} {} > .tmpvar\n'.format('ligated.psf','config2.pdb'))
-    else:
-        fp.write('echo {} {} > .tmpvar\n'.format(Base.psf_outfile,'config2.pdb'))
+        
+    fp.write('echo {} {} > .tmpvar\n'.format(currpsf,currpdb))
     fp.write('# {} finishes.\n'.format(postscriptname))
     fp.close()
     os.system('chmod 744 {}'.format(postscriptname))
