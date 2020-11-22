@@ -139,6 +139,8 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
         dstop=2.0
         sstop=2.0
         maxanglestep=60.0 # degrees
+        do_loops = 0
+        do_gly = 1
         if 'multiflex_mc_params' in PostMod:
             p=PostMod['multiflex_mc_params']
             nc=nc if 'maxcycles' not in p else p['maxcycles']
@@ -150,6 +152,8 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
             dstop=dstop if 'dstop' not in p else p['dstop']
             sstop=sstop if 'sstop' not in p else p['sstop']
             maxanglestep=maxanglestep if 'maxanglestep' not in p else p['maxanglestep']
+            do_loops=do_loops if 'loops' not in p else p['loops']
+            do_gly=do_gly if 'gly' not in p else p['gly']
         fp.write('set mcp [dict create]\n')
         fp.write('dict set mcp nc {}\n'.format(nc))
         fp.write('dict set mcp rcut {}\n'.format(rcut))
@@ -161,35 +165,42 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
         fp.write('dict set mcp sstop {}\n'.format(sstop))
         fp.write('dict set mcp maxanglestep {}\n'.format(maxanglestep))
         fp.write('set bg [atomselect $molid "noh"]\n')
+        fp.write('set fa {}\n')
+        fp.write('set i {}\n')
+        fp.write('set j {}\n')
  #       fp.write('set loopindex 0\n')
  #       fp.write('set loops {\n')
         # build rotsel as as all atom indices in selection with rotatable bonds
         #  that is all atoms in all residues except for the C and O of last residue in each loop
-        loopsel_substr=[]
-        fa_substr=[]
-        ca_substr=[]
-        c_substr=[]
-        #Loops.sort(key=lambda l: len(l.residues))
-        for l in Loops:
-            if l.term and len(l.residues)>1:
- #               fp.write('{{ {} {} {} }}\n'.format(l.replica_chainID,l.residues[0].resseqnum,l.residues[-1].resseqnum))
-                loopsel_substr.append(' (chain {} and resid {} to {} and not (resid {} and name C O) )'.format(l.replica_chainID,l.residues[0].resseqnum,l.residues[-1].resseqnum,l.residues[-1].resseqnum))
-                fa_substr.append(' (chain {} and resid {} and name CA) '.format(l.replica_chainID,l.residues[0].resseqnum))
-                ca_substr.append(' (chain {} and resid {} and name CA) '.format(l.replica_chainID,l.residues[-1].resseqnum))
-                c_substr.append(' (chain {} and resid {} and name C) '.format(l.replica_chainID,l.residues[-1].resseqnum))
-        loopsel=' or '.join(loopsel_substr)
-        fa_sel=' or '.join(fa_substr)
-        ca_sel=' or '.join(ca_substr)
-        c_sel=' or '.join(c_substr)
-        loopsel='(protein and ('+loopsel+'))'
-        fa_sel='(protein and ('+fa_sel+'))'
-        ca_sel='(protein and ('+ca_sel+'))'
-        c_sel='(protein and ('+c_sel+'))'
-        fp.write('set fa [[atomselect $molid "{}"] get index]\n'.format(fa_sel))
-        fp.write('set i [[atomselect $molid "{}"] get index]\n'.format(ca_sel))
-        fp.write('set j [[atomselect $molid "{}"] get index]\n'.format(c_sel))
+        if len(Loops)>0 and do_loops == 1:
+            loopsel_substr=[]
+            fa_substr=[]
+            ca_substr=[]
+            c_substr=[]
+            #Loops.sort(key=lambda l: len(l.residues))
+            for l in Loops:
+                if l.term and len(l.residues)>1:
+ #                   fp.write('{{ {} {} {} }}\n'.format(l.replica_chainID,l.residues[0].resseqnum,l.residues[-1].resseqnum))
+                    loopsel_substr.append(' (chain {} and resid {} to {} and not (resid {} and name C O) )'.format(l.replica_chainID,l.residues[0].resseqnum,l.residues[-1].resseqnum,l.residues[-1].resseqnum))
+                    fa_substr.append(' (chain {} and resid {} and name CA) '.format(l.replica_chainID,l.residues[0].resseqnum))
+                    ca_substr.append(' (chain {} and resid {} and name CA) '.format(l.replica_chainID,l.residues[-1].resseqnum))
+                    c_substr.append(' (chain {} and resid {} and name C) '.format(l.replica_chainID,l.residues[-1].resseqnum))
+            loopsel=' or '.join(loopsel_substr)
+            fa_sel=' or '.join(fa_substr)
+            ca_sel=' or '.join(ca_substr)
+            c_sel=' or '.join(c_substr)
+            loopsel='(protein and ('+loopsel+'))'
+            fa_sel='(protein and ('+fa_sel+'))'
+            ca_sel='(protein and ('+ca_sel+'))'
+            c_sel='(protein and ('+c_sel+'))'
+            fp.write('set lfa [[atomselect $molid "{}"] get index]\n'.format(fa_sel))
+            fp.write('set lca [[atomselect $molid "{}"] get index]\n'.format(ca_sel))
+            fp.write('set lc [[atomselect $molid "{}"] get index]\n'.format(c_sel))
+            fp.write(r'set fa [list {*}$fa {*}$lfa]'+'\n')
+            fp.write(r'set i [list {*}$i {*}$lca]'+'\n')
+            fp.write(r'set j [list {*}$j {*}$lc]'+'\n')
 
-        if len(GlycanSegs)>0:
+        if len(GlycanSegs)>0 and do_gly == 1:
             glysel='(segname '+' '.join(GlycanSegs)+')'
             rotsel=loopsel+' or '+glysel
             fp.write('set gra {}\n')
@@ -345,8 +356,8 @@ if __name__=='__main__':
     parser.add_argument('-rlxmc',action='store_true',help='asks psfgen to use do_multiflex_mc module to relax modeled-in loops of residues missing from PDB and glycans')
 #    parser.add_argument('-loopmcparams',metavar='<param1=val1,param2=val2,...>',default='',help='Loop Monte Carlo parameters')
     parser.add_argument('-rlxmcparams',metavar='<param1=val1,param2=val2,...>',default='',help='Loop Monte Carlo parameters')
- #   parser.add_argument('-rlxgly',action='store_true',help='asks psfgen to use the loopMC module to relax modeled-in glycans missing from PDB')
- #   parser.add_argument('-glymcparams',metavar='<param1=val1,param2=val2,...>',default='',help='Glycan Monte Carlo parameters')
+    parser.add_argument('-rlxgly',action='store_true',help='asks psfgen to use the loopMC module to relax modeled-in glycans missing from PDB')
+    parser.add_argument('-glymcparams',metavar='<param1=val1,param2=val2,...>',default='',help='Glycan Monte Carlo parameters')
     parser.add_argument('-smdheal',action='store_true',help='asks psfgen to prep for a healing MD simulations to close missing loops')
     parser.add_argument('-kc',action='store_true',help='ignores SEQADV records indicating conflicts; if unset, residues in conflict are mutated to their proper identities')
     parser.add_argument('-rem',action='store_true',help='revert engineered mutations listed in SEQADV records')
@@ -374,8 +385,8 @@ if __name__=='__main__':
     prefix=args.prefix
 #    PostMod['do_loop_mc']=args.rlxloops
 #    PostMod['loop_mc_params']=DictFromString(args.loopmcparams)
-#    PostMod['do_gly_mc']=args.rlxgly
-#    PostMod['gly_mc_params']=DictFromString(args.glymcparams)
+    PostMod['do_gly_mc']=args.rlxgly
+    PostMod['gly_mc_params']=DictFromString(args.glymcparams)
     PostMod['do_multiflex_mc']=args.rlxmc
     PostMod['multiflex_mc_params']=DictFromString(args.rlxmcparams)
     PostMod['do_preheal_min_smd']=args.smdheal
