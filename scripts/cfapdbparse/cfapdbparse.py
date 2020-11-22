@@ -95,8 +95,8 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
             fp.write('set la [atomselect $logid "all"]\n')
             fp.write('$la moveby [vecscale -1 $or]\n')
         if 'reorient_protein' in PostMod and PostMod['reorient_protein']:
-            fp.write('set ca [measure center [atomselect top "protein and {}"] weight mass]\n'.format(PostMod['reorselstr'][0]))
-            fp.write('set cb [measure center [atomselect top "protein and {}"] weight mass]\n'.format(PostMod['reorselstr'][1]))
+            fp.write('set ca [measure center [atomselect $molid "protein and {}"] weight mass]\n'.format(PostMod['reorselstr'][0]))
+            fp.write('set cb [measure center [atomselect $molid "protein and {}"] weight mass]\n'.format(PostMod['reorselstr'][1]))
             fp.write('set pi 3.415928\n')
             fp.write('set dv [vecsub $ca $cb]\n')
             fp.write('set d [veclength $dv]\n')
@@ -114,7 +114,7 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
                 fp.write('$la move [transaxis z [expr -1 * $p] rad\n')
                 fp.write('$la move [transaxis y [expr -1 & $t] rad\n')
     for crot in PostMod['Crot']:
-        fp.write(crot.psfgen_str())
+        fp.write(crot.psfgen_str(molid=r'$molid'))
         if logdcd:
             fp.write('log_addframe $molid $logid\n')
     if 'do_preheal_min_smd' in PostMod and PostMod['do_preheal_min_smd']:
