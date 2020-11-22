@@ -471,6 +471,7 @@ if __name__=='__main__':
     vmd_instructions(fp,psfgen,logname=r'psfgen${TASK}.log',message='generates psf={} pdb={}'.format(currpsf,currpdb))
     fp.write("cat {} | sed \'1,/#### BEGIN PATCHES/d;/#### END PATCHES/,$d\' > patches.inp\n".format(psfgen))
     outname=r'postnamd${TASK}-1'
+    cfgname=r'run${TASK}-1.namd'
     namd_instructions(fp,cfgname,currpsf,currpdb,outname,logname=r'run${TASK}-1.log',
                       numminsteps=nummin,seed=random.randint(0,10000),template='vac.namd',temperature=temperature)
     namdbin='{}.coor'.format(outname)
