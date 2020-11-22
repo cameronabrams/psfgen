@@ -263,13 +263,13 @@ def DictFromString(string):
 
 if __name__=='__main__':
     seed=random.randint(0,100000)
-    temperature=310
-    nummin=500
-    numsteps=100
-    target_numsteps=10000
+    temperature=400
+    nummin=1000
+    numsteps=2000
+    target_numsteps=20000
     namdp='+p16'
     parser=argparse.ArgumentParser()
-    print('cfapdbparser {} / python {}'.format(date.today(),sys.version.replace('\n',' ').split(' ')[0]))
+    print('cfapdbparse {} / python {}'.format(date.today(),sys.version.replace('\n',' ').split(' ')[0]))
     i=1
     Molecules=[]
     Mut=[]
