@@ -43,11 +43,11 @@ class Crot:
 
     def psfgen_str(self,molid='top'):
         retstr=''
-        if self.resseqnum2!=-1:  # this is a backbone bond
+        if self.angle=='PHI' or self.angle=='PSI' or self.angle=='OMEGA':  # this is a backbone bond
             retstr+='set r1 [[atomselect {} "chain {} and resid {} and name CA"] get residue]\n'.format(molid,self.chainID,self.resseqnum1)
             retstr+='set r2 [[atomselect {} "chain {} and resid {} and name CA"] get residue]\n'.format(molid,self.chainID,self.resseqnum2)
             retstr+='Crot_{} $r1 $r2 {} {} {}\n'.format(self.angle.lower(),self.chainID,molid,self.degrees)
-        elif self.resseqnum2==-1:  # this is a side-chain bond
+        elif self.angle=='CHI1' or self.angle=='CHI2':  # this is a side-chain bond
             retstr+='set r1 [[atomselect {} "chain {} and resid {} and name CA"] get residue]\n'.format(molid,self.chainID,self.resseqnum1)
             retstr+='SCrot_{} $r1 {} {} {}\n'.format(self.angle.lower(),self.chainID,molid,self.degrees)
         elif self.angle=='GLYCAN':
