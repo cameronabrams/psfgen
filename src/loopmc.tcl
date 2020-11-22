@@ -896,15 +896,7 @@ proc do_multiflex_mc { molid rotsel refatominddict paramsdict iseed logid logeve
    set loc [lsearch $ilist -1]
    set trunc_ilist [lrange $ilist 0 [expr $loc-1]]
    set trunc_jlist [lrange $jlist 0 [expr $loc-1]]
-   set allfixed [list {*}$falist {*}$trunc_ilist {*}$trunc_jlist]
-   set afas [atomselect $molid "index $allfixed"]
-   set aas [atomselect $molid "all"]
-   $aas set beta 0
-   $afas set beta 1
-   $aas writepdb "fixed.pdb"
-   $afas delete
-   $aas delete
-   exit
+ 
    puts "CFAFLEXMC) Making bondstruct..."
    flush stdout 
    set bs [make_bondstruct $molid $rotsel $falist]
