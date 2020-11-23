@@ -411,7 +411,7 @@ if __name__=='__main__':
         PostMod['reorselstr']=args.ror.split(',')
     postscriptname=args.postscript
     npe=args.pe
-    print('-pe {:d}; NAMD will use {:d} processors.'.format(args.pe,npe))
+    #print('-pe {:d}; NAMD will use {:d} processors.'.format(args.pe,npe))
  
     PDBfiles=args.pdbcif
     Molecules=[]
