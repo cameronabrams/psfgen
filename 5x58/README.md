@@ -21,7 +21,7 @@ This workflow generates a solvated, fully glycosylated SARS-CoV-1 S spike ectodo
 ```
 $ mkdir 5x58
 $ cd 5x58
-$ $PSFGEN_BASEDIR/scripts/do_py.sh -pyparser-args "-grafile $PSFGEN_BASEDIR/5x58/glycangrafts.inp -linkfile $PSFGEN_BASEDIR/5x58/userlink.inp -rmi" -solv-stage-steps 100,200,400,800,20000 -temperature 310 -pdb 5x58 -pdb 2wah -pdb 4byh -pdb 4b7i
+$ $PSFGEN_BASEDIR/scripts/do_py.sh -pyparser-args "-grafile $PSFGEN_BASEDIR/5x58/glycangrafts.inp -linkfile $PSFGEN_BASEDIR/5x58/userlink.inp -crotfile $PSFGEN_BASEDIR/5x58/crot.inp -smdheal" -solv-stage-steps 100,200,400,800,20000 -temperature 310 -pdb 5x58 -pdb 2wah -pdb 4byh -pdb 4b7i
 ```
 
 The `do_py.sh` script executes a series of tasks, beginning with downloading the required PDB file from the RCSB (if needed), then passing through a sequence of parse/psfgen/relax cycles to generate a complete vacuum structure, followed by solvation via psfgen, and finally through as series of solvated relaxations via NPT MD.  
