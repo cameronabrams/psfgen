@@ -67,9 +67,9 @@ class Crot:
             retstr+='set r1 [[atomselect {} "chain {} and resid {} and name CA"] get residue]\n'.format(molid,self.chainID,self.resseqnum1)
             retstr+='SCrot_{} $r1 {} {} {}\n'.format(self.angle.lower(),self.chainID,molid,self.degrees)
         elif self.angle=='GLYCAN':  # intra-glycan rotation
-            retstr+='set sel [atomselect {} "segname {}"]\n'.format(molid,self.segname1)
-            retstr+='set i [[atomselect {} "segname {} and resid {} and name {}"] get index]\n'.format(molid,self.segname1,self.resseqnum1,self.atom1)
-            retstr+='set j [[atomselect {} "segname {} and resid {} and name {}"] get index]\n'.format(molid,self.segname2,self.resseqnum2,self.atom2)
+            retstr+='set sel [atomselect {} "segname {}"]\n'.format(molid,self.segname)
+            retstr+='set i [[atomselect {} "segname {} and resid {} and name {}"] get index]\n'.format(molid,self.segname,self.resseqnum1,self.atom1)
+            retstr+='set j [[atomselect {} "segname {} and resid {} and name {}"] get index]\n'.format(molid,self.segname,self.resseqnum2,self.atom2)
             retstr+='genbondrot {} $sel $i $j {}\n'.format(molid,self.degrees)
         elif self.angle=='LINK': # ASN-GLYcan rotation
             retstr+='set sel [atomselect {} "segname {} {}"]\n'.format(molid,self.segname1,self.segname2)
@@ -79,8 +79,8 @@ class Crot:
         elif self.angle=='ANGLEIJK':
             retstr+='set rotsel [atomselect {} "segname {}"]\n'.format(molid,self.segnamejk)
             retstr+='set ri [lindex [atomselect {} "segname {} and resid {} and name {}] get {x y z}] 0]\n'.format(molid,self.segnamei,self.reseqnumi,self.atomi)
-            retstr+='set rj [lindex [atomselect {} "segname {} and resid {} and name {}] get {x y z}] 0]\n'.format(molid,self.segnamej,self.reseqnumj,self.atomj)
-            retstr+='set rk [lindex [atomselect {} "segname {} and resid {} and name {}] get {x y z}] 0]\n'.format(molid,self.segnamek,self.reseqnumk,self.atomk)
+            retstr+='set rj [lindex [atomselect {} "segname {} and resid {} and name {}] get {x y z}] 0]\n'.format(molid,self.segnamejk,self.reseqnumj,self.atomj)
+            retstr+='set rk [lindex [atomselect {} "segname {} and resid {} and name {}] get {x y z}] 0]\n'.format(molid,self.segnamejk,self.reseqnumk,self.atomk)
             retstr+='set rij [vecsub $ri $rj]\n'
             retstr+='set rjk [vecsub $rj $rk]\n'
             retstr+='set cijk [veccross $rij $rjk]\n'
