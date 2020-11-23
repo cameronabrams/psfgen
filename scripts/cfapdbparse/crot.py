@@ -1,5 +1,5 @@
 class Crot:
-    ''' user-defined rotation and translations
+    ''' user-defined rotations and translations
     '''
     def __init__(self,record):
         self.record=record

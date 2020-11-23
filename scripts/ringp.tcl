@@ -1,4 +1,4 @@
-source /home/cfa/research/psfgen/src/loopmc.tcl
+source $env(PSFGEN_BASEDIR)/src/loopmc.tcl
 set psf [lindex $argv 0]
 set namdbin [lindex $argv 1]
 mol new $psf
