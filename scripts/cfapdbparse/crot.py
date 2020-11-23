@@ -78,9 +78,9 @@ class Crot:
             retstr+='genbondrot {} $sel $i $j {}\n'.format(molid,self.degrees)
         elif self.angle=='ANGLEIJK':
             retstr+='set rotsel [atomselect {} "segname {}"]\n'.format(molid,self.segnamejk)
-            retstr+='set ri [lindex [atomselect {} "segname {} and resid {} and name {}] get {{x y z}}] 0]\n'.format(molid,self.segnamei,self.resseqnumi,self.atomi)
-            retstr+='set rj [lindex [atomselect {} "segname {} and resid {} and name {}] get {{x y z}}] 0]\n'.format(molid,self.segnamejk,self.resseqnumj,self.atomj)
-            retstr+='set rk [lindex [atomselect {} "segname {} and resid {} and name {}] get {{x y z}}] 0]\n'.format(molid,self.segnamejk,self.resseqnumk,self.atomk)
+            retstr+='set ri [lindex [atomselect {} "segname {} and resid {} and name {}"] get {{x y z}}] 0]\n'.format(molid,self.segnamei,self.resseqnumi,self.atomi)
+            retstr+='set rj [lindex [atomselect {} "segname {} and resid {} and name {}"] get {{x y z}}] 0]\n'.format(molid,self.segnamejk,self.resseqnumj,self.atomj)
+            retstr+='set rk [lindex [atomselect {} "segname {} and resid {} and name {}"] get {{x y z}}] 0]\n'.format(molid,self.segnamejk,self.resseqnumk,self.atomk)
             retstr+='set rij [vecsub $ri $rj]\n'
             retstr+='set rjk [vecsub $rj $rk]\n'
             retstr+='set cijk [veccross $rij $rjk]\n'
