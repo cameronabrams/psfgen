@@ -1,0 +1,21 @@
+colvar {
+  name %NAME%
+  distance {
+    group1 { 
+      psfSegID %C%
+      atomNameResidueRange C %I%-%I%
+    }
+    group2 {
+      psfSegID %C%
+      atomNameResidueRange N %J%-%J%
+    }
+  }
+}
+
+harmonic {
+  colvars %NAME%
+  forceConstant 20.0
+  centers %R0%         # initial distance
+  targetCenters 2.0  # final distance
+  targetNumSteps %TARGETNUMSTEPS%
+} 

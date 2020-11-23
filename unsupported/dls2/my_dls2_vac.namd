@@ -1,0 +1,42 @@
+structure  my_dls2.psf 
+coordinates my_dls2.pdb
+set temperature 310
+temperature $temperature
+
+set outputname my_dls2_vac
+firsttimestep 0
+
+paraTypeCharmm      on
+parameters $env(HOME)/charmm/toppar/par_all36_prot.prm
+parameters $env(HOME)/charmm/toppar/par_all36_carb.prm
+parameters $env(HOME)/charmm/toppar/par_all36_na.prm
+parameters $env(HOME)/charmm/toppar/par_all36_cgenff.prm
+parameters $env(HOME)/research/psfgen/charmm/dls2.str
+
+exclude             scaled1-4
+1-4scaling          1.0
+cutoff              10.
+switching           on
+switchdist          9.
+pairlistdist        11.5
+timestep            1.0  ;
+rigidbonds      none
+
+nonbondedFreq       1
+fullElectFrequency  2
+stepspercycle       4
+outputName          $outputname
+dielectric 80
+
+langevin                on
+langevinDamping         5
+langevinTemp            $temperature
+langevinHydrogen        yes
+
+outputEnergies      10
+dcdfreq             100
+restartfreq         100
+
+minimize 1000
+run 2000
+

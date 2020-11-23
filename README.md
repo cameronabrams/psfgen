@@ -16,12 +16,12 @@ The repository is being updated continuously.  Issue `git pull` in your local co
 
 1. Software:
 
-* NAMD v. 2.13 or higher.
-* VMD 1.9.3 or higher.
-* Python 3.x
-* packmol
-* swig, tcl, and tcl headers/devel
-* gcc
+   * NAMD v. 2.13 or higher.
+   * VMD 1.9.3 or higher.
+   * Python 3.x
+   * packmol
+   * swig, tcl, and tcl headers/devel
+   * gcc
 
 2. [CHARMM36 topologies and parameters](http://mackerell.umaryland.edu/charmm_ff.shtml#charmm)
 
@@ -46,7 +46,7 @@ tar zxf toppar_c36_jul20.tgz
 ln -s toppar_c36_jul20 toppar
 ```
 
-If you put them somewhere else, use the environment variable `TOPPARDIR` in your `~\.bashrc` to specify.
+If you put them somewhere else, use the environment variable `TOPPARDIR` in your `~/.bashrc` to specify.
 
 CHARMM topologies are used in the workflow steps in which PSF files are generated, and CHARMM parameters are used during NAMD simulations.  At least two files are incompatible with VMD/psfgen: `toppar_water_ions.str` and `top_all36_carb.rtf`.  Slightly modified versions of these two files appear in the $PSFGEN_BASEDIR/charmm directory.  These are based on the July 2020 version of CHARMM force field.
 

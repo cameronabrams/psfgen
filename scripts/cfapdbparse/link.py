@@ -2,10 +2,12 @@ from segment import _seg_class_
 from residue import get_residue,get_atom
 
 class Link:
-    def __init__(self,pdbrecord=''):
-        self.pdbrecord=pdbrecord
+    def __init__(self,pdbrecord=None,cifdict=None):
+        if pdbrecord!=None and cifdict!=None:
+            print('Error: Link __init__ called with both a pdbrecord and cifdict.\nUsing the pdbrecord.')
+        if pdbrecord!=None:
+            self.pdbrecord=pdbrecord
 # 1 -  6         Record name    "LINK  "
-        if len(pdbrecord)>0:
             self.record_name=pdbrecord[0:6].strip()
 #13 - 16         Atom           name1           Atom name.
             self.name1=pdbrecord[12:16].strip()
@@ -43,8 +45,39 @@ class Link:
             self.residue2=''
             self.atom1=''
             self.atom2=''
-            self.biomt=0
+#            self.biomt=0
             self.empty=False
+        elif cifdict!=None:
+            d=cifdict
+            self.record_name='LINK'
+            self.name1=d['ptnr1_label_atom_id']
+            al=d['pdbx_ptnr1_label_alt_id']
+            self.altloc1=' ' if al=='?' else al
+            self.resname1=d['ptnr1_auth_comp_id']
+            self.chainID1=d['ptnr1_auth_asym_id']
+            self.resseqnum1=int(d['ptnr1_auth_seq_id'])
+            ic=d['pdbx_ptnr1_pdb_ins_code']
+            self.icode1=' ' if ic=='?' else ic
+            self.name2=d['ptnr2_label_atom_id']
+            al=d['pdbx_ptnr2_label_alt_id']
+            self.altloc2=' ' if al=='?' else al
+            self.resname2=d['ptnr2_auth_comp_id']
+            self.chainID2=d['ptnr2_auth_asym_id']
+            self.resseqnum2=int(d['ptnr2_auth_seq_id'])
+            ic=d['pdbx_ptnr2_pdb_ins_code']
+            self.icode2=' ' if ic=='?' else ic
+            self.sym1=d['ptnr1_symmetry']
+            self.sym2=d['ptnr2_symmetry']
+            self.link_distance=float(d['pdbx_dist_value'])
+            self.segname1=self.chainID1
+            self.segname2=self.chainID2
+            self.residue1=''
+            self.residue2=''
+            self.atom1=''
+            self.atom2=''
+#            self.biomt=0
+            self.empty=False
+            self.pdbrecord=self.pdb_line()
         else:
             self.empty=True
     def pdb_line(self):
@@ -142,7 +175,6 @@ class Link:
             elif self.name1=='O6' and self.name2=='C2':
                 #return 'patch SA26E {}:{} {}:{}\n'.format(self.segname1,self.resseqnum1,self.segname2,self.resseqnum2)
                 return 'patch SA26AT {}:{} {}:{}\n'.format(self.segname1,self.resseqnum1,self.segname2,self.resseqnum2)
-                pass
             else:
                 return '### patch unknown for '+str(self)+'\n'
 

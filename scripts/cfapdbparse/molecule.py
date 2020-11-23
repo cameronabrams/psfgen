@@ -9,6 +9,8 @@ from seqadv import Seqadv
 from mutation import Mutation
 from residue import Residue, _PDBResName123_, _pdb_glycans_, _pdb_ions_, _ResNameDict_PDB_to_CHARMM_, _ResNameDict_CHARMM_to_PDB_, get_residue
 from revdat import RevDat, FmtDat
+from CifFile import ReadCif
+from cifutil import *
 _molidcounter_=0
 class Molecule:
     def load(self,fp):
@@ -17,31 +19,14 @@ class Molecule:
         self.molid_varname='m{}'.format(self.molid)
         #print('#### Registered instance of {:s} as molid {:d} with variable name {:s}'.format(self.pdb,self.molid,self.molid_varname))
         self.psfgen_loadstr='mol new {} waitfor all\nset {} [molinfo top get id]\n'.format(self.pdb,self.molid_varname)
+        if self.cif!=None:
+            # need to renumber and rechain to user specs
+            self.psfgen_loadstr+='set ciftmp [atomselect ${} all]\n'.format(self.molid_varname)
+            self.psfgen_loadstr+='$ciftmp set chain [list {}]\n'.format(" ".join([_.chainID for _ in self.Atoms]))
+            self.psfgen_loadstr+='$ciftmp set resid [list {}]\n'.format(" ".join([str(_.resseqnum) for _ in self.Atoms]))
         _molidcounter_+=1
         fp.write(self.psfgen_loadstr+'\n')
-        
-    def __init__(self,pdb,isgraft=False,userLinks=[]):
-        self.source='RCSB' # default assume this is an actual PDB file from the RCSB
-        self.molid=-1
-        self.molid_varname='UNREGISTERED'
-        self.RawPDB=[]
-        self.keywords=[]
-        self.modtyp=[]
-        self.title=[]
-        self.pdb=pdb
-        self.Atoms=[]
-        self.Links=userLinks
-        #print('#### {} userlinks'.format(len(userLinks)))
-        self.Chains={} # keyed by chain id 'A', 'B', 'C', etc.
-        self.SSBonds=[]
-        self.MissingRes=[]
-        self.Seqadv=[]
-        self.Biomolecules=[]
-        self.MRec={}
-        self.Header={}
-        self.DBRef={} # outer dictionary referenced by chainID
-        self.SeqRes={} # outer: chainID, inner: resnumber, value: resname(PDB)
-        self.RevDat={}
+    def ReadPDB(self,pdb):
         with open(pdb) as pdbfile:
             for line in pdbfile:
                 self.RawPDB.append(line)
@@ -76,6 +61,42 @@ class Molecule:
                     self.ParseRevisionDate(line)
                 elif line[:6] == 'EXPDTA':
                     self.ParseExpDta(line)
+
+    def __init__(self,pdb=None,cif=None,isgraft=False,userLinks=[]):
+        self.source='RCSB' # default assume this is an actual PDB or CIF file from the RCSB
+        self.source_format='CIF' if cif!=None else 'PDB'
+        self.molid=-1
+        self.molid_varname='UNREGISTERED'
+        self.RawPDB=[]
+        self.keywords=[]
+        self.modtyp=[]
+        self.titlelines=[]
+        self.Title=''
+        self.pdb=pdb if pdb!=None else cif
+        self.cif=cif
+        self.Atoms=[]
+        self.Links=userLinks
+        self.Chains={} # keyed by chain id 'A', 'B', 'C', etc.
+        self.SSBonds=[]
+        self.MissingRes=[]
+        self.Seqadv=[]
+        self.Biomolecules=[]
+        self.MRec={}
+        self.Header={}
+        self.DBRef={} # outer dictionary referenced by chainID
+        self.SeqRes={} # outer: chainID, inner: resnumber, value: resname(PDB)
+        self.RevDat={}
+        if pdb!=None:
+            self.ReadPDB(pdb)
+        elif cif!=None:
+            print('#### reading {}'.format(cif))
+            cf=ReadCif(cif)
+            print('#### done')
+            db=cf.first_block()
+            self.ParseCifDataBlock(db)
+        else:
+            print('Error: Molecule __init__ called without a record.')
+            return
         if 'CHARMM' in self.keywords:
             self.source='CHARMM'
         #print('### Read {:d} pdbrecords from {:s}'.format(len(self.RawPDB),pdb))
@@ -85,21 +106,29 @@ class Molecule:
         self.MakeLinks()
         self.MakeSSBonds()
     def summarize(self):
-        print('File: {}, Source: {}'.format(self.pdb,self.source))
-        print('Title: {}'.format(self.TitleString()))
+        print('File: {}, Source: {}, Source format: {}'.format(self.pdb if self.source_format=='PDB' else self.cif,self.source,self.source_format))
+        print('Title: {}'.format(self.Title))
+        self.ShowKeywords()
         if self.source=='RCSB':
-            print('{}'.format(str(self.FmtDat)))
+            if self.source_format=='PDB':
+                print('{}'.format(str(self.FmtDat)))
+            else:
+                print('CIF Dict. version: {}'.format(self.cif_dict_version))
             print('Last revision: {}'.format(self.ShowRevisions(which='latest',justdates=True)))
             #print('All revisions: {}'.format(self.ShowRevisions(which='all',justdates=False)))
             print('Method: {}; Resolution: {} Ang.'.format(self.ExpDta,self.Resolution))
+            print('{} ATOM or HETATOM records.'.format(len(self.Atoms)))
+            print('{} unique residues, {} missing.'.format(len(self.Residues),len(self.MissingRes)))
+            print('{} disulfides; {} covalent links.'.format(len(self.SSBonds),len(self.Links)))
+            self.ShowSeqadv(brief=True)
+            if len(self.Chains)>0:
+               print('Chains: {}'.format(", ".join(c.chainID for c in self.Chains.values())))
             print('Biomolecules:')
             for b in self.Biomolecules:
                 b.show()
     def show(self,verbosity):
         print('#'*60)
         print('### MOLID {:s}'.format(self.molid_varname))
-        if verbosity>0:
-            self.ShowTitle()
         if verbosity>1:
             self.ShowHeader()
             self.ShowKeywords()
@@ -143,24 +172,13 @@ class Molecule:
                     self.FmtDat=FmtDat(pdbrecord)
                 
     def ParseTitle(self,pdbrecord):
-        self.title.append(pdbrecord[10:80].strip())
-    def TitleString(self):
-        retstr=''
-        if len(self.title)>0:
-            for i,l in enumerate(self.title):
-                retstr+='{}{}'.format(l,' ' if i<len(self.title)-1 else '')
-        return retstr
-    def ShowTitle(self):
-        if len(self.title)>0:
-            print('### TITLE records:')
-            for i,l in enumerate(self.title):
-                print('-> {:1s} {}'.format(' ' if i==0 else str(i),self.title[i]))
-        else:
-            print('### {} contains no TITLE record'.format(self.pdb))
+        short=pdbrecord[10:80].strip()
+        self.titlelines.append(short)
+        self.Title=short if len(self.Title)==0 else (self.Title+short)
     def TitleRecord(self):
         retstr=''
-        if len(self.title)>0:
-           for i,l in enumerate(self.title):
+        if len(self.titlelines)>0:
+           for i,l in enumerate(self.titlelines):
                retstr+='TITLE   {}'.format(' ' if i==0 else str(i))+' {}\n'.format(l)
         return retstr
     def ParseKeywords(self,pdbrecord):
@@ -174,9 +192,7 @@ class Molecule:
             else:
                 self.keywords.append(k.strip())
     def ShowKeywords(self):
-        print('### Keywords:')
-        for k in self.keywords:
-            print('->   {}'.format(k))
+        print('Keywords: {}'.format(", ".join(self.keywords)))
     def KeywordsRecord(self):
         retstr=''
         if len(self.keywords)>0:
@@ -338,31 +354,43 @@ class Molecule:
                 for sa in self.Seqadv:
                     print('### SEQADV:',sa)
             else:
+                
                 nc=0
+                cons=[]
                 for sa in self.Seqadv:
                     if sa.conflict=='CONFLICT':
+                        cons.append(sa.printshort())
                         nc = nc + 1
-                print('#### {} contains {:d} SEQADV records including {:d} conflicts'.format(self.pdb,len(self.Seqadv),nc))
+                print('{:d} SEQADV records; {:d} conflicts: {:s}'.format(len(self.Seqadv),nc,", ".join(cons)))
 
     def MakeBiomolecules(self):
         self.chainIDs_allowed=set(['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'])
-        chainIDs_detected=set()
+        chainIDs_detected=[]
         for a in self.Atoms:
-            chainIDs_detected.add(a.chainID)
-        self.chainIDs_available=sorted(list(self.chainIDs_allowed.difference(chainIDs_detected)))
-        chainIDs_detected=sorted(list(chainIDs_detected))
+            if a.chainID not in chainIDs_detected:
+                chainIDs_detected.append(a.chainID)
+        self.chainIDs_available=sorted(list(self.chainIDs_allowed.difference(set(chainIDs_detected))))
         if len(self.Biomolecules)==0:
             self.Biomolecules.append(Biomolecule('IDENTITY'))
             for c in chainIDs_detected:
                 self.Biomolecules[0].chains.append(c)
-            #print('#### added identity biomt to pdb without any',self.Biomolecules[0].chains)
         for b in self.Biomolecules:
+            # chain ID's listed for this biomol/assembly
+            # may contain id's not implied by the atom list
+            # so we'll get rid of those and use our own
+            # scheme for replicating chainIDs
+            savchains=[]
+            for c in chainIDs_detected:
+                if c in b.chains:
+                    savchains.append(c)
+            b.chains=savchains[:]    
             for c in b.chains:
-                for t in b.biomt:
-                    new_chainID=c
-                    if not t.isidentity():
-                        new_chainID=self.chainIDs_available.pop(0)
-                    t.mapchains(c,new_chainID)
+                if c in chainIDs_detected:
+                    for t in b.biomt:
+                        new_chainID=c
+                        if not t.isidentity():
+                            new_chainID=self.chainIDs_available.pop(0)
+                        t.mapchains(c,new_chainID)
     def GetBiomoleculeByChain(self,c):
         for b in self.Biomolecules:
             if c in b.chains:
@@ -476,7 +504,7 @@ class Molecule:
             print("### {} chain ID's available:".format(len(self.chainIDs_available)),self.chainIDs_available)
             return -1
         for clv in Cleavages:
-            daughter_chain_ok=False
+            # daughter_chain_ok=False
             if clv.parent_chainID in self.Chains:
                 clv_c=self.Chains[clv.parent_chainID]
                 clv.daughter_chainID=self.chainIDs_available.pop(0)
@@ -522,8 +550,8 @@ class Molecule:
         self.load(fp)
         for g in userGrafts:
             g.load(fp)
-        for a in userAttach:
-            pass # a.load(fp)
+#        for a in userAttach:
+ #           pass # a.load(fp)
 
         fp.write('mol top ${}\n'.format(self.molid_varname))
 
@@ -567,7 +595,8 @@ class Molecule:
                     for p in s.pdbfiles:
                         if removePDBs:
                             fp.write('file delete {}\n'.format(p))
-        fp.write('#### SSBONDS:\n')
+        fp.write('#### END SEGMENTS\n')
+        fp.write('#### BEGIN PATCHES\n')
         for ss in self.SSBonds:
             if ss.chainID1 not in userIgnoreChains and ss.chainID2 not in userIgnoreChains:
                 fp.write(ss.psfgen_patchline())
@@ -585,17 +614,17 @@ class Molecule:
                 attributes of each link instance. '''
             l.updateSegnames(self.Residues,self.Biomolecules)
             fp.write(l.psfgen_patchline())
-
+        fp.write('#### END PATCHES\n')
         for b in self.Biomolecules:
             pass
 
-        fp.write('#### END OF SEGMENTS\n')
 
         fp.write('guesscoord\n')
         fp.write('regenerate angles dihedrals\n')
 
-        code=self.pdb[:]
-        code=code.replace('.pdb','')
+        code='.'.join(self.pdb.split('.')[:-1])
+#        code=self.pdb[:]
+#        code=code.replace('.pdb','')
         self.psf_outfile='{}{}.psf'.format(prefix,code)
         self.pdb_outfile='{}{}.pdb'.format(prefix,code)
         fp.write('writepsf {}\n'.format(self.psf_outfile))
@@ -674,7 +703,7 @@ class Molecule:
                 #print(l.pdb_line())
                 #print(l.psfgen_patchline())
                 if l not in self.Links:
-                    print('ERRROR: In-situ link is not in-situ!')
+                    print('ERROR: In-situ link is not in-situ!')
             #print('#### The following Base links were removed:')
             for l in linksToRemove:
                 #print(l.pdb_line())
@@ -696,4 +725,66 @@ class Molecule:
         psfgen_script.write('exec cat {} {} > {}\n'.format(hdr,newpdb,_tmpfile_))
         psfgen_script.write('exec mv {} {}\n'.format(_tmpfile_,newpdb))
         psfgen_script.write('exec rm -f {}\n'.format(_tmpfile_))
+
+    def ParseCifDataBlock(self,db):
+        structs=CIFMakeStructs(db)
+        self.Title=db['_struct.title']
+        self.keywords=[_.strip() for _ in db['_struct_keywords.text'].split(',')]
+        self.cif_dict_version=db['_audit_conform.dict_version']
+        self.ExpDta=db['_exptl.method'].title()
+        self.Resolution=db['_refine.ls_d_res_high']
+        
+        struk='_pdbx_audit_revision_history'
+        dlist=GetCIFStructDictList(db,structs,struk)
+        for d in dlist:
+            self.RevDat[int(d['ordinal'])]=RevDat(d,fmt='CIF')
+        
+        # "assemblies" in the CIF are "biomolecules" in the PDB
+        struk='_pdbx_struct_assembly'
+        dlist=GetCIFStructDictList(db,structs,struk)
+        for d in dlist:
+            self.Biomolecules.append(Biomolecule(cifdict=d))
+        self.CIFParseBiomolecules(GetCIFStructDictList(db,structs,'_pdbx_struct_assembly_gen'),GetCIFStructDictList(db,structs,'_pdbx_struct_oper_list'))
+        dlist=GetCIFStructDictList(db,structs,'_atom_site')
+        self.CIFParseAtoms(dlist)
+        dlist=GetCIFStructDictList(db,structs,'_pdbx_unobs_or_zero_occ_residues')
+        self.CIFParseMissing(dlist)
+        dlist=GetCIFStructDictList(db,structs,'_struct_conn')
+        self.CIFParseConnections(dlist)
+
+    def CIFParseBiomolecules(self,genl,operl):
+        # for each gen, associate with a biomoleculr  
+        #print(genl)
+        #print(operl)
+        for g in genl:
+            index=int(g['assembly_id'])-1
+            operids=g['oper_expression'].split(',')
+            chains=g['asym_id_list'].split(',')
+            for i in operids:
+                useme={}
+                for od in operl:
+                    if od['id']==i:
+                        useme=od
+                if len(useme)==0:
+                    print('Error: oper index {} not found in oper_list'.format(i))
+                else:
+                    self.Biomolecules[index].CIFBiomT(useme)
+                    self.Biomolecules[index].chains=chains[:]
+
+    def CIFParseAtoms(self,alist):
+        for a in alist:
+            self.Atoms.append(Atom(cifdict=a))
+
+    def CIFParseMissing(self,mlist):
+        for m in mlist:
+            self.MissingRes.append(Missing(cifdict=m))
+
+    def CIFParseConnections(self,clist):
+        for c in clist:
+            typ=c['conn_type_id']
+            if typ=='disulf':
+                self.SSBonds.append(SSBond(cifdict=c))
+            elif typ=='covale':
+                self.Links.append(Link(cifdict=c))
+
 

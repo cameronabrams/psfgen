@@ -38,6 +38,6 @@ dcdfreq             100
 restartfreq         100
 
 firsttimestep       0
-minimize            1000
-run                 3000
+minimize            %NUMMIN%
+run                 %NUMSTEPS%
 

@@ -17,7 +17,9 @@ class Seqadv:
                 self.dbSeq=''
             self.conflict=pdbrecord[49:70].strip()
     def pdbline(self):
-            print(self.pdbrecord)
+        print(self.pdbrecord)
+    def printshort(self):
+        return '{}-{}{}{}'.format(self.chainID,self.resName,self.seqNum,self.dbRes)
     def __str__(self):
         retstr='{}\n'+\
                ' idCode      {}\n'+\

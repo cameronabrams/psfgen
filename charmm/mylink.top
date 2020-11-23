@@ -1,0 +1,53 @@
+! The Healing Patch by Cameron F. Abrams
+! c 2020
+!
+! This patch is used to generate a peptide linkage between 
+! an existing CTER and an existing NTER.  If such a "break"
+! is interior to a segment, the segment command in psfgen
+! will add the peptide bond.  This patch serves only to
+! delete OT1 and OT2 from the CTER and HT1, HT2, and HT3
+! from the NTER.  Charges are corrected on the remaining
+! atoms and IC's defined for guesscoord to put back 
+! an O and an HN  to yield the correct peptide bond topology.
+!
+! Why is The Healing Patch necessary?  I used steered MD
+! to build missing loops into models, and these
+! loops are added with CTER's at their ends off the
+! C-terminus of their respective fragments.  For a given
+! loop, its "next" fragment begins with an NTER.  The 
+! steered MD moves the CTER toward the NTER holding
+! the two residue's CA's fixed.  Once the two TER's are
+! close together, the coordinates can be passed through
+! a special psfgen script that "ligates" the two TER's
+! to form an intact peptide bond.
+!
+PRES HEAL      0.00 
+ATOM 2O   O   -0.51
+ATOM 2C   C   0.51
+ATOM 3HN  H   0.31
+ATOM 3N   NH1 -0.47
+!BOND 2C 3N   
+DELETE ATOM 2OT1
+DELETE ATOM 2OT2
+DELETE ATOM 3HT1
+DELETE ATOM 3HT2
+DELETE ATOM 3HT3
+!the need for the explicit specification of angles and dihedrals in
+!patches linking images has not been tested
+!ANGLE 2C 3N 3CA  2CA 2C 3N   
+!ANGLE 2O 2C 3N   2C  3N 3HN   
+!DIHE 2C  3N  3CA 3C   2C  3N  3CA 3HA  2C  3N  3CA 3CB   
+!DIHE 2HA 2CA 2C  3N   2N  2CA 2C  3N   2CB 2CA 2C  3N   
+!DIHE 2CA 2C  3N  3HN  2CA 2C  3N  3CA   
+!DIHE 2O  2C  3N  3HN  2O  2C  3N  3CA   
+!IMPR 3N 2C 3CA 3HN 2C 2CA 3N 2O
+!CMAP 1C  2N  2CA  2C   2N  2CA  2C  3N  ! former C-terminal residue CMAP
+!CMAP 2C  3N  3CA  3C   3N  3CA  3C  4N  ! former N-terminal residue CMAP
+IC 2N   2CA  2C   3N    0.0000  0.0000 180.0000  0.0000  0.0000
+IC 3N   2CA  *2C  2O    0.0000  0.0000 180.0000  0.0000  0.0000
+IC 2CA  2C   3N   3CA   0.0000  0.0000 180.0000  0.0000  0.0000
+IC 2C   3N   3CA  3C    0.0000  0.0000 180.0000  0.0000  0.0000
+IC 2C   3CA  *3N  3HN   0.0000  0.0000 180.0000  0.0000  0.0000
+
+END
+

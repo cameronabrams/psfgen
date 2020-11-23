@@ -136,12 +136,18 @@ class Segment:
                  for i in range(b.l+1,b.r+1):
                      L.add_residue(self.residues[i])
                  Loops.append(L)
-                 b.d=L
+                 b.d=Loops[-1]
                  if j==0 or j==len(self.subsegbounds)-1:
                      b.d.term=False # not a terminated loop (this is an end!)
                  else:
                      b.d.term=True
                  #print('{} {} {} {} {}'.format(j,b.d.chainID,b.d.residues[0].resseqnum,b.d.residues[-1].resseqnum,'terminated' if b.d.term else 'not terminated'))
+        for j,b in enumerate(self.subsegbounds):
+            if b.typ=='LOOP':
+                b.d.nextfragntermres='0'
+                if b.d.term:  # should be a terminated loop (has a frag c-terminal to it)
+                    # look ahead
+                    b.d.nextfragntermres=self.subsegbounds[j+1].d.resseqnum1
         return Loops
 
     def write_psfgen_stanza(self,includeTerminalLoops=False,tmat=None):
@@ -179,28 +185,52 @@ class Segment:
                     stanzastr+='   pdb {}\n'.format(f.pdb_str())
                 elif ss.typ=='LOOP':
                     if (i==0 or i==(len(self.subsegbounds)-1)) and not includeTerminalLoops:
-                       ''' shunt this if this is a terminal loop and includeTerminalLoops is False '''
-                       pass
+                        ''' shunt this if this is a terminal loop and includeTerminalLoops is False '''
+                        pass
                     else:
-                       ''' this is either NOT a terminal loop, or if it is, includeTerminalLoops is True '''
-                       l=ss.d
-                       for rr in l.residues:
+                        ''' this is either NOT a terminal loop, or if it is, includeTerminalLoops is True '''
+                        l=ss.d
+                        for rr in l.residues:
                            nm=ResnameCharmify(rr.name)
                            stanzastr+='   residue {}{} {} {}\n'.format(rr.resseqnum,rr.insertion,nm,tmat.get_replica_chainID(rr.chainID))
+                        ss.sacrins='0'
+                        if len(l.residues)>3:
+                           # insert sacrificial glycine
+                           rr=l.residues[-1]
+                           ss.sacrins='A' if rr.insertion != '' else chr(ord(rr.insertion)+1)
+                           stanzastr+='   residue {}{} {} {}\n'.format(rr.resseqnum,ss.sacrins,'GLY',tmat.get_replica_chainID(rr.chainID))
             ''' PART 2.1:  Include mutations '''
             #print('### {} mutations'.format(len(self.mutations)))
             for m in self.mutations:
                 stanzastr+=m.psfgen_segment_str()
             stanzastr+='}\n'
             ''' PART 3:  Issue coordinate-setting commands '''
-            for i,ss in enumerate(self.subsegbounds):
+            ''' coordpdb calls '''
+            for i in range(0,len(self.subsegbounds)):
+                ss=self.subsegbounds[i]
                 if ss.typ=='FRAGMENT':
                     stanzastr+='coordpdb {} {}\n'.format(ss.d.pdb_str(),rep_segname)
-                elif ss.typ=='LOOP':
+            ''' caco calls '''
+            for i in range(0,len(self.subsegbounds)):
+                ss=self.subsegbounds[i]
+                if ss.typ=='LOOP':
                     if (i==0 or i==(len(self.subsegbounds)-1)) and not includeTerminalLoops:
                         pass
                     else:
                         stanzastr+=ss.d.caco_str()
+            ''' slice calls '''
+            for i in range(0,len(self.subsegbounds)):
+                ss=self.subsegbounds[i]
+                l=ss.d
+                if ss.typ=='LOOP':
+                    if (i==0 or i==(len(self.subsegbounds)-1)) and not includeTerminalLoops:
+                        pass
+                    else:
+                        if (ss.sacrins!='0' and i>0 and i<(len(self.subsegbounds)-1)):
+                            fragss=self.subsegbounds[i+1]
+                            stanzastr+='patch cter {}:{}{}\n'.format(rep_segname,l.residues[-1].resseqnum,l.residues[-1].insertion)
+                            stanzastr+='patch nter {}:{}\n'.format(rep_segname,l.nextfragntermres)
+                            stanzastr+='delatom {} {}{}\n'.format(rep_segname,l.residues[-1].resseqnum,ss.sacrins)
             return stanzastr,Loops
         elif self.segtype=='GLYCAN':
             stanzastr=''

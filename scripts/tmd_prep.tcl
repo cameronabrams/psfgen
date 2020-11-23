@@ -14,7 +14,7 @@
 # In addition to identifying the three input files (PSF, PDB or COOR, and PDB),
 # the user must specify the alignment basis and the target selection.  
 #
-# ALIGNMENT BASIS.  This is a comma-separated list of colon-separated pairs.  
+# ALIGNMENT BASIS.  This is a comma-separated list of colon-delimited pairs.  
 # Each pair indicates unique sets of congruent residues in the system and 
 # target.  A unique set of residues is expressed in the form X_xxx-yyy, where
 # "X" is the chainID, xxx is the N-terminal-most residue in the range and 
@@ -28,7 +28,6 @@
 # pairs.  After alignment of the target onto the system via the 
 # alignment basis, the system atoms in the target selection have their
 # coordinates overwritten by the corresponding coordinates in the target.
-# Then their "occupancy" flags are set to 1.
 #
 # A full selection of all atoms in the system is then output as the
 # TMD PDB.

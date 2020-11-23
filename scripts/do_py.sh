@@ -9,7 +9,7 @@
 # simplest usage, the user needs only to specify 
 # a four-byte PDB code and this script does the rest.
 # 
-# The most important arguments are '-pyparserargs'
+# The most important arguments are '-pyparser-args'
 # which you can learn more about in the help for
 # cfapdbparse.py.
 #
@@ -40,10 +40,10 @@ if [[ -z "${PSFGEN_BASEDIR}" ]]; then
     PSFGEN_BASEDIR=${HOME}/research/psfgen
 fi
 if [[ -z "${PYTHON3}" ]]; then
-    if [[ -f /usr/bin/python3 ]]; then
-        PYTHON3=/usr/bin/python3
-    else
+    if [[ -f ${HOME}/anaconda3/bin/python3 ]]; then
         PYTHON3=${HOME}/anaconda3/bin/python3
+    else
+        PYTHON3=/usr/bin/python3
     fi
     if [[ ! -f $PYTHON3 ]]; then
         echo "No python3 found at $PYTHON3"
@@ -59,7 +59,7 @@ RCSB=https://files.rcsb.org/download
 ARGC=$#
 PDB=()  # array of input PDB file names
 STAGE=0  # indicator of staged equilibration
-NPE=8  # number of processors to use in MD
+NPE=16  # number of processors to use in MD
 i=1
 seed=$RANDOM
 temperature=310
@@ -147,31 +147,16 @@ CURRPDB=$BASEPDB
 for pi in `seq 0 $((nparse-1))`; do
    TASK=$((TASK+1))
    CURRPSFGEN=psfgen${TASK}.tcl
-   CURRPSFLOG=`echo $CURRPSFGEN | sed s/tcl/log/`
-   $PYTHON3 $PYPARSER ${pyparser_args[$pi]} -psfgen ${CURRPSFGEN} ${CURRPDB}
-   CURRPSF=`grep ^writepsf ${CURRPSFGEN} | tail -1 | awk '{print $2}'`
-   CURRPDB=`grep writepdb ${CURRPSFGEN} | tail -1 | awk '{print $NF}'`
-   echo "TASK $TASK: Generating vacuum system ${CURRPSF} + ${CURRPDB}..."
-   $VMD -dispdev text -e ${CURRPSFGEN} > ${CURRPSFLOG}
-   echo "structure ${CURRPSF}" > namd_header.${TASK}
-   echo "coordinates ${CURRPDB}" >> namd_header.${TASK}
-   cat namd_header.${TASK} $PSFGEN_BASEDIR/templates/vac.namd | \
-       sed s/%OUT%/config${TASK}/g | \
-       sed s/%SEED%/${seed}/g | \
-       sed s/%TEMPERATURE%/${temperature}/g > run${TASK}.namd
-   rm namd_header.${TASK}
-   echo "        ->  Running namd2 on vacuum system ${CURRPSF}+${CURRPDB}..."
-   $CHARMRUN +p${NPE} $NAMD2 run${TASK}.namd > run${TASK}.log
-   $VMD -dispdev text -e $PSFGEN_BASEDIR/scripts/namdbin2pdb.tcl -args ${CURRPSF} config${TASK}.coor tmp.pdb
-   cat charmm_header.pdb tmp.pdb > config${TASK}.pdb
-   rm charmm_header.pdb tmp.pdb
-   CURRPDB=config${TASK}.pdb
+#   CURRPSFLOG=`echo $CURRPSFGEN | sed s/tcl/log/`
+   $PYTHON3 $PYPARSER ${pyparser_args[$pi]} -pe ${NPE} -postscript ps${TASK}.sh -psfgen ${CURRPSFGEN} ${CURRPDB}
+   ./ps${TASK}.sh $TASK
+   read CURRPSF CURRPDB < .tmpvar
 done
 
 # solvate
 TASK=$((TASK+1))
-echo "TASK $TASK: Generating solvated system from ${CURRPSF}+${CURRPDB}..."
-$VMD -dispdev text -e $PSFGEN_BASEDIR/scripts/solv.tcl -args -psf $CURRPSF -pdb $CURRPDB -outpre config${TASK}  > mysolv.log
+echo "TASK $TASK: Generating solvated system config${TASK}.psf/.pdb from ${CURRPSF}+${CURRPDB}..."
+$VMD -dispdev text -e $PSFGEN_BASEDIR/scripts/solv.tcl -args -psf $CURRPSF -pdb $CURRPDB -outpre config${TASK}  > mysolv.log 2>&1
 CURRPSF=config${TASK}.psf
 CURRPDB=config${TASK}.pdb
 
@@ -183,7 +168,7 @@ cp namd_header.${TASK} namd_header.${TASK}-0
 firsttimestep=0
 ls=`echo "${#numsteps[@]} - 1" | bc`
 for s in `seq 0 $ls`; do
-    echo "          -> Running namd2 (stage $s) on solvated system..."
+    echo "Running namd2 (stage $s) on solvated system..."
     lastnamd=run${TASK}_stage${s}.namd
     cat namd_header.${TASK}-$s $PSFGEN_BASEDIR/templates/solv.namd | \
         sed s/%STAGE%/${s}/g | \

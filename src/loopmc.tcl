@@ -4,10 +4,17 @@
 # segment stanzas.  The main procedure is "do_loop_mc" which
 # uses a monte-carlo calculation to close loops.
 #
-# cameron f abrams, drexel u., 2017-2018
+# cameron f abrams, drexel u., 2017-2020
 # cfa22@drexel.edu
 #
 # some C functions that help with quick bond rotations
+if {![info exists PSFGEN_BASEDIR]} {
+    if {[info exists env(PSFGEN_BASEDIR)]} {
+        set PSFGEN_BASEDIR $env(PSFGEN_BASEDIR)
+    } else {
+        set PSFGEN_BASEDIR $env(HOME)/research/psfgen
+    }
+}
 source ${PSFGEN_BASEDIR}/src/cfarot.tcl
 
 # generates a sequence of integers; use as [.. $i $j]
@@ -34,30 +41,59 @@ proc my_increment { numlet } {
    return $nn
 }
 
-# computes overlap energy between atoms in sel1 and sel2.  The "my_roughenergy" function (implemented in C)
-# uses a repulsive pair potential of the form A*(x-cut)^2 for x<cut.  Residue index lists are
-# sent so the my_roughenergy does not compute pair interactions for atoms in the same residue 
-proc roughenergy { sel1 sel2 cut }  {
+# computes overlap energy between atoms in sel1 and sel2.  "sel2" is assumed to be a static background that
+# does not include the atoms in sel1.  Atom indices in sel1 are assumed not to change.
+proc roughenergy_setup { sel1 sel2 cellsize } {
+  global _r1
+  global _r2
+  global _x1
+  global _y1
+  global _z1
+  global _x2
+  global _y2
+  global _z2
+  global _n1
+  global _n2
+  set _r1 [intListToArray [$sel1 get index]]
+  set _r2 [intListToArray [$sel2 get index]]
+  set _x1 [ListToArray [$sel1 get x]]
+  set _y1 [ListToArray [$sel1 get y]]
+  set _z1 [ListToArray [$sel1 get z]]
+  set _x2 [ListToArray [$sel2 get x]]
+  set _y2 [ListToArray [$sel2 get y]]
+  set _z2 [ListToArray [$sel2 get z]]
+  set _n1 [$sel1 num]
+  set _n2 [$sel2 num]
+  #puts "Calling my_roughenergy_setup"
+  set ls [my_roughenergy_setup $_x2 $_y2 $_z2 $_n2 $cellsize]
+  return $ls
+}
+
+proc roughenergy_cleanup { ls } {
+  my_roughenergy_cleanup $ls
+}
+
+proc roughenergy { sel1 cut sigma epsilon shift bs ls }  {
+  global _r1
+  global _r2
+  global _x1
+  global _y1
+  global _z1
+  global _x2
+  global _y2
+  global _z2
+  global _n1
+  global _n2
+
   set E 0.0
-  if { [$sel1 num] > 0 && [$sel2 num] > 0 } {
-   set r1 [intListToArray [$sel1 get residue]]
-   set r2 [intListToArray [$sel2 get residue]]
-   set x1 [ListToArray [$sel1 get x]]
-   set x2 [ListToArray [$sel2 get x]]
-   set y1 [ListToArray [$sel1 get y]]
-   set y2 [ListToArray [$sel2 get y]]
-   set z1 [ListToArray [$sel1 get z]]
-   set z2 [ListToArray [$sel2 get z]]
-   set E [my_roughenergy $r1 $x1 $y1 $z1 [$sel1 num] $r2 $x2 $y2 $z2 [$sel2 num] $cut]
-   delete_arrayint $r1
-   delete_arrayint $r2
-   delete_array $x1
-   delete_array $x2
-   delete_array $y1
-   delete_array $y2
-   delete_array $z1
-   delete_array $z2
-  }
+
+  if { $_n1 == 0 || $_n2 == 0 } { return $E }
+  # update positions in 1
+  ListToArray_Data $_x1 [$sel1 get x]
+  ListToArray_Data $_y1 [$sel1 get y]
+  ListToArray_Data $_z1 [$sel1 get z]
+  set E [my_roughenergy $_r1 $_x1 $_y1 $_z1 $_n1 $_r2 $_n2 $cut $sigma $epsilon $shift $bs $ls]
+  
   return $E
 }
 
@@ -135,6 +171,53 @@ proc Crot_psi_toCterm { r rend c molid deg } {
    $co delete
 }
 
+proc range { from to step } {
+  set result {}
+  for {set i $from} {$i<=$to} {incr i $step} {
+    lappend result $i
+  }
+  return $result
+}
+
+proc lay_loop { molid c loop maxcycles } {
+  set nr [llength $loop]
+  set loopsel [atomselect $molid "chain $c and resid [join $loop]"]
+  set residue_numbers [[atomselect $molid "[$loopsel text] and name CA"] get residue]
+  set env [atomselect $molid "same residue as exwithin 4.0 of (chain $c and resid [join $loop])"]
+  set residuenum_end [lindex $residue_numbers end]
+  for { set i 0 } { $i < $nr } { incr i } {
+    # rotate phi angle and psi angle to minimize number of contacts between residue and 
+    # its environment
+    set rsel [atomselect $molid "chain $c and resid [lindex $loop $i] to [lindex $loop end]"]
+    set residuenum1 [lindex $residue_numbers $i]
+    set CON_STRUCT [measure contacts 2.0 $rsel $env]
+    set CON [llength [lindex $CON_STRUCT 0]]
+#    puts "LAYLOOP) ${c}[lindex $loop $i] INIT $CON"
+    for { set t 0 } { $t < $maxcycles && $CON > 0 } { incr t } {
+      set SAVEPOS [$loopsel get {x y z}]
+      set rphi [expr (1-2*rand())*120.0]
+      #set rpsi [expr (1-2*rand())*60.0]
+      Crot_phi_toCterm $residuenum1 $residuenum_end $c $molid $rphi
+      if { $i > [expr $nr - 1] } {
+        Crot_psi_toCterm $residuenum1 $residuenum_end $c $molid $rphi
+      }
+      $env update
+      set TRICON_STRUCT [measure contacts 2.0 $rsel $env]
+      set TRICON  [llength [lindex $TRICON_STRUCT 0]]
+      if { [expr $TRICON < $CON] } {
+        # accept this move
+        set CON $TRICON
+        puts "LAYLOOP) ${c}:[lindex $loop 0]-[lindex $loop $i] $t $CON"
+      } else {
+        # reject this move
+        $loopsel set {x y z} $SAVEPOS
+      }
+    }
+    $rsel delete
+  }
+  $env delete
+  $loopsel delete
+}
 
 # rotate the side chain of residue r of chain c in mol molid around
 # chi1 by deg degrees
@@ -158,7 +241,7 @@ proc SCrot_chi2 { r c molid deg } {
    set cb [atomselect $molid "residue $r and name CB"]; checknum [$cb num] "no CB in SCrot_chi1";
    set cg [atomselect $molid "residue $r and name CG"]; checknum [$cg num] "no CG in SCrot_chi1";
    set p1 [lindex [$cb get {x y z}] 0]
-   set p2 [lindex [$cg get {x y z}] 0]
+   set p2 [lindex [$cg get] {x y z}] 0]
    set ax [vecsub $p1 $p2]
    $rot move [trans center $p1 axis $ax $deg degrees]
    $rot delete
@@ -203,10 +286,14 @@ proc irand_dom { min max } {
 # logs frames to a logging molecule
 proc log_addframe { molid logid } {
    if { $logid != "-1" } {
-     [atomselect $molid all] writepdb "tmp.pdb"
-     animate read pdb tmp.pdb $logid
+     animate dup $logid
+     [atomselect $logid all] set x [[atomselect $molid all] get x]
+     [atomselect $logid all] set y [[atomselect $molid all] get y]
+     [atomselect $logid all] set z [[atomselect $molid all] get z]
+#     [atomselect $molid all] writepdb "tmp.pdb"
+#     animate read pdb tmp.pdb $logid
      puts "Molid $molid - logging molecule $logid has [molinfo $logid get numframes] frames."
-     exec rm -f tmp.pdb
+#     exec rm -f tmp.pdb
    }
 }
 
@@ -221,12 +308,22 @@ proc log_addframe { molid logid } {
 # are not allowed to overlap, where the overlap distance
 # is "rcut" (A).
 # "logid" is the optional molecule id of a logging molecule (-1 means do nothing)
-proc do_loop_mc { residueList c molid k r0 env rcut maxcycles temperature iseed logid } {
+proc do_loop_mc { residueList c molid k r0 env sigma epsilon rcut maxcycles temperature iseed logid logevery } {
 
   set msel [atomselect $molid "chain $c and residue $residueList"]
   set mselnoh [atomselect $molid "chain $c and residue $residueList and noh"]
-  set mselca [atomselect $molid "chain $c and residue $residueList and name CA"]
-  set envca [atomselect $molid "([$env text]) and name CA"]
+  set exind [$mselnoh get index]
+  set envex [atomselect $molid "[$env text] and not index $exind"]
+
+  if { [$envex num] == 0 } {
+    puts "Error: environment minus loop has zero atoms."
+    return
+  }
+
+  set bs [make_bondstruct $molid $mselnoh]
+  #bondstruct_print $bs
+#  set mselca [atomselect $molid "chain $c and residue $residueList and name CA"]
+#  set envca [atomselect $molid "([$env text]) and name CA"]
 
   set rend [lindex $residueList end]
   set nres [llength $residueList]
@@ -240,16 +337,22 @@ proc do_loop_mc { residueList c molid k r0 env rcut maxcycles temperature iseed 
   expr srand($iseed)
 
   set nacc 0
-
+  
+  #puts "roughenergy setup..."
+  set ls [roughenergy_setup $mselnoh $envex $rcut]
+  #puts "calc ($mselnoh) ($rcut) ($sigma) ($epsilon) ($bs) ($ls)..."
   set SE [expr 0.5*$k*pow([measure bond $idx]-$r0,2)]
-  #set EE [roughenergy $mselnoh $env $rcut]
-  set EE [roughenergy $mselca $envca $rcut]
+  
+  set EE [roughenergy $mselnoh $rcut $sigma $epsilon $bs $ls]
   set E [expr $SE + $EE]
   set E0 $E
+  #puts "EE $EE"
+  flush stdout
 
   for {set cyc 0} { $cyc < $maxcycles } { incr cyc } {
     # save coordinates
     set SAVEPOS [$msel get {x y z}]
+    # do a cycle of $nres rotation attempts
     for {set r 0} {$r < $nres} {incr r} {
       set i [irand_dom 0 [expr $nres-2]]
       set at [irand_dom 0 1]
@@ -265,7 +368,7 @@ proc do_loop_mc { residueList c molid k r0 env rcut maxcycles temperature iseed 
     }
     set SE [expr 0.5*$k*pow([measure bond $idx]-$r0,2)]
     #set EE [roughenergy $mselnoh $env $rcut]
-    set EE [roughenergy $mselca $envca $rcut]
+    set EE [roughenergy $mselnoh $rcut $sigma $epsilon $bs $ls]
     set E [expr $SE + $EE]
     # decide to accept or reject this new conformation using a 
     # metropolis criterion
@@ -287,10 +390,14 @@ proc do_loop_mc { residueList c molid k r0 env rcut maxcycles temperature iseed 
       set E0 $E
       incr nacc
       puts "CFALOOPMC) ($rend) cyc $cyc na $nacc ([format "%.5f" [expr (1.0*$nacc)/($cyc+1)]]) CA-C: [format "%.2f" [measure bond $idx]] [format "lnk-pnlty %.2f strc-pnlty %.2f" $SE $EE]"
-      log_addframe $molid $logid
+      if { [expr $nacc % $logevery == 0 ] } {
+        log_addframe $molid $logid
+      }
     }
   }
   puts "CFALOOPMC) ($rend) cyc $cyc na $nacc ([format "%.5f" [expr (1.0*$nacc)/($cyc+1)]]) CA-C: [format "%.2f" [measure bond $idx]]"
+  free_bondstruct $bs
+  roughenergy_cleanup $ls
 }
 
 # matrix inversion routine from http://wiki.tcl.tk/14921 (Keith Vetter)
@@ -641,47 +748,78 @@ proc random_loop { molid sel } {
 #   bonds by random amounts. 
 # temperature is the Metropolis temperature.
 # iseed is the rng seed.
-proc do_flex_mc { molid msel ri rj fa k i j envsel rcut maxcycles temperature iseed logid } {
+proc do_flex_mc { molid msel envsel refatominddict paramsdict iseed logid logevery logsaveevery } {
 
-   set bl [$msel getbonds]
-   set il [$msel get index]
-   set bs [make_bondstruct $molid $msel $ri $rj]
+   upvar 1 $refatominddict refatoms
+   upvar 1 $paramsdict params
+
+   set mselnoh [atomselect $molid "([$msel text]) and noh"]
+   #set bl [$msel getbonds]
+   #set il [$mselnoh get index]
+   set fa [dict get $refatoms fa]
+   set i [dict get $refatoms ca]
+   set j [dict get $refatoms c]
+   set bs [make_bondstruct $molid $msel]
    bondstruct_deactivate_by_fixed $bs $fa
-#   print_bondlist $bs
-
-#   puts "ri $ri"
-#   puts "rj $rj"
-#   puts "il [llength $il] : $il"
-#   puts "bl [llength $bl] : $bl"
-   
+  # bondstruct_print $bs
+   set exind [$msel get index]
+   set envex [atomselect $molid "[$envsel text] and not index $exind"]
+   puts "CFAFLEXMC) msel [$msel num] envex [$envex num] fa $fa"
+   flush stdout
    if { $i != $j } { 
      puts "CFAFLEXMC) Initial attractor distance [format "%.2f" [measure bond [list $i $j]]] A"
    }
+   set maxcycles [dict get $params nc]
+   set dstop  [dict get $params dstop]
+   set sstop  [dict get $params sstop]
+   set k  [dict get $params mck]
+   set temperature  [dict get $params temperature]
+   set sigma  [dict get $params sigma]
+   set epsilon [dict get $params epsilon]
+   set rcut [dict get $params rcut]
+   set maxanglestep [dict get $params maxanglestep]
 
+   puts "CFAFLEXMC) Max cycles $maxcycles dattr-thresh $dstop strc-thresh $sstop k $k"
+   puts "CFAFLEXMC) [bondstruct_getnrb $bs] rotatable bonds"
+   puts "CFAFLEXMC) MC-Temperature $temperature sigma $sigma epsilon $epsilon"
+   puts "CFAFLEXMC) Maximum angle displacement: $maxanglestep degrees"
    flush stdout
+
+   set maxanglestep [expr $maxanglestep / 10.0]
 
    expr srand($iseed)
 
    set nacc 0
 
    set SE 0.0
+   set dattr 0.0
    if { $i != $j } {
-     set SE [expr 0.5*$k*pow([measure bond [list $i $j]],2)]
+     set dattr [measure bond [list $i $j]]
+     set SE [expr 0.5*$k*pow($dattr,2)]
    }
-   set EE [roughenergy $msel $envsel $rcut]
+   set ls [roughenergy_setup $mselnoh $envex $rcut]
+  #puts "calc ($mselnoh) ($rcut) ($sigma) ($epsilon) ($bs) ($ls)..."
+   set EE [roughenergy $mselnoh $rcut $sigma $epsilon $bs $ls]
    set E [expr $SE + $EE]
+   set lastEE $EE
+   set lastSE $SE
    set E0 $E
-#   puts "CFAFLEXMC) E0 $E0"
-   for {set cyc 0} { $cyc < $maxcycles } { incr cyc } {
+   #puts "CFAFLEXMC) E0 $E0"
+   set keep_cycling 1
+   if { $EE < $sstop && $dattr < $dstop } {
+      set keep_cycling 0
+   }
+   for {set cyc 0} { $cyc < $maxcycles && $keep_cycling == 1 } { incr cyc } {
       # save coordinates
       set SAVEPOS [$msel get {x y z}]
       set nrot 0
-      for {set r 0} {$r < [bondstruct_getnb $bs] } {incr r} {
+      for {set r 0} {$r < [bondstruct_getnrb $bs] } {incr r} {
          #set av [expr 60 * [irand_dom 1 5]]
-         set av [expr 6 * [irand_dom -5 5]]
+         set av [expr $maxanglestep * [irand_dom -10 10]]
         # puts "cyc $cyc bond $r deg $av"
-         if { [bondstruct_isactive $bs $r] } {
-           bondrot_by_index $bs $molid $r $av
+        set rr [bondstruct_r2b $bs $r]
+         if { [bondstruct_isactive $bs $rr] } {
+           bondrot_by_index $bs $molid $rr $av
            set nrot [expr $nrot + 1]
          }
       }
@@ -691,11 +829,12 @@ proc do_flex_mc { molid msel ri rj fa k i j envsel rcut maxcycles temperature is
          exit
       }
       if { $i != $j } {
-        set SE [expr 0.5*$k*pow([measure bond [list $i $j]],2)]
+        set dattr [measure bond [list $i $j]]
+        set SE [expr 0.5*$k*pow($dattr,2)]
       } else {
         set SE 0.0
       }
-      set EE [roughenergy $msel $envsel $rcut]
+      set EE [roughenergy $mselnoh $rcut $sigma $epsilon $bs $ls]
       set E [expr $SE + $EE]
      # puts " ... E $E"
       set X [expr rand()]
@@ -720,12 +859,334 @@ proc do_flex_mc { molid msel ri rj fa k i j envsel rcut maxcycles temperature is
           puts -nonewline "attr dst: [format "%.2f" [measure bond [list $i $j]]] [format "attr-pnlty %.2f " $SE]"
         }
         puts "[format "strc-pnlty %.2f" $EE]"
-        log_addframe $molid $logid
+        if { [expr $nacc % $logevery == 0 ] } {
+          log_addframe $molid $logid
+          if { [expr $nacc % $logsaveevery == 0] } {
+             set loga [atomselect $logid all]
+             animate write dcd "tmp.dcd" waitfor all sel $loga $logid
+          }
+        }
+        set lastEE $EE
+        set lastSE $SE
+        if { $EE < $sstop && $dattr < $dstop } {
+          set keep_cycling 0
+        }
       }
    }
+   puts -nonewline "CFAFLEXMC) Stop at cycle $cyc: "
    if { $i != $j } {
-     puts -nonewline "attr dst: [format "%.2f" [measure bond [list $i $j]]] [format "attr-pnlty %.2f " $SE]"
+     puts -nonewline "attr dst: [format "%.2f" [measure bond [list $i $j]]] [format "attr-pnlty %.2f " $lastSE]"
    }
-   puts "[format "strc-pnlty %.2f" $EE]"
+   puts "[format "strc-pnlty %.2f" $lastEE]"
    free_bondstruct $bs
+   roughenergy_cleanup $ls
+}
+
+proc do_multiflex_mc { molid rotsel refatominddict paramsdict iseed logid logevery logsaveevery } {
+
+   upvar 1 $refatominddict refatoms
+   upvar 1 $paramsdict params
+
+   set rotnoh [atomselect $molid "([$rotsel text]) and noh"]
+   #set bl [$msel getbonds]
+   #set il [$mselnoh get index]
+   set falist [dict get $refatoms fa]
+   set ilist [dict get $refatoms i]
+   set jlist [dict get $refatoms j]
+   set loc [lsearch $ilist -1]
+   set trunc_ilist [lrange $ilist 0 [expr $loc-1]]
+   set trunc_jlist [lrange $jlist 0 [expr $loc-1]]
+ 
+   puts "CFAFLEXMC) Making bondstruct..."
+   flush stdout 
+   set bs [make_bondstruct $molid $rotsel $falist]
+
+   # remove movable atoms from the background
+   set exind [$rotsel get index]
+   set envex [atomselect $molid "noh and not index $exind"]
+
+   puts "CFAFLEXMC) rotsel [$rotsel num] envex [$envex num] falist $falist"
+   set maxcycles [dict get $params nc]
+   set dstop  [dict get $params dstop]
+   set sstop  [dict get $params sstop]
+   set k  [dict get $params mck]
+   set temperature  [dict get $params temperature]
+   set maxanglestep [dict get $params maxanglestep]
+
+   set ljsigma  [dict get $params ljsigma]
+   set ljepsilon [dict get $params ljepsilon]
+   set ljcutoff  [dict get $params ljcutoff]
+   set ljshift [dict get $params ljshift]
+   set cellsize [dict get $params cellsize]
+
+   puts "CFAFLEXMC) Max cycles $maxcycles dattr-thresh $dstop strc-thresh $sstop k $k"
+   puts "CFAFLEXMC) Number of rotatable bonds [bondstruct_getnrb $bs]"
+   puts "CFAFLEXMC) MC-Temperature $temperature"
+   puts "CFAFLEXMC) sigma $ljsigma epsilon $ljepsilon cutoff $ljcutoff shift $ljshift"
+   puts "CFAFLEXMC) Maximum angle displacement: $maxanglestep degrees"
+   flush stdout
+
+   puts "CFAFLEXMC) ilist $ilist"
+   puts "CFAFLEXMC) jlist $jlist"
+   flush stdout
+   foreach i $ilist j $jlist {
+      if { $i != $j } { 
+        puts "CFAFLEXMC) Initial ($i)-($j) distance [format "%.2f" [measure bond [list $i $j]]] A"
+        flush stdout
+      }
+   }
+
+   set anglegradationfactor 10
+   set maxanglestep [expr $maxanglestep / $anglegradationfactor]
+   expr srand($iseed)
+   set nacc 0
+   set SE 0.0
+   foreach i $ilist j $jlist {
+      if { $i != $j } {
+        set dattr [measure bond [list $i $j]]
+        set SE [expr $SE+0.5*$k*pow($dattr,2)]
+      }
+   }
+   set ls [roughenergy_setup $rotnoh $envex $cellsize]
+  #puts "calc ($mselnoh) ($rcut) ($sigma) ($epsilon) ($bs) ($ls)..."
+   puts -nonewline "roughenergy..."
+   flush stdout
+   set start [clock microseconds]
+   set EE [roughenergy $rotnoh $ljcutoff $ljsigma $ljepsilon $ljshift $bs $ls]
+   set stop [clock microseconds]
+   puts "...done [expr ($stop-$start)/1.e6] s"
+   set E [expr $SE + $EE]
+   set lastEE $EE
+   set lastSE $SE
+   set E0 $E
+   puts "CFAFLEXMC) E0 $E0"
+   set keep_cycling 1
+   if { $EE < $sstop && $SE < $dstop } {
+      set keep_cycling 0
+   }
+   set nrb [bondstruct_getnrb $bs]
+   #set tnacc 0
+   #set ngc 0
+   set nacc 0
+   for {set cyc 0} { $cyc < $maxcycles && $keep_cycling == 1 } { incr cyc } {
+      set SAVEPOS [$rotsel get {x y z}] ; # modify so only atoms on right-side of this bond are saved
+      puts -nonewline "rotating..."
+      flush stdout
+      set start [clock microseconds]
+      for {set r 0} {$r < $nrb} {incr r} {
+         #get a random active bond
+        #set rb [irand_dom 0 [expr $nrb-1]]
+        # get a random rotation angle
+        set av [expr $maxanglestep * [irand_dom -$anglegradationfactor $anglegradationfactor]]
+        # get this active bonds index in the bondstruct (why don't I just delete nonrotatable bonds?)
+#        set rr [bondstruct_r2b $bs $rb]
+        set rr [bondstruct_r2b $bs $r]
+        # execute the rotation
+        #if { [bondstruct_isactive $bs $rr] } {
+           bondrot_by_index $bs $molid $rr $av
+        #}
+      }
+      set stop [clock microseconds]
+      puts "...done [expr ($stop-$start)/1.e6] s"
+      set SE 0.0
+      foreach i $ilist j $jlist {
+        if { $i != $j } {
+          set dattr [measure bond [list $i $j]]
+          set SE [expr $SE+0.5*$k*pow($dattr,2)]
+        }
+      }
+      puts -nonewline "roughenergy..."
+      flush stdout
+      set start [clock microseconds]
+      set EE [roughenergy $rotnoh $ljcutoff $ljsigma $ljepsilon $ljshift $bs $ls]
+      set stop [clock microseconds]
+      puts "...done [expr ($stop-$start)/1.e6] s"
+      set E [expr $SE + $EE]
+      # do metropolis
+      set X [expr rand()]
+      set arg [expr {($E0-$E)/$temperature}]
+      if {[expr $arg < -20]} {
+        set B 0.0
+      } elseif {[expr $arg > 2.8]} {
+        set B 1.1
+      } else {
+        # compute a Boltzmann factor
+        set B [expr {exp($arg)}] 
+      }
+      if {[expr {$X > $B}]} {
+        # reject the move
+        $rotsel set {x y z} $SAVEPOS
+      } else {
+          # accept the move
+          set E0 $E
+          puts "CFAFLEXMC) cyc $cyc na $nacc [format "ar=%.5f" [expr (1.0*$nacc)/($cyc+1)]] [format "attr-pnlty= %.2f " $SE] [format "strc-pnlty=%.2f" $EE]"
+          if { [expr $nacc % $logevery == 0 ] && $logid != -1 } {
+            log_addframe $molid $logid
+            if { [expr $nacc % $logsaveevery == 0] } {
+                set loga [atomselect $logid all]
+                animate write dcd "tmp.dcd" waitfor all sel $loga $logid
+                $loga delete
+            }
+          }
+      }
+      set lastEE $EE
+      set lastSE $SE
+      if { $EE < $sstop && $SE < $dstop } {
+        set keep_cycling 0
+      }
+   }
+   puts -nonewline "CFAFLEXMC) Stop at cycle $cyc: "
+   if { $i != $j } {
+     puts -nonewline "attr dst: [format "%.2f" [measure bond [list $i $j]]] [format "attr-pnlty %.2f " $lastSE]"
+   }
+   puts "[format "strc-pnlty %.2f" $lastEE]"
+   free_bondstruct $bs
+   roughenergy_cleanup $ls
+}
+
+proc ladd {l} {
+    set total 0.0
+    foreach nxt $l {
+        set total [expr $total + $nxt]
+    }
+    return $total
+}
+
+proc check_pierced_rings { molid ringsize TOL } {
+  set r6 [atomselect $molid "ringsize $ringsize from all"]
+  set r6i [$r6 get index]
+  set i 0
+  foreach ii $r6i {
+    set r6o($ii) $i
+    incr i
+  }
+  set r6x [$r6 get x]
+  set r6y [$r6 get y]
+  set r6z [$r6 get z]
+
+  for { set ri 0 } { $ri < [llength $r6i] } { incr ri $ringsize } {
+    #puts "ring $ri"
+    set this_ri {}
+    set this_rx {}
+    set this_ry {}
+    set this_rz {}
+    for { set t 0 } { $t < $ringsize } { incr t } {
+      lappend this_ri [lindex $r6i [expr $ri + $t]]
+      lappend this_rx [lindex $r6x [expr $ri + $t]]
+      lappend this_ry [lindex $r6y [expr $ri + $t]]
+      lappend this_rz [lindex $r6z [expr $ri + $t]]
+    }
+    #puts "this_ri $this_ri"
+    set this_rr {}
+    foreach x $this_rx y $this_ry z $this_rz {
+      lappend this_rr [list $x $y $z]
+    }
+    #puts "this_rr $this_rr"
+    set this_com [list [ladd $this_rx] [ladd $this_ry] [ladd $this_rz]]
+    set this_com [vecscale $this_com [expr 1./$ringsize]]
+    set this_b12 [vecsub [lindex $this_rr 0] [lindex $this_rr 1]]
+    set this_b23 [vecsub [lindex $this_rr 1] [lindex $this_rr 3]]
+    set c123 [veccross $this_b12 $this_b23]
+    set lc123 [veclength $c123]
+    set chat123 [vecscale $c123 [expr 1.0/$lc123]]
+    #puts "ring $this_ri : $this_com : $chat123"
+    set neigh [atomselect $molid "(protein or glycan) and same residue as (exwithin 4.0 of index $this_ri)"]
+    set nb [$neigh getbonds]
+    set na [$neigh get index]
+    set nax [$neigh get x]
+    set nay [$neigh get y]
+    set naz [$neigh get z]
+    set i 0
+    foreach a $na {
+      set ord($a) $i
+      incr i
+    }
+    set ln 0
+    set ndots 0
+    # fix to exclude atoms in the ring from bond definition!
+    foreach a $na bl $nb {
+      if { [lsearch $this_ri $a] !=  -1 } {
+        continue
+      }
+      if { [expr $ln%100 == 0] } {
+        puts -nonewline "."
+        incr ndots
+        if { $ndots > 80 } {
+          puts ""
+          set ndots 0
+        }
+        flush stdout
+      }
+      incr ln
+      set ai $ord($a)
+      set apos [list [lindex $nax $ai] [lindex $nay $ai] [lindex $naz $ai]]
+      foreach b $bl {
+        if { [lsearch $this_ri $b] != -1 } {
+          continue
+        }
+        if { [ expr $b < $a ] } {
+          continue
+        }
+        if { [lsearch $na $b] != -1 } {
+          set bi $ord($b)
+          set bpos [list [lindex $nax $bi] [lindex $nay $bi] [lindex $naz $bi]]
+          set avpos [vecscale [vecadd $apos $bpos] 0.5]
+          set avec [vecsub $this_com $apos]
+          set bvec [vecsub $this_com $bpos]
+          set crit1 [expr [veclength [vecsub $avpos $this_com]] < $TOL]
+          set d1 [vecdot $avec $chat123]
+          set d2 [vecdot $bvec $chat123]
+          set crit2 [expr ($d1*$d2)<0]
+          if { $crit1 && $crit2 } {
+            puts ""
+            puts "Bond $a $b pierces $this_ri"
+          }
+        }
+      }
+    }
+    $neigh delete
+  }
+}
+
+proc difference { a b } {
+  set r {}
+  foreach i $a {
+    if { [lsearch $b $i] == -1 } {
+      lappend r $i
+    }
+  }
+  return $r
+}
+
+proc ligateCN { molid residueC residueN } {
+  set jsel [atomselect $molid "(residue $residueC and name C OT1 OT2) or (residue $residueN and name N HT1 HT2 HT3)"]
+  set an [$jsel get name]
+  set segnames [$jsel get segname]
+  set resids [$jsel get resid]
+  for { set i 0 } { $i < [llength $an] } { incr i } {
+    set index([lindex $an $i]) $i
+    set resid([lindex $an $i]) [lindex $resids $i]
+    set segname([lindex $an $i]) [lindex $segnames $i]
+  }
+
+  # pick the one OT and the one HT that would give the most "trans" peptide bond
+  set dimax 0.0
+  set thetwo {}
+  foreach o { OT1 OT2 } {
+    foreach h { HT1 HT2 HT3 } {
+      set thisdi [expr abs([measure dihed [list $index($o) $index(C) $index(N) $index($h)]])]
+      if { $thisdi > $dimax } {
+        set dimax $thisdi
+        set thetwo [list $o $h]
+      }
+    }
+  }
+  set fullset { OT1 OT2 HT1 HT2 HT3 }
+  # symmetric difference
+  set deleteus [difference $fullset $thetwo]
+  puts "thetwo $thetwo deleteus $deleteus"
+  foreach db $deleteus {
+    delatom $segname($db) $resid($db) $db
+  }
+
 }

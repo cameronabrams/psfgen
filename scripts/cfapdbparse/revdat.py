@@ -1,11 +1,17 @@
 from datetime import datetime
 class RevDat:
-    def __init__(self,pdbrecord):
-        self.pdbrecord=pdbrecord
-        self.datecode=datetime.strptime(pdbrecord[13:22],'%d-%b-%y')
-        self.pdbcode=pdbrecord[23:27]
-        self.isnotfirs=int(pdbrecord[31:32])
-        self.tokens=self.get_tokens(pdbrecord)
+    def __init__(self,rec,fmt='PDB'):
+        if fmt=='PDB':
+             self.pdbrecord=rec
+             self.datecode=datetime.strptime(rec[13:22],'%d-%b-%y')
+             self.pdbcode=rec[23:27]
+             self.isnotfirs=int(rec[31:32])
+             self.tokens=self.get_tokens(rec)
+        else:
+             self.ordinal=rec['ordinal']
+             self.data_content_type=rec['data_content_type']
+             self.datecode=datetime.strptime(rec['revision_date'],'%Y-%m-%d')
+             
     def __str__(self):
         return self.datecode.strftime('%B %d, %Y')
     def show(self):
