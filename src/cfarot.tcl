@@ -280,15 +280,15 @@ proc ICs_from_bondlist { molid sel } {
                 # bond J-K
                 set kn [lindex $nm $k]
                 set knnn [split $kn {}]
-                if { [lindex $knnn 0 ] != 'H'} {
+                if { [lindex $knnn 0 ] != "H"} {
                     set k $ilook($K)
                     set RJK [measure bond [list $J $K]]
                     foreach I [lindex $bl $j] {
                         if { $I != $K } {
                             set in [lindex $nm $i]
                             set innn [split $in {}]
-                            if { ([lindex $innn 0] != 'H') or ([lindex $innn 0] == 'H' && [lsearch $hs $in] == -1 ) } {
-                                if { [lindex $innn 0] == 'H' && [lsearch $hs $in] == -1 } { lappend hs $I }
+                            if { ([lindex $innn 0] != "H") or ([lindex $innn 0] == "H" && [lsearch $hs $in] == -1 ) } {
+                                if { [lindex $innn 0] == "H" && [lsearch $hs $in] == -1 } { lappend hs $I }
                                 set i $ilook($I)
                                 set RIJ [measure bond [list $I $J]]
                                 set TIJK [measure angle [list $I $J $K]]
@@ -296,8 +296,8 @@ proc ICs_from_bondlist { molid sel } {
                                     if { $L != $J }  {
                                         set ln [lindex $nm $l]
                                         set lnnn [split $ln {}]
-                                        if { ([lindex $lnnn 0] != 'H') or ([lindex $lnnn 0] == 'H' && [lsearch $hs $ln] == -1 ) } {
-                                            if { [lindex $lnnn 0] == 'H' && [lsearch $hs $ln] == -1 } { lappend hs $L }
+                                        if { ([lindex $lnnn 0] != "H") or ([lindex $lnnn 0] == "H" && [lsearch $hs $ln] == -1 ) } {
+                                            if { [lindex $lnnn 0] == "H" && [lsearch $hs $ln] == -1 } { lappend hs $L }
                                             # I-J--K-L is a dihedral and either I or L is a yet-to-be seen H
                                             set l $ilook($L)
                                             set RKL [measure bond [list $K $L]]
