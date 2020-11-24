@@ -287,7 +287,7 @@ proc ICs_from_bondlist { molid sel } {
                             set l $ilook($L)
                             set RKL [measure bond [list $K $L]]
                             set TJKL [measure angle [list $J $K $L]]
-                            set PIJKL [measure torsion [list $I $J $K $L]]
+                            set PIJKL [measure dihed [list $I $J $K $L]]
                             puts -nonewline "IC [lindex $nm $i] [lindex $nm $j] [lindex $nm $k] [lindex $nm $l] "
                             puts "$RIJ $TIJK $PIJKL $TJKL $RKL"
                         }
