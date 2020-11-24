@@ -293,18 +293,19 @@ proc ICs_from_bondlist { molid sel } {
                                 set RIJ [measure bond [list $I $J]]
                                 set TIJK [measure angle [list $I $J $K]]
                                 foreach L [lindex $bl $k] {
-                                if { $L != $J }  {
-                                    set ln [lindex $nm $l]
-                                    set lnnn [split $ln {}]
-                                    if { ([lindex $lnnn 0] != 'H') or ([lindex $lnnn 0] == 'H' && [lsearch $hs $ln] == -1 ) } {
-                                        if { [lindex $lnnn 0] == 'H' && [lsearch $hs $ln] == -1 } { lappend hs $L }
-                                        # I-J--K-L is a dihedral with I an
-                                        set l $ilook($L)
-                                        set RKL [measure bond [list $K $L]]
-                                        set TJKL [measure angle [list $J $K $L]]
-                                        set PIJKL [measure dihed [list $I $J $K $L]]
-                                        puts -nonewline "IC [lindex $nm $i] [lindex $nm $j] [lindex $nm $k] [lindex $nm $l] "
-                                        puts "[format %.4f $RIJ] [format %.4f $TIJK] [format %.4f $PIJKL] [format %.4f $TJKL] [format %.4f $RKL]"
+                                    if { $L != $J }  {
+                                        set ln [lindex $nm $l]
+                                        set lnnn [split $ln {}]
+                                        if { ([lindex $lnnn 0] != 'H') or ([lindex $lnnn 0] == 'H' && [lsearch $hs $ln] == -1 ) } {
+                                            if { [lindex $lnnn 0] == 'H' && [lsearch $hs $ln] == -1 } { lappend hs $L }
+                                            # I-J--K-L is a dihedral and either I or L is a yet-to-be seen H
+                                            set l $ilook($L)
+                                            set RKL [measure bond [list $K $L]]
+                                            set TJKL [measure angle [list $J $K $L]]
+                                            set PIJKL [measure dihed [list $I $J $K $L]]
+                                            puts -nonewline "IC [lindex $nm $i] [lindex $nm $j] [lindex $nm $k] [lindex $nm $l] "
+                                            puts "[format %.4f $RIJ] [format %.4f $TIJK] [format %.4f $PIJKL] [format %.4f $TJKL] [format %.4f $RKL]"
+                                        }
                                     }
                                 }
                             }
