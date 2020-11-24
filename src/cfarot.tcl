@@ -279,7 +279,6 @@ proc ICs_from_bondlist { molid sel } {
             foreach I [lindex $bl $j] {
                 if { $I != $K } {
                     set i $ilook($I)
-                    set RI [list [lindex $x $i] [lindex $y $i] [lindex $z $i]]
                     set RIJ [measure bond [list $I $J]]
                     set TIJK [measure angle [list $I $J $K]]
                     foreach L [lindex $bl $k] {
