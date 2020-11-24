@@ -270,31 +270,48 @@ proc ICs_from_bondlist { molid sel } {
         set ilook([lindex $ai $i]) $i
         set alook([lindex $nm $i]) $i
     }
+    set hs {}
     for { set j 0 } { $j < [llength $ai] } { incr j } {
-        set J [lindex $ai $j]
-        foreach K [lindex $bl $j] {
-            # bond J-K
-            set k $ilook($K)
-            set RJK [measure bond [list $J $K]]
-            foreach I [lindex $bl $j] {
-                if { $I != $K } {
-                    set i $ilook($I)
-                    set RIJ [measure bond [list $I $J]]
-                    set TIJK [measure angle [list $I $J $K]]
-                    foreach L [lindex $bl $k] {
-                        if { $L != $J }  {
-                            # I-J--K-L is a dihedral
-                            set l $ilook($L)
-                            set RKL [measure bond [list $K $L]]
-                            set TJKL [measure angle [list $J $K $L]]
-                            set PIJKL [measure dihed [list $I $J $K $L]]
-                            puts -nonewline "IC [lindex $nm $i] [lindex $nm $j] [lindex $nm $k] [lindex $nm $l] "
-                            puts "[format %.4f $RIJ] [format %.4f $TIJK] [format %.4f $PIJKL] [format %.4f $TJKL] [format %.4f $RKL]"
+        set jn [lindex $nm $j]
+        set jnnn [split $jn {}]
+        if { [lindex $jnnn 0] != 'H' } {
+            set J [lindex $ai $j]
+            foreach K [lindex $bl $j] {
+                # bond J-K
+                set kn [lindex $nm $k]
+                set knnn [split $kn {}]
+                if { [lindex $knnn 0 ] != 'H'} {
+                    set k $ilook($K)
+                    set RJK [measure bond [list $J $K]]
+                    foreach I [lindex $bl $j] {
+                        if { $I != $K } {
+                            set in [lindex $nm $i]
+                            set innn [split $in {}]
+                            if { ([lindex $innn 0] != 'H') or ([lindex $innn 0] == 'H' && [lsearch $hs $in] == -1 ) } {
+                                if { [lindex $innn 0] == 'H' && [lsearch $hs $in] == -1 } { lappend hs $I }
+                                set i $ilook($I)
+                                set RIJ [measure bond [list $I $J]]
+                                set TIJK [measure angle [list $I $J $K]]
+                                foreach L [lindex $bl $k] {
+                                if { $L != $J }  {
+                                    set ln [lindex $nm $l]
+                                    set lnnn [split $ln {}]
+                                    if { ([lindex $lnnn 0] != 'H') or ([lindex $lnnn 0] == 'H' && [lsearch $hs $ln] == -1 ) } {
+                                        if { [lindex $lnnn 0] == 'H' && [lsearch $hs $ln] == -1 } { lappend hs $L }
+                                        # I-J--K-L is a dihedral with I an
+                                        set l $ilook($L)
+                                        set RKL [measure bond [list $K $L]]
+                                        set TJKL [measure angle [list $J $K $L]]
+                                        set PIJKL [measure dihed [list $I $J $K $L]]
+                                        puts -nonewline "IC [lindex $nm $i] [lindex $nm $j] [lindex $nm $k] [lindex $nm $l] "
+                                        puts "[format %.4f $RIJ] [format %.4f $TIJK] [format %.4f $PIJKL] [format %.4f $TJKL] [format %.4f $RKL]"
+                                    }
+                                }
+                            }
                         }
                     }
                 }
             }
         }
-
     }
 }
