@@ -282,14 +282,14 @@ proc ICs_from_bondlist { molid sel } {
                     set RIJ [measure bond [list $I $J]]
                     set TIJK [measure angle [list $I $J $K]]
                     foreach L [lindex $bl $k] {
-                        if { $L != $K }  {
+                        if { $L != $J }  {
                             # I-J--K-L is a dihedral
                             set l $ilook($L)
                             set RKL [measure bond [list $K $L]]
                             set TJKL [measure angle [list $J $K $L]]
                             set PIJKL [measure dihed [list $I $J $K $L]]
                             puts -nonewline "IC [lindex $nm $i] [lindex $nm $j] [lindex $nm $k] [lindex $nm $l] "
-                            puts "$RIJ $TIJK $PIJKL $TJKL $RKL"
+                            puts "[format %.4f $RIJ] [format %.4f $TIJK] [format %.4f $PIJKL] [format %.4f $TJKL] [format %.4f $RKL]"
                         }
                     }
                 }
