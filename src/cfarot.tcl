@@ -288,7 +288,7 @@ proc ICs_from_bondlist { molid sel } {
                             set i $ilook($I)
                             set in [lindex $nm $i]
                             set innn [split $in {}]
-                            if { ([lindex $innn 0] != "H") or ([lindex $innn 0] == "H" && [lsearch $hs $in] == -1 ) } {
+                            if { ([lindex $innn 0] != "H") || ([lindex $innn 0] == "H" && [lsearch $hs $in] == -1 ) } {
                                 if { [lindex $innn 0] == "H" && [lsearch $hs $in] == -1 } { lappend hs $I }
                                 set RIJ [measure bond [list $I $J]]
                                 set TIJK [measure angle [list $I $J $K]]
@@ -297,7 +297,7 @@ proc ICs_from_bondlist { molid sel } {
                                         set l $ilook($L)
                                         set ln [lindex $nm $l]
                                         set lnnn [split $ln {}]
-                                        if { ([lindex $lnnn 0] != "H") or ([lindex $lnnn 0] == "H" && [lsearch $hs $ln] == -1 ) } {
+                                        if { ([lindex $lnnn 0] != "H") || ([lindex $lnnn 0] == "H" && [lsearch $hs $ln] == -1 ) } {
                                             if { [lindex $lnnn 0] == "H" && [lsearch $hs $ln] == -1 } { lappend hs $L }
                                             # I-J--K-L is a dihedral and either I or L is a yet-to-be seen H
                                             set RKL [measure bond [list $K $L]]
