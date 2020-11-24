@@ -242,3 +242,60 @@ proc bondrot_by_atomindicies { bs molid l r deg } {
    set b  [bondstruct_getbondindex $bs $l $r]
    bondrot_by_index $bs $molid $b $deg
 }
+
+# Normal IC table entry:
+# I
+#  \
+#   \
+#    J----K
+#          \
+#           \
+#            L
+# values (Rij),(Tijk),(Pijkl),(Tjkl),(Rkl)
+#
+# Improper type of IC table entry
+# I     L
+#  \   /
+#   \ /
+#   *K
+#    |
+#    |
+#    J
+# values (Rik),(Tikj),(Pijkl),T(jkl),(Rkl)
+proc ICs_from_bondlist { molid sel } {
+    set bl [$sel getbonds]
+    set nm [$sel get name]
+    set ai [$sel get index]
+    for { set i 0 } { $i < [llength $ai] } { incr i } {
+        set ilook([lindex $ai $i]) $i
+        set alook([lindex $nm $i]) $i
+    }
+    for { set j 0 } { $j < [llength $ai] } { incr j } {
+        set J [lindex $ai $j]
+        foreach K [lindex $bl $j] {
+            # bond J-K
+            set k $ilook($K)
+            set RJK [measure bond [list $J $K]]
+            foreach I [lindex $bl $j] {
+                if { $I != $K } {
+                    set i $ilook($I)
+                    set RI [list [lindex $x $i] [lindex $y $i] [lindex $z $i]]
+                    set RIJ [measure bond [list $I $J]]
+                    set TIJK [measure angle [list $I $J $K]]
+                    foreach L [lindex $bl $k] {
+                        if { $L != $K }  {
+                            # I-J--K-L is a dihedral
+                            set l $ilook($L)
+                            set RKL [measure bond [list $K $L]]
+                            set TJKL [measure angle [list $J $K $L]]
+                            set PIJKL [measure torsion [list $I $J $K $L]]
+                            puts -nonewline "IC [lindex $nm $i] [lindex $nm $j] [lindex $nm $k] [lindex $nm $l] "
+                            puts "$RIJ $TIJK $PIJKL $TJKL $RKL"
+                        }
+                    }
+                }
+            }
+        }
+
+    }
+}

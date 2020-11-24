@@ -520,8 +520,8 @@ if __name__=='__main__':
         fp.write('touch cv.inp\n')
         fp.write('while IFS=" " read -r C L R B; do\n')
         fp.write(r'  cat $PSFGEN_BASEDIR/templates/cv-template.in | sed s/%C%/$C/g |')
-        fp.write(r' sed s/%NAME%/${C}${L}/g | sed s/%I%/$L/g | sed s/%J%/$R/g | sed s/%R0%/$B/g |')
-        fp.write(' sed s/%TARGETNUMSTEPS%/{}/ >> cv.inp ;\n'.format(target_numsteps))
+        fp.write(r'  sed s/%NAME%/${C}${L}/g | sed s/%I%/$L/g | sed s/%J%/$R/g | sed s/%R0%/$B/g |')
+        fp.write('  sed s/%TARGETNUMSTEPS%/{}/ >> cv.inp ;\n'.format(target_numsteps))
         fp.write('done < heal_these.inp\n')
         outname=r'postnamd${TASK}-2'
         cfgname=r'run${TASK}-2.namd'
