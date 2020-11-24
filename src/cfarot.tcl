@@ -274,7 +274,7 @@ proc ICs_from_bondlist { molid sel } {
     for { set j 0 } { $j < [llength $ai] } { incr j } {
         set jn [lindex $nm $j]
         set jnnn [split $jn {}]
-        if { [lindex $jnnn 0] != 'H' } {
+        if { [lindex $jnnn 0] != "H" } {
             set J [lindex $ai $j]
             foreach K [lindex $bl $j] {
                 # bond J-K
