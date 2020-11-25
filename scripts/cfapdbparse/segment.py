@@ -277,7 +277,7 @@ class Segment:
             f=Fragment(my_chainID,tmat.get_replica_chainID(my_chainID),self.residues[0].resseqnum,self.residues[-1].resseqnum)
             pdb=f.pdb_str()
             self.pdbfiles.append(pdb)
-            stanzastr+='set mysel [atomselect ${} "chain {} and resid {} to {}"]\n'.format(self.get_molecule(),my_chainID,self.residues[0].resseqnum,self.residues[-1].resseqnum)
+            stanzastr+='set mysel [atomselect ${} "chain {} and resid {} to {}"]\n'.format(self.get_molecule().molid_varname,my_chainID,self.residues[0].resseqnum,self.residues[-1].resseqnum)
             stanzastr+=sel.charmm_namify('mysel')
             if not tmat.isidentity():
                  stanzastr+=sel.backup('mysel')
