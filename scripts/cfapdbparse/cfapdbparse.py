@@ -281,7 +281,7 @@ def WriteHeaders(fp,charmm_topologies,local_topologies,pdbaliases):
     fp.write('source ${PSFGEN_BASEDIR}/scripts/vmdrc.tcl\n')
     fp.write('package require psfgen\n')
     fp.write('psfcontext mixedcase\n')
-    CommonPSFGENheader(fp)
+    CommonPSFGENheader(fp,charmm_topologies,local_topologies)
     print(pdbaliases)
     for al in pdbaliases:
         fp.write('pdbalias {}\n'.format(al))
