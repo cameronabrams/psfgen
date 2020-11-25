@@ -271,7 +271,7 @@ def WriteHeaders(fp,charmm_topologies,local_topologies,pdbaliases):
         fp.write('topology $TOPPARDIR/{}\n'.format(t))
     for t in local_topologies:
         fp.write('topology $LOCAL_TOPPARDIR/{}\n'.format(t))
-    
+    print(pdbaliases)
     for al in pdbaliases:
         fp.write('pdbalias {}\n'.format(al))
 
