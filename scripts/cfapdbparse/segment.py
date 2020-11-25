@@ -1,4 +1,4 @@
-from residue import  ResnameCharmify,_PDBResName123_, _pdb_glycans_, _pdb_ions_, _ResNameDict_PDB_to_CHARMM_, _ResNameDict_CHARMM_to_PDB_
+from residue import  ResnameCharmify,_PDBResName123_, _pdb_glycans_, _pdb_ligands_, _pdb_ions_, _ResNameDict_PDB_to_CHARMM_, _ResNameDict_CHARMM_to_PDB_
 _seg_class_={'HOH':'WATER'}
 _seg_class_.update({k:'ION' for k in _pdb_ions_})
 _seg_class_.update({k:'GLYCAN' for k in _pdb_glycans_})
