@@ -335,7 +335,8 @@ if __name__=='__main__':
     PostMod['Crot']=[]
 
     parser.add_argument('pdbcif',nargs='+',metavar='<?.pdb|cif>',type=str,help='name(s) of pdb or CIF file to parse; first is treated as the base molecule; others are not considered (for now)')
-    parser.add_argument('-topo',metavar='<name>',action='append',default=[],help='additional CHARMM topology files')
+    parser.add_argument('-charmmtopo',metavar='<name>',action='append',default=[],help='additional (standard) CHARMM topology files in your CHARMM directory')
+    parser.add_argument('-loctopo',metavar='<name>',action='append',default=[],help='additional (local) CHARMM topology files in the PSFGEN/charmm directory')
     parser.add_argument('-prefix',metavar='<str>',default='x01_',help='output PDB/PSF prefix; each file name will have the format <prefix><pdbcode>.pdb/psf, where <pdbcode> is the 4-letter PDB code of the base molecule.')
     parser.add_argument('-psfgen',metavar='<name>',default='mkpsf.tcl',help='name of TcL script generated as input to VMD/psfgen')
     parser.add_argument('-ignore',metavar='X',action='append',default=[],type=str,help='Specify a chain to ignore.  Multiple -ignore switches can be used to ignore more than one chain.')
@@ -392,8 +393,8 @@ if __name__=='__main__':
     #print(DefaultPDBAliases)
     #print(PDBAliases)
     UIC=args.ignore
-    if len(args.topo)>0:
-        CTopo.extend(args.topo)
+    CTopo.extend(args.charmmtopo)
+
     prefix=args.prefix
 #    PostMod['do_loop_mc']=args.rlxloops
 #    PostMod['loop_mc_params']=DictFromString(args.loopmcparams)
@@ -443,7 +444,7 @@ if __name__=='__main__':
         psfgen_fp.write('{} '.format(a))
     psfgen_fp.write('\n')
     
-    WriteHeaders(psfgen_fp,CTopo,LocTopo,PDBAliases)
+    WriteHeaders(psfgen_fp,CTopo,args.loctopo,PDBAliases)
  
     if len(Clv)>0:
         Base.CleaveChains(Clv)
