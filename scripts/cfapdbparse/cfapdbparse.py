@@ -386,7 +386,8 @@ if __name__=='__main__':
     Usl=MrgCmdLineAndFileContents(args.link,args.linkfile,Link)
     UPDBAliases=MrgCmdLineAndFileContents([_.split(',').join(' ') for _ in args.pdbalias],args.pdbaliasfile,str)
 
-    PDBAliases=DefaultPDBAliases.extend(UPDBAliases)
+    #PDBAliases=DefaultPDBAliases.extend(UPDBAliases)
+    DefaultPDBAliases.extend(UPDBAliases)
     print(DefaultPDBAliases)
     print(PDBAliases)
     UIC=args.ignore
