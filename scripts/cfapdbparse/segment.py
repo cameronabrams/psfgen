@@ -286,7 +286,7 @@ class Segment:
             if not tmat.isidentity():
                  stanzastr+=sel.restor('mysel')
             stanzastr+='segment {} {{\n'.format(rep_segname)
-            stanzastr+='    pdb {}\n'.format(thispdb)
+            stanzastr+='    pdb {}\n'.format(pdb)
             stanzastr+='}\n'
             stanzastr+='coordpdb {} {}\n'.format(pdb,rep_segname)
             return stanzastr,[] 
