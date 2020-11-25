@@ -35,7 +35,7 @@ def vmd_instructions(fp,script,logname='tmp.log',args='',msg=''):
 
 def namd_instructions(fp,cfgname,psf,coor,outname,logname,
                       npe=8,numminsteps=0,numsteps=0,seed=0,template='vac.namd',
-                      temperature=310,extras='',msg=''):
+                      temperature=310,extras='',msg='',streamfiles=[]):
     fp.write('echo "structure {}" > tmpnamdheader\n'.format(psf))
     fp.write('echo "coordinates {}" >> tmpnamdheader\n'.format(coor))
     fp.write('cat tmpnamdheader $PSFGEN_BASEDIR/templates/{}'.format(template))
@@ -44,6 +44,10 @@ def namd_instructions(fp,cfgname,psf,coor,outname,logname,
     fp.write('  | sed s/%NUMSTEPS%/{}/'.format(numsteps))
     fp.write('  | sed s/%SEED%/{}/g'.format(seed))
     fp.write('  | sed s/%TEMPERATURE%/{}/g'.format(temperature))
+    ln=14
+    for st in streamfiles:
+        fp.wrte('  | sed "i {} {}" '.format(ln,st))
+        ln+=1
     if extras!='':
         fp.write('  | '+extras)
     fp.write(' > {}\n'.format(cfgname))
@@ -302,6 +306,13 @@ def DictFromString(string):
             my_dict[k]=v
     return my_dict
 
+def GetStreamFileNames(giventopos):
+    streamfilesnames=[]
+    for t in giventopos:
+        if t[-3:] == 'str':
+            streamfilesnames.append(t)
+    return streamfilesnames
+
 if __name__=='__main__':
     seed=random.randint(0,100000)
     temperature=400
@@ -500,7 +511,8 @@ if __name__=='__main__':
     cfgname=r'run${TASK}-1.namd'
     namd_instructions(fp,cfgname,currpsf,currpdb,outname,r'run${TASK}-1.log',npe=npe,
                       numminsteps=nummin,numsteps=numsteps,seed=random.randint(0,10000),
-                      template='vac.namd',temperature=temperature,msg='first relaxation')
+                      template='vac.namd',temperature=temperature,msg='first relaxation',
+                      streamfiles=GetStreamFileNames(CTopo+LocTopo))
     namdbin='{}.coor'.format(outname)
     currpdb='{}.pdb'.format(outname)
     vmd_instructions(fp,r'$PSFGEN_BASEDIR/scripts/namdbin2pdb.tcl',logname=r'namdbin2pdb${TASK}-1.log',
@@ -538,7 +550,8 @@ if __name__=='__main__':
         extras=r'sed "41 i fixedatoms on" | sed "42 i fixedatomsfile fixed.pdb" | sed "43 i fixedatomscol B" | sed "44 i colvars on" | sed "45 i colvarsconfig cv.inp"'
         namd_instructions(fp,cfgname,currpsf,currpdb,outname,logname,npe=npe,
                       numminsteps=0,numsteps=int(1.5*target_numsteps),seed=random.randint(0,10000),
-                      template='vac.namd',temperature=temperature,extras=extras,msg='healing')
+                      template='vac.namd',temperature=temperature,extras=extras,msg='healing'
+                      streamfiles=GetStreamFileNames(CTopo+LocTopo))
         namdbin='{}.coor'.format(outname)
         currpdb='{}.pdb'.format(outname)
         vmd_instructions(fp,r'$PSFGEN_BASEDIR/scripts/namdbin2pdb.tcl',logname=r'namdbin2pdb${TASK}-1.log',
@@ -560,7 +573,8 @@ if __name__=='__main__':
         outname=r'postnamd${TASK}-3'
         namd_instructions(fp,r'run${TASK}-3.namd',currpsf,currpdb,outname,r'run${TASK}-3.log',npe=npe,
                       numminsteps=nummin,numsteps=numsteps,seed=random.randint(0,10000),
-                      template='vac.namd',temperature=temperature,msg='minimization of ligated peptide bonds')
+                      template='vac.namd',temperature=temperature,msg='minimization of ligated peptide bonds'
+                      streamfiles=GetStreamFileNames(CTopo+LocTopo))
         namdbin='{}.coor'.format(outname)
         currpdb='{}.pdb'.format(outname)
         vmd_instructions(fp,r'$PSFGEN_BASEDIR/scripts/namdbin2pdb.tcl',logname=r'namdbin2pdb${TASK}-1.log',
