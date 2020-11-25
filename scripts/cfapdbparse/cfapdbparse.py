@@ -447,7 +447,7 @@ if __name__=='__main__':
         psfgen_fp.write('{} '.format(a))
     psfgen_fp.write('\n')
     
-    WriteHeaders(psfgen_fp,CTopo,args.LocTopo,PDBAliases)
+    WriteHeaders(psfgen_fp,CTopo,LocTopo,PDBAliases)
  
     if len(Clv)>0:
         Base.CleaveChains(Clv)
