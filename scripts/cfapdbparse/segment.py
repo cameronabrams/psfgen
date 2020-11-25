@@ -3,11 +3,13 @@ _seg_class_={'HOH':'WATER'}
 _seg_class_.update({k:'ION' for k in _pdb_ions_})
 _seg_class_.update({k:'GLYCAN' for k in _pdb_glycans_})
 _seg_class_.update({_ResNameDict_PDB_to_CHARMM_[k]:'GLYCAN' for k in _pdb_glycans_})
+_seg_class_.update({k:'LIGAND' for k in _pdb_ligands_})
+_seg_class_.update({_ResNameDict_PDB_to_CHARMM_[k]:'LIGAND' for k in _pdb_ligands_})
 _seg_class_.update({k:'PROTEIN' for k in _PDBResName123_.values()})
 _seg_class_['HIS']='PROTEIN'
 _seg_class_['HSE']='PROTEIN'
 _seg_class_['HSD']='PROTEIN'
-_segname_second_character_={'PROTEIN':'','ION':'I','WATER':'W','GLYCAN':'G','OTHER':'O'}
+_segname_second_character_={'PROTEIN':'','ION':'I','WATER':'W','GLYCAN':'G','LIGAND':'L','OTHER':'O'}
 import sel
 
 class SubsegmentBounds:
@@ -268,7 +270,10 @@ class Segment:
                 stanzastr+='}\n'
                 stanzastr+='coordpdb {} {}\n'.format(pdb,rep_segname)
             return stanzastr,[]
-        elif self.segtype in ['WATER','ION', 'OTHER']:
+        elif self.segtype == 'LIGAND':
+            # working here
+            pass
+        elif self.segtype in ['WATER','ION','OTHER']:
             f=Fragment(my_chainID,tmat.get_replica_chainID(my_chainID),self.residues[0].resseqnum,self.residues[-1].resseqnum)
             pdb=f.pdb_str()
             self.pdbfiles.append(pdb)

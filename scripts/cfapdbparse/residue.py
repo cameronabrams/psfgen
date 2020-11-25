@@ -1,10 +1,12 @@
 _pdb_ions_=['LIT','SOD','MG','POT','CAL','RUB','CES','BAR','ZN','CAD','CL']
 _pdb_glycans_=['BMA','FUC','GAL','MAN','NAG','SIA','ANE5']
-
+_pdb_ligands_=['EIC','VCG']
 _PDBResName123_={'A':'ALA','R':'ARG','N':'ASN','D':'ASP','C':'CYS','Q':'GLN','E':'GLU','G':'GLY',
                'H':'HSE','I':'ILE','L':'LEU','K':'LYS','M':'MET','F':'PHE','P':'PRO','S':'SER',
                'T':'THR','W':'TRP','Y':'TYR','V':'VAL'}
-_ResNameDict_PDB_to_CHARMM_={'HIS':'HSE','ZN':'ZN2','HOH':'TIP3','CL':'CLA','NAG':'BGNA','MAN':'AMAN','BMA':'BMAN','FUC':'AFUC','GAL':'BGAL','SIA':'ANE5AC', 'ANE5':'ANE5AC'}
+_ResNameDict_PDB_to_CHARMM_={'HIS':'HSE','ZN':'ZN2','HOH':'TIP3','CL':'CLA',
+'NAG':'BGNA','MAN':'AMAN','BMA':'BMAN','FUC':'AFUC','GAL':'BGAL','SIA':'ANE5AC','ANE5':'ANE5AC',
+'EIC':'LIN','VCG':'VCG'}
 #_ResNameDict_PDB_to_CHARMM_={'HIS':'HSE','ZN':'ZN2','HOH':'TIP3','CL':'CLA','NAG':'BGLC','MAN':'AMAN','BMA':'BMAN','FUC':'AFUC','GAL':'BGAL','SIA':'ANE5AC', 'ANE5':'ANE5AC'}
 _ResNameDict_CHARMM_to_PDB_={v:k  for k,v in _ResNameDict_PDB_to_CHARMM_.items()}
 
@@ -20,8 +22,6 @@ class Residue:
             self.name=a.resname
             self.chainID=a.chainID
             self.source_chainID=a.chainID
-            #self.biomt=a.biomt
-            #self.molid=a.molid
             self.atoms=[a]
             self.up=[]
             self.down=[]

@@ -247,7 +247,7 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
         fp.write('mol delete $logid\n')
     return new_pdb_out
 
-def WriteHeaders(fp,charmm_topologies,local_topologies):
+def WriteHeaders(fp,charmm_topologies,local_topologies,pdbaliases):
     fp.write('#### BEGIN HEADER\n')
     fp.write('if {![info exists PSFGEN_BASEDIR]} {\n'+\
 	  '    if {[info exists env(PSFGEN_BASEDIR)]} {\n'+\
@@ -271,20 +271,9 @@ def WriteHeaders(fp,charmm_topologies,local_topologies):
         fp.write('topology $TOPPARDIR/{}\n'.format(t))
     for t in local_topologies:
         fp.write('topology $LOCAL_TOPPARDIR/{}\n'.format(t))
-    fp.write('pdbalias residue HIS HSD\n')
-    fp.write('pdbalias atom ILE CD1 CD\n')
-    fp.write('pdbalias residue NAG BGNA\n')
-    fp.write('pdbalias atom BGNA C7 C\n')
-    fp.write('pdbalias atom BGNA O7 O\n')
-    fp.write('pdbalias atom BGNA C8 CT\n')
-    fp.write('pdbalias atom BGNA N2 N\n')
-    fp.write('pdbalias residue SIA ANE5\n')
-    fp.write('pdbalias atom ANE5 C10 C\n')
-    fp.write('pdbalias atom ANE5 C11 CT\n')
-    fp.write('pdbalias atom ANE5 N5 N\n')
-    fp.write('pdbalias atom ANE5 O1A O11\n')
-    fp.write('pdbalias atom ANE5 O1B O12\n')
-    fp.write('pdbalias atom ANE5 O10 O\n')
+    
+    for al in pdbaliases:
+        fp.write('pdbalias {}\n'.format(al))
 
     for k,v in _ResNameDict_PDB_to_CHARMM_.items():
         fp.write('set RESDICT({}) {}\n'.format(k,v))
@@ -326,9 +315,17 @@ if __name__=='__main__':
     Clv=[]
     Uss=[]
     UIC=[]
+    # defaults
     psfgen='mkpsf.tcl'
     CTopo=['top_all36_prot.rtf','stream/carb/toppar_all36_carb_glycopeptide.str']
     LocTopo=['top_all36_carb.rtf','toppar_water_ions.str']
+    DefaultPDBAliases=['residue HIS HSD','atom ILE CD1 CD','residue NAG BGNA','atom BGNA C7 C',
+                        'atom BGNA O7 O','atom BGNA C8 CT','atom BGNA N2 N','residue SIA ANE5',
+                        'atom ANE5 C10 C','atom ANE5 C11 CT','atom ANE5 N5 N','atom ANE5 O1A O11',
+                        'atom ANE5 O1B O12','atom ANE5 O10 O','atom VCG C01 C1','atom VCG C01 C1','atom VCG C02 C2',
+                        'atom VCG C03 C3','atom VCG C04 C4','atom VCG C05 C5','atom VCG C06 C6','atom VCG C07 C7',
+                        'atom VCG C08 C8','atom VCG C09 C9']
+]
     PostMod={}
     PostMod['center_protein']=True
     prefix='x01_'
@@ -356,6 +353,8 @@ if __name__=='__main__':
     parser.add_argument('-ssfile',metavar='<name>',default='',help='input file listing all disulfide bonds to add that are not already in the PDB file (as an alternative to issuing multiple -ssbond arguments)')
     parser.add_argument('-link',metavar='string',default=[],action='append',type=Link,help='PDB-format LINK record; must have exact spacing')
     parser.add_argument('-linkfile',metavar='<name>',default='',help='input file with PDB-format LINK records the user would like to enforce that are not in the RCSB PDB file')
+    parser.add_argument('-pdbalias',metavar='<str>',default=[],action='append',help='psfgen-formatted pdbalias with commas for spaces')
+    parser.add_argument('-pdbaliasfile',metavar='<str>',default='',help='file containing psfgen-formatted pdbaliases')
     parser.add_argument('-logdcd',metavar='<name>.dcd',default='',help='name of dcd logging file')
     parser.add_argument('-logevery',metavar='<int>',default=1,help='number of MC accepts between successive frame logging')
     parser.add_argument('-logsaveevery',metavar='<int>',default=1,help='number of MC accepts between log writes to disk')
@@ -386,6 +385,10 @@ if __name__=='__main__':
     Att=MrgCmdLineAndFileContents(args.att,args.attfile,Attach)
     Uss=MrgCmdLineAndFileContents(args.ssbond,args.ssfile,SSBond)
     Usl=MrgCmdLineAndFileContents(args.link,args.linkfile,Link)
+    UPDBAliases=MrgCmdLineAndFileContents([_.split(',').join(' ') for _ in args.pdbalias],pdbaliasfile,str)
+
+    PDBAliases=DefaultPDBAliases.extend(UPDBAliases)
+
     UIC=args.ignore
     if len(args.topo)>0:
         CTopo.extend(args.topo)
@@ -438,7 +441,7 @@ if __name__=='__main__':
         psfgen_fp.write('{} '.format(a))
     psfgen_fp.write('\n')
     
-    WriteHeaders(psfgen_fp,CTopo,LocTopo)
+    WriteHeaders(psfgen_fp,CTopo,LocTopo,PDBAliases)
  
     if len(Clv)>0:
         Base.CleaveChains(Clv)
