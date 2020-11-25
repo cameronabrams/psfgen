@@ -254,6 +254,15 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
         fp.write('mol delete $logid\n')
     return new_pdb_out
 
+def CommonPSFGENheader(fp,charmm_topologies,local_topologies):
+     for t in charmm_topologies:
+        fp.write('topology $TOPPARDIR/{}\n'.format(t))
+    for t in local_topologies:
+        fp.write('topology $LOCAL_TOPPARDIR/{}\n'.format(t))
+    print(pdbaliases)
+    for al in pdbaliases:
+        fp.write('pdbalias {}\n'.format(al))
+
 def WriteHeaders(fp,charmm_topologies,local_topologies,pdbaliases):
     fp.write('#### BEGIN HEADER\n')
     fp.write('if {![info exists PSFGEN_BASEDIR]} {\n'+\
@@ -275,13 +284,7 @@ def WriteHeaders(fp,charmm_topologies,local_topologies,pdbaliases):
     fp.write('source ${PSFGEN_BASEDIR}/scripts/vmdrc.tcl\n')
     fp.write('package require psfgen\n')
     fp.write('psfcontext mixedcase\n')
-    for t in charmm_topologies:
-        fp.write('topology $TOPPARDIR/{}\n'.format(t))
-    for t in local_topologies:
-        fp.write('topology $LOCAL_TOPPARDIR/{}\n'.format(t))
-    print(pdbaliases)
-    for al in pdbaliases:
-        fp.write('pdbalias {}\n'.format(al))
+    CommonPSFGENheader(fp)
 
     for k,v in _ResNameDict_PDB_to_CHARMM_.items():
         fp.write('set RESDICT({}) {}\n'.format(k,v))
@@ -387,7 +390,7 @@ if __name__=='__main__':
 #    parser.add_argument('-glymcparams',metavar='<param1=val1,param2=val2,...>',default='',help='Glycan Monte Carlo parameters')
     parser.add_argument('-smdheal',action='store_true',help='asks psfgen to prep for a healing MD simulations to close missing loops')
     parser.add_argument('-kc',action='store_true',help='ignores SEQADV records indicating conflicts; if unset, residues in conflict are mutated to their proper identities')
-    parser.add_argument('-rem',action='store_true',help='revert engineered mutations listed in SEQADV records')
+    parser.add_argument('-rem',action='store_true',default=False,help='revert engineered mutations listed in SEQADV records')
     parser.add_argument('-noc',action='store_true',help='do not center the protein at the origin of the coordinate system')
     parser.add_argument('-ror',default='None,None',metavar='<atomselect string>,<atomselect string>',help='two comma-separated, single-quoted atomselect strings to define two groups of atoms whose centers of mass are aligned against the global z-axis')
     parser.add_argument('-v','--verbosity',action='count',help='output verbosity')
@@ -573,7 +576,11 @@ if __name__=='__main__':
                 fp.write('patch HEAL {c}:{ll} {c}:{l} {c}:{r} {c}:{rr}\n'.format(c=l.replica_chainID,
                             ll=l.residues[-2].resseqnum,l=l.residues[-1].resseqnum,r=l.nextfragntermres,rr=(l.nextfragntermres+1)))
         fp.write('EOF\n')
-        fp.write('cat $PSFGEN_BASEDIR/scripts/ligations.tcl | sed "/#### LIGATION LIST STARTS/r the_healing_patches.inp"  > do_the_healing.tcl\n')
+        tfp=open('topologies.inp','w')
+        CommonPSFGENheader(tfp)
+        tfp.close()
+        fp.write('cat $PSFGEN_BASEDIR/scripts/ligations.tcl | sed "/#### LIGATION LIST STARTS/r the_healing_patches.inp"')
+        fp.write(' sed "/#### TOPOLOGY FILE LIST STARTS/r topologies.inp" > do_the_healing.tcl\n')
         newpsf='ligated.psf'
         newpdb='ligated.pdb'
         vmd_instructions(fp,'do_the_healing.tcl',args='{} {} {} {}'.format(currpsf,currpdb,newpsf,newpdb),logname=r'ligations${TASK}.log')

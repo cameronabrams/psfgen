@@ -16,11 +16,9 @@ if {![info exists CHARMM_TOPPARDIR]} {
 source ${PSFGEN_BASEDIR}/src/loopmc.tcl
 source ${PSFGEN_BASEDIR}/scripts/vmdrc.tcl
 package require psfgen
-topology $TOPPARDIR/top_all36_prot.rtf
-topology $TOPPARDIR/stream/carb/toppar_all36_carb_glycopeptide.str
-topology $LOCAL_TOPPARDIR/top_all36_carb.rtf
-topology $LOCAL_TOPPARDIR/toppar_water_ions.str
-topology $LOCAL_TOPPARDIR/mylink.top
+
+#### TOPOLOGY FILE LIST STARTS
+#### TOPOLOGY FILE LIST ENDS
 
 set psf [lindex $argv 0]
 set coor [lindex $argv 1]
