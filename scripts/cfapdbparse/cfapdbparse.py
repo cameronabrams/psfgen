@@ -576,7 +576,7 @@ if __name__=='__main__':
                             ll=l.residues[-2].resseqnum,l=l.residues[-1].resseqnum,r=l.nextfragntermres,rr=(l.nextfragntermres+1)))
         fp.write('EOF\n')
         tfp=open('topologies.inp','w')
-        CommonPSFGENheader(tfp)
+        CommonPSFGENheader(tfp,CTopo,LocTopo)
         tfp.close()
         fp.write('cat $PSFGEN_BASEDIR/scripts/ligations.tcl | sed "/#### LIGATION LIST STARTS/r the_healing_patches.inp"')
         fp.write(' sed "/#### TOPOLOGY FILE LIST STARTS/r topologies.inp" > do_the_healing.tcl\n')
