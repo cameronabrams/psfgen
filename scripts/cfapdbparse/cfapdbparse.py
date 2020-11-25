@@ -319,7 +319,7 @@ if __name__=='__main__':
     psfgen='mkpsf.tcl'
     CTopo=['top_all36_prot.rtf','stream/carb/toppar_all36_carb_glycopeptide.str']
     LocTopo=['top_all36_carb.rtf','toppar_water_ions.str']
-    DefaultPDBAliases=['residue HIS HSD','atom ILE CD1 CD','residue NAG BGNA','atom BGNA C7 C',
+    PDBAliases=['residue HIS HSD','atom ILE CD1 CD','residue NAG BGNA','atom BGNA C7 C',
                         'atom BGNA O7 O','atom BGNA C8 CT','atom BGNA N2 N','residue SIA ANE5',
                         'atom ANE5 C10 C','atom ANE5 C11 CT','atom ANE5 N5 N','atom ANE5 O1A O11',
                         'atom ANE5 O1B O12','atom ANE5 O10 O','atom VCG C01 C1','atom VCG C01 C1','atom VCG C02 C2',
@@ -387,9 +387,9 @@ if __name__=='__main__':
     UPDBAliases=MrgCmdLineAndFileContents([' '.join(_.split(',')) for _ in args.pdbalias],args.pdbaliasfile,str)
 
     #PDBAliases=DefaultPDBAliases.extend(UPDBAliases)
-    DefaultPDBAliases.extend(UPDBAliases)
-    print(DefaultPDBAliases)
-    print(PDBAliases)
+    PDBAliases.extend(UPDBAliases)
+    #print(DefaultPDBAliases)
+    #print(PDBAliases)
     UIC=args.ignore
     if len(args.topo)>0:
         CTopo.extend(args.topo)
