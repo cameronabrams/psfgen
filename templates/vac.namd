@@ -4,14 +4,6 @@ set temperature     %TEMPERATURE%
 
 paraTypeCharmm      on
 
-parameters $env(HOME)/charmm/toppar/par_all36_prot.prm
-parameters $env(HOME)/charmm/toppar/par_all36_carb.prm
-parameters $env(HOME)/charmm/toppar/par_all36_lipid.prm
-parameters $env(HOME)/charmm/toppar/par_all36_na.prm
-parameters $env(HOME)/charmm/toppar/par_all36_cgenff.prm
-parameters $env(HOME)/charmm/toppar/stream/carb/toppar_all36_carb_glycopeptide.str
-parameters $env(PSFGEN_BASEDIR)/charmm/toppar_water_ions.str
-
 exclude             scaled1-4
 1-4scaling          1.0
 cutoff              10.

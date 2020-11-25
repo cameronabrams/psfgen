@@ -44,7 +44,7 @@ def namd_instructions(fp,cfgname,psf,coor,outname,logname,
     fp.write('  | sed s/%NUMSTEPS%/{}/'.format(numsteps))
     fp.write('  | sed s/%SEED%/{}/g'.format(seed))
     fp.write('  | sed s/%TEMPERATURE%/{}/g'.format(temperature))
-    ln=14
+    ln=6
     for st in stdparamfiles:
         fp.write(" | sed \'{} i parameters {}{}\' ".format(ln,'$env(HOME)/charmm/toppar/',st))
         ln+=1
