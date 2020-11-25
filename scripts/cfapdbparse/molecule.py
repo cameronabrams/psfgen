@@ -627,7 +627,7 @@ class Molecule:
 #        code=code.replace('.pdb','')
         self.psf_outfile='{}{}.psf'.format(prefix,code)
         self.pdb_outfile='{}{}.pdb'.format(prefix,code)
-        fp.write('writepsf {}\n'.format(self.psf_outfile))
+        fp.write('writepsf cmap {}\n'.format(self.psf_outfile))
         fp.write('writepdb {}\n'.format(self.pdb_outfile))
         
         # return the list of loops for the post-mod routine to handle
