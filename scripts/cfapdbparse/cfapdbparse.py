@@ -267,7 +267,7 @@ def WriteHeaders(fp,charmm_topologies,local_topologies,pdbaliases):
     fp.write('source ${PSFGEN_BASEDIR}/src/loopmc.tcl\n')
     fp.write('source ${PSFGEN_BASEDIR}/scripts/vmdrc.tcl\n')
     fp.write('package require psfgen\n')
-    fp.write('psfgen context mixedcase\n')
+    fp.write('psfcontext mixedcase\n')
     for t in charmm_topologies:
         fp.write('topology $TOPPARDIR/{}\n'.format(t))
     for t in local_topologies:

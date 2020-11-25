@@ -230,8 +230,8 @@ class Segment:
                     else:
                         if (ss.sacrins!='0' and i>0 and i<(len(self.subsegbounds)-1)):
                             fragss=self.subsegbounds[i+1]
-                            stanzastr+='patch cter {}:{}{}\n'.format(rep_segname,l.residues[-1].resseqnum,l.residues[-1].insertion)
-                            stanzastr+='patch nter {}:{}\n'.format(rep_segname,l.nextfragntermres)
+                            stanzastr+='patch CTER {}:{}{}\n'.format(rep_segname,l.residues[-1].resseqnum,l.residues[-1].insertion)
+                            stanzastr+='patch NTER {}:{}\n'.format(rep_segname,l.nextfragntermres)
                             stanzastr+='delatom {} {}{}\n'.format(rep_segname,l.residues[-1].resseqnum,ss.sacrins)
             return stanzastr,Loops
         elif self.segtype=='GLYCAN':
