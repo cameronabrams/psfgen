@@ -46,7 +46,7 @@ def namd_instructions(fp,cfgname,psf,coor,outname,logname,
     fp.write('  | sed s/%TEMPERATURE%/{}/g'.format(temperature))
     ln=14
     for st in streamfiles:
-        fp.wrte('  | sed "i {} {}" '.format(ln,st))
+        fp.write('  | sed "i {} {}" '.format(ln,st))
         ln+=1
     if extras!='':
         fp.write('  | '+extras)
