@@ -157,7 +157,7 @@ class Segment:
         my_chainID=self.get_chainID()
         rep_chainID=tmat.get_replica_chainID(my_chainID)
         rep_segname=self.segname.replace(my_chainID,rep_chainID,1)
-        #print('#### writing stanza for chain {} (source {}) segname {}'.format(rep_chainID,my_chainID,rep_segname))
+        print('#### writing stanza for chain {} (source {}) segname {}'.format(rep_chainID,my_chainID,rep_segname))
         if tmat==None:
             print('ERROR: write_psfgen_stanza needs a tmat!')
             exit()
@@ -270,10 +270,10 @@ class Segment:
                 stanzastr+='}\n'
                 stanzastr+='coordpdb {} {}\n'.format(pdb,rep_segname)
             return stanzastr,[]
-        elif self.segtype == 'LIGAND':
-            # working here
-            pass
-        elif self.segtype in ['WATER','ION','OTHER']:
+#        elif self.segtype == 'LIGAND':
+#            # working here
+#            pass
+        elif self.segtype in ['WATER','ION','LIGAND','OTHER']:
             f=Fragment(my_chainID,tmat.get_replica_chainID(my_chainID),self.residues[0].resseqnum,self.residues[-1].resseqnum)
             pdb=f.pdb_str()
             self.pdbfiles.append(pdb)
