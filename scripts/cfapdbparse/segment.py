@@ -288,7 +288,7 @@ class Segment:
             stanzastr+='segment {} {{\n'.format(rep_segname)
             stanzastr+='    pdb {}\n'.format(thispdb)
             stanzastr+='}\n'
-            stanzastr+='coordpdb {} {}\n'.format(thispdb,rep_segname)
+            stanzastr+='coordpdb {} {}\n'.format(pdb,rep_segname)
             return stanzastr,[] 
         else:
             print('ERROR: Unrecognized segment type {}'.format(self.segtype))
