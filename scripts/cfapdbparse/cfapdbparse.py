@@ -336,7 +336,7 @@ if __name__=='__main__':
            'top_all36_na.rtf','stream/carb/toppar_all36_carb_glycopeptide.str']
     # default local topologies: these are specially modified charmm str files that get rid of things that PSFGEN can't handle
     LocTopo=['top_all36_carb.rtf','toppar_water_ions.str']
-    StdParamFiles=['par_all36_prot.prm','par_all36_carb.str','par_all36_lipid.prm','par_all36_na.prm','par_all36_cgenff.prm','stream/carb/toppar_all36_carb_glycopeptide.str']
+    StdParamFiles=['par_all36_prot.prm','par_all36_carb.prm','par_all36_lipid.prm','par_all36_na.prm','par_all36_cgenff.prm','stream/carb/toppar_all36_carb_glycopeptide.str']
     LocalParamFiles=['toppar_water_ions.str']
     PDBAliases=['residue HIS HSD','atom ILE CD1 CD','residue NAG BGNA','atom BGNA C7 C',
                         'atom BGNA O7 O','atom BGNA C8 CT','atom BGNA N2 N','residue SIA ANE5',
