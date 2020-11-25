@@ -387,7 +387,7 @@ if __name__=='__main__':
     UPDBAliases=MrgCmdLineAndFileContents([_.split(',').join(' ') for _ in args.pdbalias],args.pdbaliasfile,str)
 
     PDBAliases=DefaultPDBAliases.extend(UPDBAliases)
-
+    print(PDBAliases)
     UIC=args.ignore
     if len(args.topo)>0:
         CTopo.extend(args.topo)
