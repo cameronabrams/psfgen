@@ -318,7 +318,9 @@ if __name__=='__main__':
     UIC=[]
     # defaults
     psfgen='mkpsf.tcl'
-    CTopo=['top_all36_prot.rtf','stream/carb/toppar_all36_carb_glycopeptide.str']
+    CTopo=['top_all36_prot.rtf','top_all35_ethers.rtf','top_all36_cgenff.rtf','top_all36_lipid.rtf',
+           'top_all36_na.rtf','stream/carb/toppar_all36_carb_glycopeptide.str']
+    # default local topologies: these are specially modified charmm str files that get rid of things that PSFGEN can't handle
     LocTopo=['top_all36_carb.rtf','toppar_water_ions.str']
     PDBAliases=['residue HIS HSD','atom ILE CD1 CD','residue NAG BGNA','atom BGNA C7 C',
                         'atom BGNA O7 O','atom BGNA C8 CT','atom BGNA N2 N','residue SIA ANE5',
@@ -394,6 +396,7 @@ if __name__=='__main__':
     #print(PDBAliases)
     UIC=args.ignore
     CTopo.extend(args.charmmtopo)
+    LocTopo.extend(args.loctopo)
 
     prefix=args.prefix
 #    PostMod['do_loop_mc']=args.rlxloops
