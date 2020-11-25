@@ -35,7 +35,7 @@ def vmd_instructions(fp,script,logname='tmp.log',args='',msg=''):
 
 def namd_instructions(fp,cfgname,psf,coor,outname,logname,
                       npe=8,numminsteps=0,numsteps=0,seed=0,template='vac.namd',
-                      temperature=310,extras='',msg='',streamfiles=[]):
+                      temperature=310,extras='',msg='',stdparamfiles=[],localparamfiles=[]):
     fp.write('echo "structure {}" > tmpnamdheader\n'.format(psf))
     fp.write('echo "coordinates {}" >> tmpnamdheader\n'.format(coor))
     fp.write('cat tmpnamdheader $PSFGEN_BASEDIR/templates/{}'.format(template))
@@ -45,8 +45,11 @@ def namd_instructions(fp,cfgname,psf,coor,outname,logname,
     fp.write('  | sed s/%SEED%/{}/g'.format(seed))
     fp.write('  | sed s/%TEMPERATURE%/{}/g'.format(temperature))
     ln=14
-    for st in streamfiles:
-        fp.write(" | sed \'{} i {}\' ".format(ln,st))
+    for st in stdparamfiles:
+        fp.write(" | sed \'{} i parameters {}{}\' ".format(ln,'$env(HOME)/charmm/toppar/',st))
+        ln+=1
+    for st in localparamfiles:
+        fp.write(" | sed \'{} i parameters {}{}\' ".format(ln,'$env(PSFGEN_BASEDIR)/charmm/',st))
         ln+=1
     if extras!='':
         fp.write('  | '+extras)
@@ -333,6 +336,8 @@ if __name__=='__main__':
            'top_all36_na.rtf','stream/carb/toppar_all36_carb_glycopeptide.str']
     # default local topologies: these are specially modified charmm str files that get rid of things that PSFGEN can't handle
     LocTopo=['top_all36_carb.rtf','toppar_water_ions.str']
+    StdParamFiles=['par_all36_prot.prm','par_al36_carb.str','par_all36_lipid.prm','par_all36_na.prm','par_all36_cgenff.prm','stream/carb/toppar_all36_carb_glycopeptide.str']
+    LocalParamFiles=['toppar_water_ions.str']
     PDBAliases=['residue HIS HSD','atom ILE CD1 CD','residue NAG BGNA','atom BGNA C7 C',
                         'atom BGNA O7 O','atom BGNA C8 CT','atom BGNA N2 N','residue SIA ANE5',
                         'atom ANE5 C10 C','atom ANE5 C11 CT','atom ANE5 N5 N','atom ANE5 O1A O11',
@@ -350,6 +355,8 @@ if __name__=='__main__':
     parser.add_argument('pdbcif',nargs='+',metavar='<?.pdb|cif>',type=str,help='name(s) of pdb or CIF file to parse; first is treated as the base molecule; others are not considered (for now)')
     parser.add_argument('-charmmtopo',metavar='<name>',action='append',default=[],help='additional (standard) CHARMM topology files in your CHARMM directory')
     parser.add_argument('-loctopo',metavar='<name>',action='append',default=[],help='additional (local) CHARMM topology files in the PSFGEN/charmm directory')
+    parser.add_argument('-charmmparam',metavar='<name>',action='append',default=[],help='additional (standard) CHARMM parameter files in your CHARMM directory')
+    parser.add_argument('-locparam',metavar='<name>',action='append',default=[],help='additional (local) CHARMM parameter files in the PSFGEN/charmm directory')
     parser.add_argument('-prefix',metavar='<str>',default='x01_',help='output PDB/PSF prefix; each file name will have the format <prefix><pdbcode>.pdb/psf, where <pdbcode> is the 4-letter PDB code of the base molecule.')
     parser.add_argument('-psfgen',metavar='<name>',default='mkpsf.tcl',help='name of TcL script generated as input to VMD/psfgen')
     parser.add_argument('-ignore',metavar='X',action='append',default=[],type=str,help='Specify a chain to ignore.  Multiple -ignore switches can be used to ignore more than one chain.')
@@ -408,6 +415,8 @@ if __name__=='__main__':
     UIC=args.ignore
     CTopo.extend(args.charmmtopo)
     LocTopo.extend(args.loctopo)
+    StdParamFiles.extend(args.charmmparam)
+    LocalParamFiles.extend(args.locparam)
 
     prefix=args.prefix
 #    PostMod['do_loop_mc']=args.rlxloops
@@ -512,7 +521,7 @@ if __name__=='__main__':
     namd_instructions(fp,cfgname,currpsf,currpdb,outname,r'run${TASK}-1.log',npe=npe,
                       numminsteps=nummin,numsteps=numsteps,seed=random.randint(0,10000),
                       template='vac.namd',temperature=temperature,msg='first relaxation',
-                      streamfiles=GetStreamFileNames(CTopo+LocTopo))
+                      stdparamfiles=StdParamFiles,localparamfiles=LocalParamFiles)
     namdbin='{}.coor'.format(outname)
     currpdb='{}.pdb'.format(outname)
     vmd_instructions(fp,r'$PSFGEN_BASEDIR/scripts/namdbin2pdb.tcl',logname=r'namdbin2pdb${TASK}-1.log',
@@ -551,7 +560,7 @@ if __name__=='__main__':
         namd_instructions(fp,cfgname,currpsf,currpdb,outname,logname,npe=npe,
                       numminsteps=0,numsteps=int(1.5*target_numsteps),seed=random.randint(0,10000),
                       template='vac.namd',temperature=temperature,extras=extras,msg='healing',
-                      streamfiles=GetStreamFileNames(CTopo+LocTopo))
+                      stdparamfiles=StdParamFiles,localparamfiles=LocalParamFiles)
         namdbin='{}.coor'.format(outname)
         currpdb='{}.pdb'.format(outname)
         vmd_instructions(fp,r'$PSFGEN_BASEDIR/scripts/namdbin2pdb.tcl',logname=r'namdbin2pdb${TASK}-1.log',
@@ -574,7 +583,7 @@ if __name__=='__main__':
         namd_instructions(fp,r'run${TASK}-3.namd',currpsf,currpdb,outname,r'run${TASK}-3.log',npe=npe,
                       numminsteps=nummin,numsteps=numsteps,seed=random.randint(0,10000),
                       template='vac.namd',temperature=temperature,msg='minimization of ligated peptide bonds',
-                      streamfiles=GetStreamFileNames(CTopo+LocTopo))
+                      stdparamfiles=StdParamFiles,localparamfiles=LocalParamFiles)
         namdbin='{}.coor'.format(outname)
         currpdb='{}.pdb'.format(outname)
         vmd_instructions(fp,r'$PSFGEN_BASEDIR/scripts/namdbin2pdb.tcl',logname=r'namdbin2pdb${TASK}-1.log',
