@@ -384,7 +384,7 @@ if __name__=='__main__':
     Att=MrgCmdLineAndFileContents(args.att,args.attfile,Attach)
     Uss=MrgCmdLineAndFileContents(args.ssbond,args.ssfile,SSBond)
     Usl=MrgCmdLineAndFileContents(args.link,args.linkfile,Link)
-    UPDBAliases=MrgCmdLineAndFileContents([_.split(',').join(' ') for _ in args.pdbalias],args.pdbaliasfile,str)
+    UPDBAliases=MrgCmdLineAndFileContents([' '.join(_.split(',')) for _ in args.pdbalias],args.pdbaliasfile,str)
 
     #PDBAliases=DefaultPDBAliases.extend(UPDBAliases)
     DefaultPDBAliases.extend(UPDBAliases)
