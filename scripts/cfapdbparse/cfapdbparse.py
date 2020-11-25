@@ -255,13 +255,10 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
     return new_pdb_out
 
 def CommonPSFGENheader(fp,charmm_topologies,local_topologies):
-     for t in charmm_topologies:
+    for t in charmm_topologies:
         fp.write('topology $TOPPARDIR/{}\n'.format(t))
     for t in local_topologies:
         fp.write('topology $LOCAL_TOPPARDIR/{}\n'.format(t))
-    print(pdbaliases)
-    for al in pdbaliases:
-        fp.write('pdbalias {}\n'.format(al))
 
 def WriteHeaders(fp,charmm_topologies,local_topologies,pdbaliases):
     fp.write('#### BEGIN HEADER\n')
@@ -285,7 +282,9 @@ def WriteHeaders(fp,charmm_topologies,local_topologies,pdbaliases):
     fp.write('package require psfgen\n')
     fp.write('psfcontext mixedcase\n')
     CommonPSFGENheader(fp)
-
+    print(pdbaliases)
+    for al in pdbaliases:
+        fp.write('pdbalias {}\n'.format(al))
     for k,v in _ResNameDict_PDB_to_CHARMM_.items():
         fp.write('set RESDICT({}) {}\n'.format(k,v))
     for k,v in _PDBAtomNameDict_.items():
