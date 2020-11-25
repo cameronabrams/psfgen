@@ -157,7 +157,7 @@ class Segment:
         my_chainID=self.get_chainID()
         rep_chainID=tmat.get_replica_chainID(my_chainID)
         rep_segname=self.segname.replace(my_chainID,rep_chainID,1)
-        print('#### writing stanza for chain {} (source {}) segname {} type'.format(rep_chainID,my_chainID,rep_segname,self.segtype))
+        print('#### writing stanza for chain {} (source {}) segname {} type {}'.format(rep_chainID,my_chainID,rep_segname,self.segtype))
         if tmat==None:
             print('ERROR: write_psfgen_stanza needs a tmat!')
             exit()
