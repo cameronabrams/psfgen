@@ -550,7 +550,7 @@ if __name__=='__main__':
         extras=r'sed "41 i fixedatoms on" | sed "42 i fixedatomsfile fixed.pdb" | sed "43 i fixedatomscol B" | sed "44 i colvars on" | sed "45 i colvarsconfig cv.inp"'
         namd_instructions(fp,cfgname,currpsf,currpdb,outname,logname,npe=npe,
                       numminsteps=0,numsteps=int(1.5*target_numsteps),seed=random.randint(0,10000),
-                      template='vac.namd',temperature=temperature,extras=extras,msg='healing'
+                      template='vac.namd',temperature=temperature,extras=extras,msg='healing',
                       streamfiles=GetStreamFileNames(CTopo+LocTopo))
         namdbin='{}.coor'.format(outname)
         currpdb='{}.pdb'.format(outname)
@@ -573,7 +573,7 @@ if __name__=='__main__':
         outname=r'postnamd${TASK}-3'
         namd_instructions(fp,r'run${TASK}-3.namd',currpsf,currpdb,outname,r'run${TASK}-3.log',npe=npe,
                       numminsteps=nummin,numsteps=numsteps,seed=random.randint(0,10000),
-                      template='vac.namd',temperature=temperature,msg='minimization of ligated peptide bonds'
+                      template='vac.namd',temperature=temperature,msg='minimization of ligated peptide bonds',
                       streamfiles=GetStreamFileNames(CTopo+LocTopo))
         namdbin='{}.coor'.format(outname)
         currpdb='{}.pdb'.format(outname)
