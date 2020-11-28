@@ -579,7 +579,7 @@ if __name__=='__main__':
         CommonPSFGENheader(tfp,CTopo,LocTopo)
         tfp.close()
         fp.write('cat $PSFGEN_BASEDIR/scripts/ligations.tcl | sed "/#### LIGATION LIST STARTS/r the_healing_patches.inp"')
-        fp.write(' sed "/#### TOPOLOGY FILE LIST STARTS/r topologies.inp" > do_the_healing.tcl\n')
+        fp.write(' | sed "/#### TOPOLOGY FILE LIST STARTS/r topologies.inp" > do_the_healing.tcl\n')
         newpsf='ligated.psf'
         newpdb='ligated.pdb'
         vmd_instructions(fp,'do_the_healing.tcl',args='{} {} {} {}'.format(currpsf,currpdb,newpsf,newpdb),logname=r'ligations${TASK}.log')
