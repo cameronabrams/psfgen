@@ -11,8 +11,9 @@
 # 2. change coordinates of a selection of atoms in the system using 
 #    coordinates in the target PDB
 #
-# In addition to identifying the three input files (PSF, PDB or COOR, and PDB),
-# the user must specify the alignment basis and the target selection.  
+# In addition to identifying the three input files (the system PSF and PDB or COOR,
+# and the target PDB), the user must specify the alignment basis selection and the 
+# target selection.  
 #
 # ALIGNMENT BASIS.  This is a comma-separated list of colon-delimited pairs.  
 # Each pair indicates unique sets of congruent residues in the system and 
@@ -76,32 +77,32 @@ proc build_atom_select_strings { csl } {
 }
 
 proc mapresids { shortcode &map } {
-     upvar 1 ${&map} arr
-     set myl [split $shortcode " "]
-     for {set i 0} {$i<[llength $myl]} {incr i} {
-	set rawwrd [lindex $myl $i]
-	set newwrd $rawwrd
-	set chrs [split $rawwrd ""]
+    upvar 1 ${&map} arr
+    set myl [split $shortcode " "]
+    for {set i 0} {$i<[llength $myl]} {incr i} {
+	    set rawwrd [lindex $myl $i]
+	    set newwrd $rawwrd
+	    set chrs [split $rawwrd ""]
         set anum ""
-	set fst -1
-	set lst 0
-	for {set j 0} {$j<[llength $chrs]} {incr j} {
-	    set c [lindex $chrs $j]
-	    if {[string is integer $c]} {
+	    set fst -1
+	    set lst 0
+	    for {set j 0} {$j<[llength $chrs]} {incr j} {
+	        set c [lindex $chrs $j]
+	        if {[string is integer $c]} {
                 set anum "$anum$c"
-		if {$fst==-1} {
-		    set fst $j
-		}
-		set lst $j
+		        if {$fst==-1} {
+		            set fst $j
+		        }
+		        set lst $j
             }
         }
-	if { $anum != "" } {
-	    set newwrd [string replace $rawwrd $fst $lst $arr($anum)]
-	    lset myl $i $newwrd
+	    if { $anum != "" } {
+	        set newwrd [string replace $rawwrd $fst $lst $arr($anum)]
+	        lset myl $i $newwrd
         }
-     }
-     set newshortcode [join $myl " "]
-     return $newshortcode
+    }
+    set newshortcode [join $myl " "]
+    return $newshortcode
 }
 
 proc main { argv } {
@@ -136,12 +137,12 @@ proc main { argv } {
         }
         if { [lindex $argv $i] == "--map21" } {
             incr i
-	    # argument is name of tcl script that defines
-	    # an associative array called "mymap"
+	        # argument is name of tcl script that defines
+	        # an associative array called "mymap"
             source [lindex $argv $i]
-	    if { ! [info exists mymap] } {
+	        if { ! [info exists mymap] } {
                 puts "Error: [lindex $argv $i] does not define mymap.  No target resid renumbering is done."
-	    }
+	        }
         }
     }
     
@@ -182,10 +183,10 @@ proc main { argv } {
     # will be translated to their corresponding numberings in the system by 
     # the user-supplied map.
     if { [info exists mymap ] } {
-	set mapped [mapresids [lindex $alb 0] mymap]
-	lset alb 0 $mapped
-	set mapped [mapresids [lindex $tas 0] mymap]
-	lset tas 0 $mapped
+	    set mapped [mapresids [lindex $alb 0] mymap]
+	    lset alb 0 $mapped
+	    set mapped [mapresids [lindex $tas 0] mymap]
+	    lset tas 0 $mapped
     }
     puts "System: $psf $cor"
     puts "Target pdb: $tarpdb"

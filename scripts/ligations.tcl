@@ -19,6 +19,7 @@ package require psfgen
 psfcontext mixedcase
 
 #### TOPOLOGY FILE LIST STARTS
+topology ${PSFGEN_BASEDIR}/charmm/mylink.top
 #### TOPOLOGY FILE LIST ENDS
 
 set psf [lindex $argv 0]

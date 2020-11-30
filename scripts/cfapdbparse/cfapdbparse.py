@@ -558,7 +558,8 @@ if __name__=='__main__':
         outname=r'postnamd${TASK}-2'
         cfgname=r'run${TASK}-2.namd'
         logname=r'run${TASK}-2.log'
-        extras=r'sed "41 i fixedatoms on" | sed "42 i fixedatomsfile fixed.pdb" | sed "43 i fixedatomscol B" | sed "44 i colvars on" | sed "45 i colvarsconfig cv.inp"'
+        extras=r'sed "41 i fixedatoms on" | sed "42 i fixedatomsfile fixed.pdb" | sed "43 i fixedatomscol B"'
+        extras+=r' | sed "44 i colvars on" | sed "45 i colvarsconfig cv.inp"'
         namd_instructions(fp,cfgname,currpsf,currpdb,outname,logname,npe=npe,
                       numminsteps=0,numsteps=int(1.5*target_numsteps),seed=random.randint(0,10000),
                       template='vac.namd',temperature=temperature,extras=extras,msg='healing',

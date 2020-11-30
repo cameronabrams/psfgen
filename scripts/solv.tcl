@@ -51,6 +51,7 @@ foreach d {0 1 2} {
 
 package require solvate
 package require autoionize
+psfcontext mixedcase
 
 solvate $psf $pdb -minmax $box -o ${outputname1}
 autoionize -psf ${outputname1}.psf -pdb ${outputname1}.pdb -neutralize -o ${outpre}
