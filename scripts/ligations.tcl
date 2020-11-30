@@ -16,6 +16,7 @@ if {![info exists CHARMM_TOPPARDIR]} {
 source ${PSFGEN_BASEDIR}/src/loopmc.tcl
 source ${PSFGEN_BASEDIR}/scripts/vmdrc.tcl
 package require psfgen
+psfcontext mixedcase
 
 #### TOPOLOGY FILE LIST STARTS
 #### TOPOLOGY FILE LIST ENDS
@@ -32,11 +33,11 @@ set m0 [molinfo top get id]
 set segnames [lsort -unique [[atomselect $m0 "all"] get segname]]
 
 foreach s $segnames {
-  [atomselect top "segname $s"] writepdb SEG$s.pdb
-  segment $s {
-     pdb SEG$s.pdb
-  }
-  coordpdb SEG$s.pdb $s
+    [atomselect top "segname $s"] writepdb SEG$s.pdb
+    segment $s {
+        pdb SEG$s.pdb
+    }
+    coordpdb SEG$s.pdb $s
 }
 
 source patches.inp
