@@ -6,11 +6,11 @@
 #
 # some assumptions are made about the syntax of the input config file; read output carefully.
 #
+# ***To use this function, source this file in your current bash session, or in your .bashrc***
+#
 # example:
 #
 # prep_namd_restart first_run.conf run.log restart_run.conf
-#
-# to use this function in your own script, just source this file
 #
 # Cameron Abrams cfa22@drexel.edu
 # 2020
