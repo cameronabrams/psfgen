@@ -19,6 +19,7 @@ function prep_namd_restart {
     CONF=$1
     LOG=$2
     RECONF=$3
+    USERSTEPS=$4
     REOUTNAME=$(basename "$RECONF" | cut -d. -f1)
     if [ ! -f $CONF ] ; then
         echo "Error: $CONF not found."
@@ -28,28 +29,32 @@ function prep_namd_restart {
         echo "Error: $LOG not found."
         return 1
     fi
-    stepsrequested=`grep ^run $CONF | awk '{print $2}' | sed 's/;$//'`
-    if [ -z "${stepsrequested}" ]; then
-         stepsrequested=`grep ^numsteps $CONF | awk '{print $2}' | sed 's/;$//'`
-         if [ -z "${stepsrequested}" ]; then
-             echo "Error: $CONF does not contain a run or numsteps statement."
-             return 1
-         fi
-    fi
-    lastout=`grep "set outputname" $CONF | awk '{print $3}' | sed 's/;$//'`
-    if [ -z "${lastout}" ]; then
-         lastout=`grep ^outputname $CONF | awk '{print $2}' | sed 's/;$//'`
-         if [ -z "${lastout}" ]; then
-             echo "Error: $CONF does not contain an outputname specification."
-             return 1
-         fi
-    fi
     stepsrun=`grep "EXTENDED SYSTEM TO RESTART" $LOG | tail -1 | awk '{print $NF}'`
     if [ -z "${stepsrun}" ]; then
         echo "Error: Cannot determine checkpoint timestep from $LOG"
         return 1
     fi
-    stepsleft=$(($stepsrequested-$stepsrun))
+    if [ ! -z "${USERSTEPS}" ]; then
+        stepsleft=$USERSTEPS
+    else
+        stepsrequested=`grep ^run $CONF | awk '{print $2}' | sed 's/;$//'`
+        if [ -z "${stepsrequested}" ]; then
+            stepsrequested=`grep ^numsteps $CONF | awk '{print $2}' | sed 's/;$//'`
+            if [ -z "${stepsrequested}" ]; then
+                echo "Error: $CONF does not contain a run or numsteps statement."
+                return 1
+            fi
+        fi
+        stepsleft=$(($stepsrequested-$stepsrun))
+    fi
+    lastout=`grep "set outputname" $CONF | awk '{print $3}' | sed 's/;$//'`
+    if [ -z "${lastout}" ]; then
+        lastout=`grep ^outputname $CONF | awk '{print $2}' | sed 's/;$//'`
+        if [ -z "${lastout}" ]; then
+            echo "Error: $CONF does not contain an outputname specification."
+            return 1
+        fi
+    fi
     if [[ $stepsleft -eq 0 ]]; then
         echo "${LOG} indicates run has finished ($stepsleft steps left); no restart is necessary."
         echo "The final checkpoint is in ${lastout}.coor, ${lastout}.vel, and ${lastout}.xsc."
