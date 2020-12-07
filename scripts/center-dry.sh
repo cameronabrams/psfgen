@@ -12,7 +12,7 @@
 #    -sel "selection string" ["protein"]
 #
 if [[ -z "${VMD}" ]]; then
-    VMD=/opt/vmd/1.9.4a38/bin/vmd
+    VMD=/opt/vmd/1.9.4a38/bin/vmd 
     if [[ ! -f $VMD ]]; then
         echo "No vmd found at $VMD"
         exit
@@ -107,7 +107,7 @@ fi
 cat >> tmp.tcl << EOF
 exit
 EOF
-$VMD -dispdev text -e tmp.tcl -args $DCDARGSTR > $LOG 2&>1
+$VMD -dispdev text -e tmp.tcl -args $DCDARGSTR > $LOG 2>&1
 rm tmp.tcl
 exit
 

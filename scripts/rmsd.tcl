@@ -1,5 +1,5 @@
 # compute rmsd vs frame number
-set setstr "protein and name CA"
+set selstr "protein and name CA"
 set outfile "rmsd.dat"
 
 set argc [llength $argv]
