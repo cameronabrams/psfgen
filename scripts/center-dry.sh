@@ -11,11 +11,17 @@
 #    -o   outfile.dcd REQUIRED
 #    -sel "selection string" ["protein"]
 #
-VMD=/opt/vmd/1.9.4a38/bin/vmd
+if [[ -z "${VMD}" ]]; then
+    VMD=/opt/vmd/1.9.4a38/bin/vmd
+    if [[ ! -f $VMD ]]; then
+        echo "No vmd found at $VMD"
+        exit
+    fi
+fi
 PSF=
 DCDCSL=
 OUTFILE=
-SEL="protein"
+SEL="protein or glycan"
 POSITIONAL=()
 while [[ $# -gt 0 ]]
 do
