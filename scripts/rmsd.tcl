@@ -34,6 +34,7 @@ set a [atomselect top "protein and name CA"]
 set fp [open $outfile "w"]
 for {set i 0} {$i < [molinfo top get numframes]} {incr i} {
     $a frame $i
+    $a move [measure fit $a $a0]
     puts $fp "$i [format %.4f [measure rmsd $a $a0]]"
 }
 close $fp

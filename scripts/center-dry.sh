@@ -18,6 +18,7 @@ if [[ -z "${VMD}" ]]; then
         exit
     fi
 fi
+LOG=center-dry.log
 PSF=
 DCDCSL=
 OUTFILE=
@@ -30,6 +31,11 @@ key="$1"
 case $key in
     -vmd)
     VMD="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    -log)
+    LOG="$2"
     shift # past argument
     shift # past value
     ;;
@@ -101,7 +107,7 @@ fi
 cat >> tmp.tcl << EOF
 exit
 EOF
-$VMD -dispdev text -e tmp.tcl -args $DCDARGSTR
+$VMD -dispdev text -e tmp.tcl -args $DCDARGSTR > $LOG 2&>1
 rm tmp.tcl
 exit
 
