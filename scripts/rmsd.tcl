@@ -15,7 +15,7 @@ if { ! [file exists $psf] } {
 }
 set dcd {}
 for { set a 1 } { $a < [llength $argv] } { incr a } {
-    set d [lindex $argv $i]
+    set d [lindex $argv $a]
     lappend dcd $d
     if { ! [file exists $d] } {
         puts "Error: DCD file $d not found."
