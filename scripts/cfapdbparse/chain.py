@@ -8,6 +8,7 @@ class Chain:
         self.Segments=[]
         self.subCounter={}
         self.subCounter['GLYCAN']=0
+        self.subCounter['L']
         self.parent_molecule=parent_molecule
 
     def get_molid(self):
@@ -94,6 +95,9 @@ class Chain:
                 if _seg_class_[r.name]=='GLYCAN':
                    ''' if this is a glycan residue, use the segnaming convention '''
                    s=Segment(r,subcounter=self.nextSubCounter('GLYCAN'),parent_chain=self)
+                elif _seg_class_[r.name]=='LIGAND':
+                   ''' if this is a ligand residue, use the segnaming convention '''
+                   s=Segment(r,subcounter=self.nextSubCounter('LIGAND'),parent_chain=self)
                 else:
                    s=Segment(r,parent_chain=self)
                 self.Segments.append(s)
@@ -124,6 +128,8 @@ class Chain:
                     # if this is a glycan, segname is AGnn, where nn is the next avail. glycan number
                     if _seg_class_[r.name]=='GLYCAN':
                        s=Segment(r,subcounter=self.nextSubCounter('GLYCAN'),parent_chain=self)
+                    elif _seg_class_[r.name]=='LIGAND':
+                       s=Segment(r,subcounter=self.nextSubCounter('LIGAND'),parent_chain=self)
                     else:
                        s=Segment(r,parent_chain=self)
                     self.Segments.append(s)
