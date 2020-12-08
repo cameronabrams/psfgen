@@ -36,8 +36,8 @@ def vmd_instructions(fp,script,logname='tmp.log',args='',msg=''):
 def namd_instructions(fp,cfgname,psf,coor,outname,logname,
                       npe=8,numminsteps=0,numsteps=0,seed=0,template='vac.namd',
                       temperature=310,extras=[],msg='',stdparamfiles=[],localparamfiles=[],
-                      stdcharmmdir=r'$env(HOME)/charmm/toppar',
-                      localcharmmdir=r'$env(PSFGEN_BASEDIR)/charmm'):
+                      stdcharmmdir=r'\$env(HOME)/charmm/toppar',
+                      localcharmmdir=r'\$env(PSFGEN_BASEDIR)/charmm'):
     fp.write('cat $PSFGEN_BASEDIR/templates/{}'.format(template))
     fp.write('  | sed s/%OUT%/{}/g'.format(outname))
     fp.write('  | sed s/%NUMMIN%/{}/'.format(numminsteps))
