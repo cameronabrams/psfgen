@@ -312,6 +312,9 @@ def DictFromString(string):
             my_dict[k]=v
     return my_dict
 
+def DefOrDict(d,varname,default):
+    return default if varname not in d else d[varname]
+
 def GetStreamFileNames(giventopos):
     streamfilesnames=[]
     for t in giventopos:
@@ -510,10 +513,12 @@ if __name__=='__main__':
     ''' Generate the postscript '''
     nummin=1000
     numsteps=2000
+    temperature=310
     if 'NAMD_params' in PostMod:
         p=PostMod['NAMD_params']
-        nummin=nummin if 'nummin' not in p else p['nummin']
-        numsteps=numsteps if 'numsteps' not in p else p['numsteps']
+        nummin=DefOrDict(p,'nummin',nummin)
+        numsteps=DefOrDict(p,'numsteps',numsteps)
+        temperature=DefOrDict(p,'temperature',temperature)
     currpdb=post_pdb
     currpsf=Base.psf_outfile
     print('Run the script {} to complete the build.'.format(postscriptname))
@@ -551,8 +556,8 @@ if __name__=='__main__':
         target_numsteps=20000
         if 'preclose_params' in PostMod:
             p=PostMod['preclose_params']
-            temperature_close=temperature_close if 'temperature_close' in p else p['temperature_close']
-            target_numsteps=target_numsteps if 'target_numsteps' in p else p['target_numsteps']
+            temperature_close=DefOrDict(p,'temperature_close',temperature_close)
+            target_numsteps=DefOrDict(p,'target_numsteps',target_numsteps)
         fp.write('cat > close_these.inp << EOF\n')
         for l in sorted(Loops, key=lambda x: len(x.residues)):
             if (l.term and len(l.residues)>2):
