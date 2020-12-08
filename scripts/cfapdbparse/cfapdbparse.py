@@ -527,7 +527,7 @@ if __name__=='__main__':
     fp=open(postscriptname,'w')
     fp.write(r'#!/bin/bash'+'\n')
     fp.write('# {}: completes the build of {}\n'.format(postscriptname,currpsf))
-    fp.write('echo "Postscript {} begins.\n'.format(postscriptname))
+    fp.write('echo "Postscript {} begins."\n'.format(postscriptname))
     fp.write('TASK=$1\n')
     fp.write('echo "Completing the task-'+r'${TASK}'+' build of {}"\n'.format(currpsf))
     vmd_instructions(fp,psfgen,logname=r'psfgen${TASK}.log',msg='generates psf={} pdb={}'.format(currpsf,currpdb))
