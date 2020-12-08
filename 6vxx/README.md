@@ -19,12 +19,12 @@ This workflow generates a solvated, cleaved, fully glycosylated SARS-CoV-2 S spi
 ```
 $ mkdir 6vxx
 $ cd 6vxx
-$ $PSFGEN_BASEDIR/scripts/do_py.sh -pyparser-args "-grafile $PSFGEN_BASEDIR/6vxx/grafts.inp -smdheal" -pyparser-args "-clv A685 -clv B685 -clv C685" -solv-stage-steps 100,200,400,800,20000 -temperature 310 -pdb 6vxx -pdb 2wah -pdb 4byh -pdb 4b7i
+$ $PSFGEN_BASEDIR/scripts/do_py.sh -pyparser-args "-grafile $PSFGEN_BASEDIR/6vxx/grafts.inp -smdclose" -pyparser-args "-clv A685 -clv B685 -clv C685" -solv-stage-steps 100,200,400,800,20000 -temperature 310 -pdb 6vxx -pdb 2wah -pdb 4byh -pdb 4b7i
 ```
 
 The `do_py.sh` script executes a series of tasks, beginning with downloading the required PDB file from the RCSB (if needed), then passing through a sequence of parse/psfgen/relax cycles to generate a complete vacuum structure, followed by solvation via psfgen, and finally through as series of solvated relaxations via NPT MD.  
 
-In this particular case, the driver runs two parser instances in series, indicated by the two `-pyparser-args` arguments.  The first will add missing loops and graft on glycans, and the second executes the cleavages at the furin sites.  Five stages of solvated equilibration are requested (which helps with patch-grid errors as the box size equilibrates).  The 2wah, 4yh, and 4b7i PDB entries contain large glycans that are grafted according to the graft records in `grafts.inp`.
+In this particular case, the driver runs two parser instances in series, indicated by the two `-pyparser-args` arguments.  The first will add missing loops and graft on glycans, and the second executes the cleavages at the furin sites.  The `-smdclose` switch indicates that missing loops that are added by psfgen will be "closed" using steered MD.  Five stages of solvated equilibration are requested (which helps with patch-grid errors as the box size equilibrates).  The 2wah, 4yh, and 4b7i PDB entries contain large glycans that are grafted according to the graft records in `grafts.inp`.
 
 To make an uncleaved S trimer, simply omit the second `-pyparser-args` switch.
 
