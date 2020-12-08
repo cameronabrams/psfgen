@@ -71,6 +71,7 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
     logfile=''
     logevery=1
     lobsavevery=-1
+    lay_cycles=100
     if 'log_dcd_file' in PostMod:
         logfile=PostMod['log_dcd_file']
     if 'log_every' in PostMod:
@@ -78,6 +79,8 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
     if 'log_save_every' in PostMod:
         logsaveevery=PostMod['log_save_every']
     logdcd=len(logfile)>0
+    if 'lay_cycles' in PostMod:
+        lay_cycles=PostMod['lay_cycles']
 
     prefix=pdb[:]
     prefix=prefix.replace('.pdb','')
@@ -129,7 +132,8 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
 
         for l in sorted(Loops, key=lambda x: len(x.residues)):
             if (l.term and len(l.residues)>2):
-                fp.write('lay_loop $molid {} [range {} {} 1] {}\n'.format(l.replica_chainID,l.residues[0].resseqnum,l.residues[-1].resseqnum,100))
+                fp.write('lay_loop $molid {} [range {} {} 1] {}\n'.format(l.replica_chainID,
+                          l.residues[0].resseqnum,l.residues[-1].resseqnum,lay_cycles))
         # 2. NAMD: Minimize
         # 3. VMD: Check for pierced rings
         # 4. NAMD: SMD loop closure
