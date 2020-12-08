@@ -117,7 +117,7 @@ class Chain:
                                 s.add_residue(r)
                                 found=True
                                 break
-                        else:
+                        elif s.segtype!='LIGAND':
                             #fp.write('adding')
                             s.add_residue(r)
                             found=True
