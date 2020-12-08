@@ -630,7 +630,7 @@ if __name__=='__main__':
         fp.write('fi\n')
 
     fp.write('echo {} {} {} > .tmpvar\n'.format(currpsf,currpdb,currcfg))
-    fp.write('# {} finishes.\n'.format(postscriptname))
+    fp.write('echo "Postscript {} finishes."\n'.format(postscriptname))
     fp.write('exit 0')
     fp.close()
     os.system('chmod 744 {}'.format(postscriptname))

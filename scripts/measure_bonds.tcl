@@ -1,6 +1,6 @@
 # measure_bonds.tcl -- 
 # reads lines from input file, each is CHAIN, RES1, RES2
-# measures distance between C on RES1 and CA on RES2
+# measures distance between C on RES1 and N on RES2
 # appends that distance to the lines
 # writes all lines back out to file
 
@@ -8,6 +8,10 @@
 
 set psf [lindex $argv 0]
 set coor [lindex $argv 1]
+set fixed "fixed.pdb"
+if { [llength $argv] > 2 } {
+    set fixed [lindex $argv 2]
+}
 mol new $psf
 mol addfile $coor
 set a [atomselect top "all"]
@@ -40,5 +44,5 @@ foreach c $CH i $RES1 j $RES2 b $bl {
     puts $fp "$c $i $j [format %.4f $b]"
 }
 close $fp
-$a writepdb "fixed.pdb"
+$a writepdb $fixed
 exit
