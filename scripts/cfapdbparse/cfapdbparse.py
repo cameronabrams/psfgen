@@ -31,6 +31,7 @@ def vmd_instructions(fp,script,logname='tmp.log',args='',msg=''):
         fp.write(r'$VMD -dispdev text -e '+script+r' 2&> '+logname+'\n')
     fp.write('if [ $? -ne 0 ]; then\n')
     fp.write('   echo "VMD failed.  Check the log file {}."\n'.format(logname))
+    fp.write('   exit 1\n')
     fp.write('fi\n')
 
 def namd_instructions(fp,cfgname,psf,coor,outname,logname,
@@ -567,7 +568,7 @@ if __name__=='__main__':
         fp.write('EOF\n')
         # measures to find the initial distances; generated fixed.pdb to fix the N atoms 
         logname=r'close${TASK}.log'
-        args='{} {} close_these.inp'.format(currpsf,currpdb)
+        args='{} {} close_these.inp fixed.pdb'.format(currpsf,currpdb)
         vmd_instructions(fp,r'$PSFGEN_BASEDIR/scripts/measure_bonds.tcl',logname=logname,args=args,msg='creating closing input')
         fp.write('if [ -f cv.inp ]; then rm cv.inp; fi\n')
         fp.write('touch cv.inp\n')

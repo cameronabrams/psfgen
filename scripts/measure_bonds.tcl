@@ -5,14 +5,17 @@
 # writes all lines back out to file
 
 # first argument is PSF, second is PDB or COOR, third is name of input file
-
+puts "#### measure_bonds.tcl: args: $argv"
+if { [llength $argv] != 4 } {
+    puts "ERROR: measure_bonds.tcl expects four positional arguments:"
+    puts "psf coor infile-to-be-modified fixed-pdb"
+    exit 1
+}
 set psf [lindex $argv 0]
 set coor [lindex $argv 1]
 set infile [lindex $argv 2]
-set fixed "fixed.pdb"
-if { [llength $argv] > 3 } {
-    set fixed [lindex $argv 3]
-}
+set fixed [lindex $argv 3]
+
 mol new $psf
 mol addfile $coor
 set a [atomselect top "all"]
