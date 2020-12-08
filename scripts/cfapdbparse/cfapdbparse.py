@@ -26,9 +26,9 @@ from residue import Residue, _PDBResName123_, _pdb_glycans_, _pdb_ions_, _ResNam
 def vmd_instructions(fp,script,logname='tmp.log',args='',msg=''):
     fp.write('echo "VMD) script={} log={} msg: {}"\n'.format(script,logname,msg))
     if args!='':
-        fp.write(r'$VMD -dispdev text -e '+script+r' -args '+args+r' 2&> '+logname+'\n')
+        fp.write(r'$VMD -dispdev text -e '+script+r' -args '+args+r' > '+logname+' 2>&1\n')
     else:
-        fp.write(r'$VMD -dispdev text -e '+script+r' 2&> '+logname+'\n')
+        fp.write(r'$VMD -dispdev text -e '+script+r' > '+logname+' 2>&1\n')
     fp.write('if [ $? -ne 0 ]; then\n')
     fp.write('   echo "VMD failed.  Check the log file {}."\n'.format(logname))
     fp.write('   exit 1\n')
