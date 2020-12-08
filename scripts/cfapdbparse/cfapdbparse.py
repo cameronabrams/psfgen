@@ -38,7 +38,7 @@ def namd_instructions(fp,cfgname,psf,coor,outname,logname,
                       temperature=310,extras=[],msg='',stdparamfiles=[],localparamfiles=[],
                       stdcharmmdir='$env(HOME)/charmm/toppar',
                       localcharmmdir='$env(PSFGEN_BASEDIR)/charmm'):
-    fp.write('cat$PSFGEN_BASEDIR/templates/{}'.format(template))
+    fp.write('cat $PSFGEN_BASEDIR/templates/{}'.format(template))
     fp.write('  | sed s/%OUT%/{}/g'.format(outname))
     fp.write('  | sed s/%NUMMIN%/{}/'.format(numminsteps))
     fp.write('  | sed s/%NUMSTEPS%/{}/'.format(numsteps))
