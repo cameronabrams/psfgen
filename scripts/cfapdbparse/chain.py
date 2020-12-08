@@ -8,7 +8,7 @@ class Chain:
         self.Segments=[]
         self.subCounter={}
         self.subCounter['GLYCAN']=0
-        self.subCounter['L']
+        self.subCounter['LIGAND']=0
         self.parent_molecule=parent_molecule
 
     def get_molid(self):
