@@ -60,7 +60,7 @@ def namd_instructions(fp,cfgname,psf,coor,outname,logname,
     fp.write(r'$CHARMRUN '+namdp+r' $NAMD2 '+cfgname+r' > '+logname+'\n')
     fp.write('if [ $? -ne 0 ]; then\n')
     fp.write('   echo "NAMD failed.  Check log file {}."\n'.format(logname))
-    fp.write('   exit\n')
+    fp.write('   exit 1\n')
     fp.write('fi\n')
 
 def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
@@ -549,7 +549,7 @@ if __name__=='__main__':
     fp.write(r'  echo "Error: There are $npiercings piercings in '+'{}"\n'.format(currpdb))
     fp.write('  grep pierces {}\n'.format(logname))
     fp.write('  echo "Change your relaxation parameters and try again."\n')
-    fp.write('  exit\n')
+    fp.write('  exit 1\n')
     fp.write('fi\n')
     if 'do_preclose_min_smd' in PostMod and PostMod['do_preclose_min_smd']:
         temperature_close=400
@@ -624,11 +624,12 @@ if __name__=='__main__':
         fp.write(r'  echo "Error: There are $npiercings piercings in '+'{}"\n'.format(currpdb))
         fp.write('  grep pierces {}\n'.format(logname))
         fp.write('  echo "Change your relaxation parameters and try again."\n')
-        fp.write('  exit\n')
+        fp.write('  exit 1\n')
         fp.write('fi\n')
 
     fp.write('echo {} {} {} > .tmpvar\n'.format(currpsf,currpdb,currcfg))
     fp.write('# {} finishes.\n'.format(postscriptname))
+    fp.write('exit 0')
     fp.close()
     os.system('chmod 744 {}'.format(postscriptname))
 

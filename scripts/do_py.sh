@@ -149,6 +149,10 @@ for pi in `seq 0 $((nparse-1))`; do
    CURRPSFGEN=psfgen${TASK}.tcl
    $PYTHON3 $PYPARSER ${pyparser_args[$pi]} -pe ${NPE} -postscript ps${TASK}.sh -psfgen ${CURRPSFGEN} ${CURRPDB}
    ./ps${TASK}.sh $TASK
+   if [ $? -ne 0 ]; then
+       echo "Postscript ps${TASK}.sh failed."
+       exit 1
+    fi
    read CURRPSF CURRPDB CURRCFG < .tmpvar
 done
 
