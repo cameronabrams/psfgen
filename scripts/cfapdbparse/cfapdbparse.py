@@ -527,13 +527,15 @@ if __name__=='__main__':
     fp=open(postscriptname,'w')
     fp.write(r'#!/bin/bash'+'\n')
     fp.write('# {}: completes the build of {}\n'.format(postscriptname,currpsf))
+    fp.write('echo "Postscript {} begins.'.format(postscriptname))
     fp.write('TASK=$1\n')
     fp.write('echo "Completing the task-'+r'${TASK}'+' build of {}"\n'.format(currpsf))
     vmd_instructions(fp,psfgen,logname=r'psfgen${TASK}.log',msg='generates psf={} pdb={}'.format(currpsf,currpdb))
     fp.write("cat {} | sed \'1,/#### BEGIN PATCHES/d;/#### END PATCHES/,$d\' > patches.inp\n".format(psfgen))
     outname=r'postnamd${TASK}-1'
-    cfgname=r'run${TASK}-1.namd'
-    namd_instructions(fp,cfgname,currpsf,currpdb,outname,r'run${TASK}-1.log',npe=npe,
+    currcfg=r'run${TASK}-1.namd'
+    currlog=r'run${TASK}-1.log'
+    namd_instructions(fp,currcfg,currpsf,currpdb,outname,currlog,npe=npe,
                       numminsteps=nummin,numsteps=numsteps,seed=random.randint(0,10000),
                       template='vac.namd',temperature=temperature,msg='first relaxation',
                       stdparamfiles=StdParamFiles,localparamfiles=LocalParamFiles)
