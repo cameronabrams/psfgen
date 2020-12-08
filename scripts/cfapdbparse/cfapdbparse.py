@@ -540,7 +540,7 @@ if __name__=='__main__':
     namdbin='{}.coor'.format(outname)
     currpdb='{}.pdb'.format(outname)
     vmd_instructions(fp,r'$PSFGEN_BASEDIR/scripts/namdbin2pdb.tcl',logname=r'namdbin2pdb${TASK}-1.log',
-                        args='{} {} {}'.format(currpsf,namdbin,'tmp.pdb'))
+                        args='{} {} {}'.format(currpsf,namdbin,'tmp.pdb'),msg='converting namdbin to pdb')
     fp.write('cat charmm_header.pdb tmp.pdb > {}\n'.format(currpdb))
     logname=r'ringp${TASK}-1.log'
     vmd_instructions(fp,r'$PSFGEN_BASEDIR/scripts/ringp.tcl',logname=logname,args='{} {}'.format(currpsf,currpdb),msg='checking for pierced rings')
@@ -577,7 +577,7 @@ if __name__=='__main__':
         outname=r'postnamd${TASK}-2'
         currcfg=r'run${TASK}-2.namd'
         currlog=r'run${TASK}-2.log'
-        extras=['fixed atoms on','fixeadtomsfile fixed.pdb','fixedatomscol B','colvars on','colvarsconfig cv.inp']
+        extras=['fixedatoms on','fixedatomsfile fixed.pdb','fixedatomscol B','colvars on','colvarsconfig cv.inp']
         namd_instructions(fp,currcfg,currpsf,currpdb,outname,currlog,npe=npe,
                       numminsteps=0,numsteps=int(1.5*target_numsteps),seed=random.randint(0,10000),
                       template='vac.namd',temperature=temperature_close,extras=extras,msg='closeing',
@@ -585,7 +585,7 @@ if __name__=='__main__':
         namdbin='{}.coor'.format(outname)
         currpdb='{}.pdb'.format(outname)
         vmd_instructions(fp,r'$PSFGEN_BASEDIR/scripts/namdbin2pdb.tcl',logname=r'namdbin2pdb${TASK}-1.log',
-                        args='{} {} {}'.format(currpsf,namdbin,'tmp.pdb'))
+                        args='{} {} {}'.format(currpsf,namdbin,'tmp.pdb'),msg='converting namdbin to pdb')
         fp.write('cat charmm_header.pdb tmp.pdb > {}\n'.format(currpdb))
         fp.write('cat > closure_patches.inp << EOF\n')
         for l in sorted(Loops, key=lambda x: len(x.residues)):
@@ -614,7 +614,7 @@ if __name__=='__main__':
         namdbin='{}.coor'.format(outname)
         currpdb='{}.pdb'.format(outname)
         vmd_instructions(fp,r'$PSFGEN_BASEDIR/scripts/namdbin2pdb.tcl',logname=r'namdbin2pdb${TASK}-1.log',
-                        args='{} {} {}'.format(currpsf,namdbin,'tmp.pdb'))
+                        args='{} {} {}'.format(currpsf,namdbin,'tmp.pdb'),msg='converting namdbin to pdb')
         fp.write('cat charmm_header.pdb tmp.pdb > {}\n'.format(currpdb))
  
         logname=r'ringp${TASK}-2.log'
