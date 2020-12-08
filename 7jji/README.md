@@ -21,7 +21,7 @@ This workflow generates a solvated, cleaved, fully glycosylated SARS-CoV-2 S spi
 ```
 $ mkdir 7jji
 $ cd 7jji
-$ $PSFGEN_BASEDIR/scripts/do_py.sh -pyparser-args "-grafile $PSFGEN_BASEDIR/7jji/grafts.inp -crot $PSFGEN_BASEDIR/7jji/crot.inp -loctopo vcg-paramchem-ic.str -locparam vcg-paramchem-ic.str -charmmtopo stream/lipid/toppar_all36_lipid_detergent.str -charmmparam stream/lipid/toppar_all36_lipid_detergent.str -rem -smdheal" -pyparser-args "-clv A685 -clv B685 -clv C685 -loctopo vcg-paramchem-ic.str -locparam vcg-paramchem-ic.str -charmmtopo stream/lipid/toppar_all36_lipid_detergent.str -charmmparam stream/lipid/toppar_all36_lipid_detergent.str" -solv-stage-steps 100,200,400,800,20000 -temperature 310 -pdb 7jji -pdb 2wah -pdb 4byh -pdb 4b7i
+$ $PSFGEN_BASEDIR/scripts/do_py.sh -pyparser-args "-grafile $PSFGEN_BASEDIR/7jji/grafts.inp -crotfile $PSFGEN_BASEDIR/7jji/crot.inp -loctopo vcg-paramchem-ic.str -locparam vcg-paramchem-ic.str -charmmtopo stream/lipid/toppar_all36_lipid_detergent.str -charmmparam stream/lipid/toppar_all36_lipid_detergent.str -rem -smdheal" -pyparser-args "-clv A685 -clv B685 -clv C685 -loctopo vcg-paramchem-ic.str -locparam vcg-paramchem-ic.str -charmmtopo stream/lipid/toppar_all36_lipid_detergent.str -charmmparam stream/lipid/toppar_all36_lipid_detergent.str" -solv-stage-steps 100,200,400,800,20000 -temperature 310 -pdb 7jji -pdb 2wah -pdb 4byh -pdb 4b7i
 ```
 
 The `do_py.sh` script executes a series of tasks, beginning with downloading the required PDB file from the RCSB (if needed), then passing through a sequence of parse/psfgen/relax cycles to generate a complete vacuum structure, followed by solvation via psfgen, and finally through as series of solvated relaxations via NPT MD.  
