@@ -364,7 +364,12 @@ class Molecule:
                 print('{:d} SEQADV records; {:d} conflicts/mutations: {:s}'.format(len(self.Seqadv),nc,", ".join(cons)))
 
     def MakeBiomolecules(self):
-        self.chainIDs_allowed=set(['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'])
+        ltrs=set()
+        for x in range(26):
+            ltrs.add(chr(ord('A')+x))
+            ltrs.add(chr(ord('a')+x))
+        self.chainIDs_allowed=ltrs
+#        self.chainIDs_allowed=set(['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'])
         chainIDs_detected=[]
         for a in self.Atoms:
             if a.chainID not in chainIDs_detected:

@@ -18,10 +18,10 @@ where `PDB.pdb` is the name of pdb file in the RCSB that contains the glycan, an
 
 This workflow generates a solvated, cleaved, fully glycosylated SARS-CoV-2 S spike ectodomain trimer based on the 7jji PDB entry.  It uses the `cfapdbparser.py` package and the general driver `do_py.sh`.   Make sure your environment variable PSFGEN_BASEDIR resolves to the root directory of your local copy of this repository (mine is ${HOME}/research/psfgen).  It is also assumed below that CHARMRUN resolves to your local charmrun executable and NAMD2 resolves to your local NAMD2 executable.  (For me, these are /home/cfa/namd/NAMD_2.14_Source/Linux-x86_64-g++/charmrun and /home/cfa/namd/NAMD_2.14_Source/Linux-x86_64-g++/namd2.
 
+The following command, if issued in an empty directory, will create the production MD system.
+
 ```
-$ mkdir 7jji
-$ cd 7jji
-$ $PSFGEN_BASEDIR/scripts/do_py.sh -pyparser-args "-grafile $PSFGEN_BASEDIR/7jji/grafts.inp -crotfile $PSFGEN_BASEDIR/7jji/crot.inp -loctopo vcg-paramchem-ic.str -locparam vcg-paramchem-ic.str -charmmtopo stream/lipid/toppar_all36_lipid_detergent.str -charmmparam stream/lipid/toppar_all36_lipid_detergent.str -rem -smdclose" -pyparser-args "-clv A685 -clv B685 -clv C685 -loctopo vcg-paramchem-ic.str -locparam vcg-paramchem-ic.str -charmmtopo stream/lipid/toppar_all36_lipid_detergent.str -charmmparam stream/lipid/toppar_all36_lipid_detergent.str" -solv-stage-steps 100,200,400,800,20000 -temperature 310 -pdb 7jji -pdb 2wah -pdb 4byh -pdb 4b7i
+$PSFGEN_BASEDIR/scripts/do_py.sh -pyparser-args "-grafile $PSFGEN_BASEDIR/7jji/grafts.inp -crotfile $PSFGEN_BASEDIR/7jji/crot.inp -loctopo vcg-paramchem-ic.str -locparam vcg-paramchem-ic.str -charmmtopo stream/lipid/toppar_all36_lipid_detergent.str -charmmparam stream/lipid/toppar_all36_lipid_detergent.str -rem -smdclose" -pyparser-args "-clv A685 -clv B685 -clv C685 -loctopo vcg-paramchem-ic.str -locparam vcg-paramchem-ic.str -charmmtopo stream/lipid/toppar_all36_lipid_detergent.str -charmmparam stream/lipid/toppar_all36_lipid_detergent.str" -solv-stage-steps 100,200,400,800,20000 -temperature 310 -pdb 7jji -pdb 2wah -pdb 4byh -pdb 4b7i
 ```
 
 The `do_py.sh` script executes a series of tasks, beginning with downloading the required PDB file from the RCSB (if needed), then passing through a sequence of parse/psfgen/relax cycles to generate a complete vacuum structure, followed by solvation via psfgen, and finally through as series of solvated relaxations via NPT MD.  
