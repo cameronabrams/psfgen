@@ -1,3 +1,5 @@
+# this psfgen script template is used to generate a VMD script that
+# will close loops indicated in a "ligation list"
 if {![info exists PSFGEN_BASEDIR]} {
     if {[info exists env(PSFGEN_BASEDIR)]} {
         set PSFGEN_BASEDIR $env(PSFGEN_BASEDIR)

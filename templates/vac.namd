@@ -1,8 +1,12 @@
 set outputname      %OUT%
 seed                %SEED%
 set temperature     %TEMPERATURE%
+#### SYSTEM CONFIGURATION FILES BEGIN
+#### SYSTEM CONFIGURATION FILES END
 
 paraTypeCharmm      on
+#### PARAMETER FILES BEGIN
+#### PARAMETER FILES END
 
 exclude             scaled1-4
 1-4scaling          1.0
@@ -28,6 +32,9 @@ langevinHydrogen    yes
 outputEnergies      10
 dcdfreq             100
 restartfreq         100
+
+#### EXTRAS BEGIN
+#### EXTRAS END
 
 firsttimestep       0
 minimize            %NUMMIN%

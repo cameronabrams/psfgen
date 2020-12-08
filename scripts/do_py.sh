@@ -147,10 +147,9 @@ CURRPDB=$BASEPDB
 for pi in `seq 0 $((nparse-1))`; do
    TASK=$((TASK+1))
    CURRPSFGEN=psfgen${TASK}.tcl
-#   CURRPSFLOG=`echo $CURRPSFGEN | sed s/tcl/log/`
    $PYTHON3 $PYPARSER ${pyparser_args[$pi]} -pe ${NPE} -postscript ps${TASK}.sh -psfgen ${CURRPSFGEN} ${CURRPDB}
    ./ps${TASK}.sh $TASK
-   read CURRPSF CURRPDB < .tmpvar
+   read CURRPSF CURRPDB CURRCFG < .tmpvar
 done
 
 # solvate
@@ -162,38 +161,56 @@ CURRPDB=config${TASK}.pdb
 
 # run solvated NAMD
 TASK=$((TASK+1))
-echo "structure $CURRPSF" > namd_header.${TASK}
-echo "coordinates $CURRPDB" >> namd_header.${TASK}
-cp namd_header.${TASK} namd_header.${TASK}-0
+if [ ! -f "$CURRCFG" ]; then
+    echo "Error: Previous-stage NAMD configuration file $CURRCFG not found."
+fi
+# get parameter designations from last config file
+grep ^parameters $CURRCFG | grep -v water > _par.inp
+echo "#### No binary inputs yet -- this run begins using PDB coordinates" > _bin.inp
 firsttimestep=0
 ls=`echo "${#numsteps[@]} - 1" | bc`
 for s in `seq 0 $ls`; do
     echo "Running namd2 (stage $s) on solvated system..."
     lastnamd=run${TASK}_stage${s}.namd
-    cat namd_header.${TASK}-$s $PSFGEN_BASEDIR/templates/solv.namd | \
+    lastsys=config${TASK}_stage${s}
+    cat $PSFGEN_BASEDIR/templates/solv.namd | \
+        sed "/#### SYSTEM CONFIGURATION FILES BEGIN/r _bin.inp" | \
+        sed "/#### SYSTEM CONFIGURATION FILES END/i structure $CURRPSF" | \
+        sed "/#### SYSTEM CONFIGURATION FILES END/i coordinates $CURRPDB" | \
+        sed "/#### PARAMETER FILES BEGIN/r _par.inp" | \
         sed s/%STAGE%/${s}/g | \
-        sed s/%OUT%/config${TASK}_stage${s}/g | \
+        sed s/%OUT%/${lastsys}/g | \
         sed s/%NUMSTEPS%/${numsteps[$s]}/g | \
         sed s/%SEED%/${seed}/g | \
         sed s/%TEMPERATURE%/${temperature}/g | \
         sed s/%FIRSTTIMESTEP%/$firsttimestep/g > $lastnamd 
     $CHARMRUN +p${NPE} $NAMD2 $lastnamd > run${TASK}_stage${s}.log
+    if [ $? -ne 0 ]; then
+        echo "NAMD failes.  Check log file run${TASK}_stage${s}.log"
+    fi
     firsttimestep=`echo "100 + $firsttimestep + ${numsteps[$s]}" | bc`
     ss=$((s+1))
-    cp namd_header.${TASK} namd_header.${TASK}-$ss
-    echo "bincoordinates config${TASK}_stage${s}.coor" >> namd_header.${TASK}-$ss
-    echo "binvelocities  config${TASK}_stage${s}.vel"  >> namd_header.${TASK}-$ss
-    echo "extendedsystem config${TASK}_stage${s}.xsc"  >> namd_header.${TASK}-$ss
+    
+    echo "bincoordinates ${lastsys}.coor" > _bin.inp
+    echo "binvelocities  ${lastsys}.vel"  >> _bin.inp
+    echo "extendedsystem ${lastsys}.xsc"  >> _bin.inp
 done
 
+# Prep for production MD
+# copy all charmm parameter files to this directory and
+# create 'par.inp', which contains local dir file names
 ${PSFGEN_BASEDIR}/scripts/cp_charmm.sh $lastnamd
 firsttimestep=0
-cat namd_header.${TASK}-$ss $PSFGEN_BASEDIR/templates/prod.namd | \
+cat $PSFGEN_BASEDIR/templates/prod.namd | \
+    sed "/#### SYSTEM CONFIGURATION FILES BEGIN/r _bin.inp" | \
+    sed "/#### SYSTEM CONFIGURATION FILES END/i structure $CURRPSF" | \
+    sed "/#### SYSTEM CONFIGURATION FILES END/i coordinates $CURRPDB" | \
+    sed "/#### PARAMETER FILES BEGIN/r par.inp" | \
     sed s/%OUT%/prod/g | \
     sed s/%NUMSTEPS%/$PRODUCTION_STEPS/g | \
     sed s/%SEED%/${seed}/g | \
     sed s/%TEMPERATURE%/${temperature}/g | \
-    sed -e '/%PARAMETERS%/{r par.inp' -e 'd}' > prod.namd
+    sed s/%FIRSTTIMESTEP%/$firsttimestep/g > prod.namd
  
 tar zvcf prod.tgz $CURRPSF \
                   $CURRPDB \
@@ -203,6 +220,6 @@ tar zvcf prod.tgz $CURRPSF \
                   `cat par.inp | awk '{print $2}'` \
                   prod.namd
 
-rm namd_header* cell.inp par.inp *restart*
+rm namd_header* cell.inp par.inp _bin.inp _par.inp *restart*
 echo "Done.  Created prod.tgz."
 

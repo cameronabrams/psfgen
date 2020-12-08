@@ -35,26 +35,26 @@ def vmd_instructions(fp,script,logname='tmp.log',args='',msg=''):
 
 def namd_instructions(fp,cfgname,psf,coor,outname,logname,
                       npe=8,numminsteps=0,numsteps=0,seed=0,template='vac.namd',
-                      temperature=310,extras='',msg='',stdparamfiles=[],localparamfiles=[]):
-    fp.write('echo "structure {}" > tmpnamdheader\n'.format(psf))
-    fp.write('echo "coordinates {}" >> tmpnamdheader\n'.format(coor))
-    fp.write('cat tmpnamdheader $PSFGEN_BASEDIR/templates/{}'.format(template))
+                      temperature=310,extras=[],msg='',stdparamfiles=[],localparamfiles=[],
+                      stdcharmmdir='$env(HOME)/charmm/toppar',
+                      localcharmmdir='$env(PSFGEN_BASEDIR)/charmm'):
+    fp.write('cat$PSFGEN_BASEDIR/templates/{}'.format(template))
     fp.write('  | sed s/%OUT%/{}/g'.format(outname))
     fp.write('  | sed s/%NUMMIN%/{}/'.format(numminsteps))
     fp.write('  | sed s/%NUMSTEPS%/{}/'.format(numsteps))
     fp.write('  | sed s/%SEED%/{}/g'.format(seed))
     fp.write('  | sed s/%TEMPERATURE%/{}/g'.format(temperature))
-    ln=8
+    fp.write('  | sed "/#### SYSTEM CONFIGURATION FILES END/i structure {}"'.format(psf))
+    fp.write('  | sed "/#### SYSTEM CONFIGURATION FILES END/i coordinates {}"'.format(coor))
+    sentinelline='#### PARAMETER FILES END'
     for st in stdparamfiles:
-        fp.write(" | sed \'{} i parameters {}{}\' ".format(ln,'$env(HOME)/charmm/toppar/',st))
-        ln+=1
+        fp.write(' | sed "/{}/i parameters {}/{}" '.format(sentinelline,stdcharmmdir,st))
     for st in localparamfiles:
-        fp.write(" | sed \'{} i parameters {}{}\' ".format(ln,'$env(PSFGEN_BASEDIR)/charmm/',st))
-        ln+=1
-    if extras!='':
-        fp.write('  | '+extras)
+        fp.write(' | sed "/{}/i parameters {}/{}" '.format(sentinelline,localcharmmdir,st))
+    sentinelline='#### EXTRAS END'
+    for ex in extras:
+        fp.write('  | sed "/'+sentinelline+'/i '+ex+'" ')
     fp.write(' > {}\n'.format(cfgname))
-    fp.write('rm tmpnamdheader\n')
     namdp='+p{:d}'.format(npe)
     fp.write('echo "NAMD2) config={} log={} outputname={} msg={}"\n'.format(cfgname,logname,outname,msg))
     fp.write(r'$CHARMRUN '+namdp+r' $NAMD2 '+cfgname+r' > '+logname+'\n')
@@ -71,7 +71,7 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
     logfile=''
     logevery=1
     lobsavevery=-1
-    lay_cycles=100
+
     if 'log_dcd_file' in PostMod:
         logfile=PostMod['log_dcd_file']
     if 'log_every' in PostMod:
@@ -127,19 +127,16 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
         fp.write(crot.psfgen_str(molid=r'$molid'))
         if logdcd:
             fp.write('log_addframe $molid $logid\n')
-    if 'do_preheal_min_smd' in PostMod and PostMod['do_preheal_min_smd']:
-        # 1. VMD: For each loop, lay down
-
+    if 'do_preclose_min_smd' in PostMod and PostMod['do_preclose_min_smd']:
+        lay_cycles=100
+        if 'preclose_params' in PostMod:
+            p=PostMod['preclose_params']
+            lay_cycles=lay_cycles if 'lay_cycles' not in p else p['lay_cycles']
         for l in sorted(Loops, key=lambda x: len(x.residues)):
             if (l.term and len(l.residues)>2):
                 fp.write('lay_loop $molid {} [range {} {} 1] {}\n'.format(l.replica_chainID,
                           l.residues[0].resseqnum,l.residues[-1].resseqnum,lay_cycles))
-        # 2. NAMD: Minimize
-        # 3. VMD: Check for pierced rings
-        # 4. NAMD: SMD loop closure
-        #     - generate cv.inp
-        # 5. VMD: Ligate loop-frag peptide bonds
-        # 6. NAMD: Minimize (this is already the next step in the workflow)
+
         
     if 'do_multiflex_mc' in PostMod and PostMod['do_multiflex_mc']:
         nc=1000
@@ -324,10 +321,7 @@ def GetStreamFileNames(giventopos):
 
 if __name__=='__main__':
     seed=random.randint(0,100000)
-    temperature=400
-    nummin=1000
-    numsteps=2000
-    target_numsteps=20000
+
     parser=argparse.ArgumentParser()
     print('cfapdbparse {} / python {}'.format(date.today(),sys.version.replace('\n',' ').split(' ')[0]))
     i=1
@@ -391,7 +385,9 @@ if __name__=='__main__':
     parser.add_argument('-rlxmcparams',metavar='<param1=val1,param2=val2,...>',default='',help='Loop Monte Carlo parameters')
 #    parser.add_argument('-rlxgly',action='store_true',help='asks psfgen to use the loopMC module to relax modeled-in glycans missing from PDB')
 #    parser.add_argument('-glymcparams',metavar='<param1=val1,param2=val2,...>',default='',help='Glycan Monte Carlo parameters')
-    parser.add_argument('-smdheal',action='store_true',help='asks psfgen to prep for a healing MD simulations to close missing loops')
+    parser.add_argument('-smdclose',action='store_true',help='asks psfgen to prep for steered MD simulation to close loops')
+    parser.add_argument('-smdcloseparams',metavar='<param1=val1,param2=val2,...>',default='',help='parameters for steered MD for closing loops')
+    parser.add_argument('-namdparams',metavar='<param1=val1,param2=val2,...>',default='',help='parameters for NAMD runs')
     parser.add_argument('-kc',action='store_true',help='ignores SEQADV records indicating conflicts; if unset, residues in conflict are mutated to their proper identities')
     parser.add_argument('-rem',action='store_true',default=False,help='revert engineered mutations listed in SEQADV records')
     parser.add_argument('-noc',action='store_true',help='do not center the protein at the origin of the coordinate system')
@@ -431,7 +427,9 @@ if __name__=='__main__':
  #   PostMod['gly_mc_params']=DictFromString(args.glymcparams)
     PostMod['do_multiflex_mc']=args.rlxmc
     PostMod['multiflex_mc_params']=DictFromString(args.rlxmcparams)
-    PostMod['do_preheal_min_smd']=args.smdheal
+    PostMod['do_preclose_min_smd']=args.smdclose
+    PostMod['preclose_params']=DictFromString(args.smdcloseparams)
+    PostMod['NAMD_params']=DictFromString(args.namdparams)
     PostMod['Crot']=MrgCmdLineAndFileContents(args.crot,args.crotfile,Crot)
     PostMod['log_dcd_file']=args.logdcd
     PostMod['log_every']=args.logevery
@@ -510,10 +508,16 @@ if __name__=='__main__':
     psfgen_fp.write('### thank you for using cfapdbparse.py!\n')
 
     ''' Generate the postscript '''
+    nummin=1000
+    numsteps=2000
+    if 'NAMD_params' in PostMod:
+        p=PostMod['NAMD_params']
+        nummin=nummin if 'nummin' not in p else p['nummin']
+        numsteps=numsteps if 'numsteps' not in p else p['numsteps']
     currpdb=post_pdb
     currpsf=Base.psf_outfile
     print('Run the script {} to complete the build.'.format(postscriptname))
-    print('After running {}, "read CURRPSF CURRPDB < .tmpvar" will set those variables.'.format(postscriptname))
+    print('After running {}, "read CURRPSF CURRPDB CURRCFG < .tmpvar" will set those variables.'.format(postscriptname))
     print('cfapdbpyparse ends.')
     fp=open(postscriptname,'w')
     fp.write(r'#!/bin/bash'+'\n')
@@ -542,56 +546,63 @@ if __name__=='__main__':
     fp.write('  echo "Change your relaxation parameters and try again."\n')
     fp.write('  exit\n')
     fp.write('fi\n')
-    if 'do_preheal_min_smd' in PostMod and PostMod['do_preheal_min_smd']:
-        fp.write('cat > heal_these.inp << EOF\n')
+    if 'do_preclose_min_smd' in PostMod and PostMod['do_preclose_min_smd']:
+        temperature_close=400
+        target_numsteps=20000
+        if 'preclose_params' in PostMod:
+            p=PostMod['preclose_params']
+            temperature_close=temperature_close if 'temperature_close' in p else p['temperature_close']
+            target_numsteps=target_numsteps if 'target_numsteps' in p else p['target_numsteps']
+        fp.write('cat > close_these.inp << EOF\n')
         for l in sorted(Loops, key=lambda x: len(x.residues)):
             if (l.term and len(l.residues)>2):
                 fp.write('{} {} {}\n'.format(l.replica_chainID,l.residues[-1].resseqnum,l.nextfragntermres))
         fp.write('EOF\n')
         # measures to find the initial distances; generated fixed.pdb to fix the N atoms 
-        logname=r'heal${TASK}.log'
-        args='{} {} heal_these.inp'.format(currpsf,currpdb)
-        vmd_instructions(fp,r'$PSFGEN_BASEDIR/scripts/measure_bonds.tcl',logname=logname,args=args,msg='creating healing input')
+        logname=r'close${TASK}.log'
+        args='{} {} close_these.inp'.format(currpsf,currpdb)
+        vmd_instructions(fp,r'$PSFGEN_BASEDIR/scripts/measure_bonds.tcl',logname=logname,args=args,msg='creating closeing input')
         fp.write('if [ -f cv.inp ]; then rm cv.inp; fi\n')
         fp.write('touch cv.inp\n')
         fp.write('while IFS=" " read -r C L R B; do\n')
         fp.write(r'  cat $PSFGEN_BASEDIR/templates/cv-template.in | sed s/%C%/$C/g |')
         fp.write(r'  sed s/%NAME%/${C}${L}/g | sed s/%I%/$L/g | sed s/%J%/$R/g | sed s/%R0%/$B/g |')
         fp.write('  sed s/%TARGETNUMSTEPS%/{}/ >> cv.inp ;\n'.format(target_numsteps))
-        fp.write('done < heal_these.inp\n')
+        fp.write('done < close_these.inp\n')
         outname=r'postnamd${TASK}-2'
-        cfgname=r'run${TASK}-2.namd'
-        logname=r'run${TASK}-2.log'
-        extras=r'sed "41 i fixedatoms on" | sed "42 i fixedatomsfile fixed.pdb" | sed "43 i fixedatomscol B"'
-        extras+=r' | sed "44 i colvars on" | sed "45 i colvarsconfig cv.inp"'
-        namd_instructions(fp,cfgname,currpsf,currpdb,outname,logname,npe=npe,
+        currcfg=r'run${TASK}-2.namd'
+        currlog=r'run${TASK}-2.log'
+        extras=['fixed atoms on','fixeadtomsfile fixed.pdb','fixedatomscol B','colvars on','colvarsconfig cv.inp']
+        namd_instructions(fp,currcfg,currpsf,currpdb,outname,currlog,npe=npe,
                       numminsteps=0,numsteps=int(1.5*target_numsteps),seed=random.randint(0,10000),
-                      template='vac.namd',temperature=temperature,extras=extras,msg='healing',
+                      template='vac.namd',temperature=temperature_close,extras=extras,msg='closeing',
                       stdparamfiles=StdParamFiles,localparamfiles=LocalParamFiles)
         namdbin='{}.coor'.format(outname)
         currpdb='{}.pdb'.format(outname)
         vmd_instructions(fp,r'$PSFGEN_BASEDIR/scripts/namdbin2pdb.tcl',logname=r'namdbin2pdb${TASK}-1.log',
                         args='{} {} {}'.format(currpsf,namdbin,'tmp.pdb'))
         fp.write('cat charmm_header.pdb tmp.pdb > {}\n'.format(currpdb))
-        fp.write('cat > the_healing_patches.inp << EOF\n')
+        fp.write('cat > closure_patches.inp << EOF\n')
         for l in sorted(Loops, key=lambda x: len(x.residues)):
             if (l.term and len(l.residues)>2):
-                #fp.write('# will try to heal bond between {} and {} on chain {}...\n'.format(l.residues[-1].resseqnum,l.nextfragntermres,l.replica_chainID))
+                #fp.write('# will try to close bond between {} and {} on chain {}...\n'.format(l.residues[-1].resseqnum,l.nextfragntermres,l.replica_chainID))
                 fp.write('patch HEAL {c}:{ll} {c}:{l} {c}:{r} {c}:{rr}\n'.format(c=l.replica_chainID,
                             ll=l.residues[-2].resseqnum,l=l.residues[-1].resseqnum,r=l.nextfragntermres,rr=(l.nextfragntermres+1)))
         fp.write('EOF\n')
         tfp=open('topologies.inp','w')
         CommonPSFGENheader(tfp,CTopo,LocTopo)
         tfp.close()
-        fp.write('cat $PSFGEN_BASEDIR/scripts/ligations.tcl | sed "/#### LIGATION LIST STARTS/r the_healing_patches.inp"')
-        fp.write(' | sed "/#### TOPOLOGY FILE LIST STARTS/r topologies.inp" > do_the_healing.tcl\n')
+        fp.write('cat $PSFGEN_BASEDIR/scripts/loop_closure.tcl | sed "/#### LIGATION LIST STARTS/r the_closeing_patches.inp"')
+        fp.write(' | sed "/#### TOPOLOGY FILE LIST STARTS/r topologies.inp" > do_the_closures.tcl\n')
         newpsf='ligated.psf'
         newpdb='ligated.pdb'
-        vmd_instructions(fp,'do_the_healing.tcl',args='{} {} {} {}'.format(currpsf,currpdb,newpsf,newpdb),logname=r'ligations${TASK}.log')
+        vmd_instructions(fp,'do_the_closures.tcl',args='{} {} {} {}'.format(currpsf,currpdb,newpsf,newpdb),logname=r'ligations${TASK}.log')
         currpsf=newpsf
         currpdb=newpdb
+        currcfg=r'run${TASK}-3.namd'
+        currlog=r'run${TASK}-3.log'
         outname=r'postnamd${TASK}-3'
-        namd_instructions(fp,r'run${TASK}-3.namd',currpsf,currpdb,outname,r'run${TASK}-3.log',npe=npe,
+        namd_instructions(fp,currcfg,currpsf,currpdb,outname,currlog,npe=npe,
                       numminsteps=nummin,numsteps=numsteps,seed=random.randint(0,10000),
                       template='vac.namd',temperature=temperature,msg='minimization of ligated peptide bonds',
                       stdparamfiles=StdParamFiles,localparamfiles=LocalParamFiles)
@@ -611,7 +622,7 @@ if __name__=='__main__':
         fp.write('  exit\n')
         fp.write('fi\n')
 
-    fp.write('echo {} {} > .tmpvar\n'.format(currpsf,currpdb))
+    fp.write('echo {} {} {} > .tmpvar\n'.format(currpsf,currpdb,currcfg))
     fp.write('# {} finishes.\n'.format(postscriptname))
     fp.close()
     os.system('chmod 744 {}'.format(postscriptname))
