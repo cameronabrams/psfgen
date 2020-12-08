@@ -224,6 +224,6 @@ tar zvcf prod.tgz $CURRPSF \
                   `cat par.inp | awk '{print $2}'` \
                   prod.namd
 
-rm namd_header* cell.inp par.inp _bin.inp _par.inp *restart*
+rm cell.inp par.inp _bin.inp _par.inp *restart*
 echo "Done.  Created prod.tgz."
 
