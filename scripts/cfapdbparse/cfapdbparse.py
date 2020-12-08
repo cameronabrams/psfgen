@@ -566,7 +566,7 @@ if __name__=='__main__':
         # measures to find the initial distances; generated fixed.pdb to fix the N atoms 
         logname=r'close${TASK}.log'
         args='{} {} close_these.inp'.format(currpsf,currpdb)
-        vmd_instructions(fp,r'$PSFGEN_BASEDIR/scripts/measure_bonds.tcl',logname=logname,args=args,msg='creating closeing input')
+        vmd_instructions(fp,r'$PSFGEN_BASEDIR/scripts/measure_bonds.tcl',logname=logname,args=args,msg='creating closing input')
         fp.write('if [ -f cv.inp ]; then rm cv.inp; fi\n')
         fp.write('touch cv.inp\n')
         fp.write('while IFS=" " read -r C L R B; do\n')
@@ -580,7 +580,7 @@ if __name__=='__main__':
         extras=['fixedatoms on','fixedatomsfile fixed.pdb','fixedatomscol B','colvars on','colvarsconfig cv.inp']
         namd_instructions(fp,currcfg,currpsf,currpdb,outname,currlog,npe=npe,
                       numminsteps=0,numsteps=int(1.5*target_numsteps),seed=random.randint(0,10000),
-                      template='vac.namd',temperature=temperature_close,extras=extras,msg='closeing',
+                      template='vac.namd',temperature=temperature_close,extras=extras,msg='closing',
                       stdparamfiles=StdParamFiles,localparamfiles=LocalParamFiles)
         namdbin='{}.coor'.format(outname)
         currpdb='{}.pdb'.format(outname)
@@ -597,7 +597,7 @@ if __name__=='__main__':
         tfp=open('topologies.inp','w')
         CommonPSFGENheader(tfp,CTopo,LocTopo)
         tfp.close()
-        fp.write('cat $PSFGEN_BASEDIR/scripts/loop_closure.tcl | sed "/#### LIGATION LIST STARTS/r the_closeing_patches.inp"')
+        fp.write('cat $PSFGEN_BASEDIR/scripts/loop_closure.tcl | sed "/#### LIGATION LIST STARTS/r the_closing_patches.inp"')
         fp.write(' | sed "/#### TOPOLOGY FILE LIST STARTS/r topologies.inp" > do_the_closures.tcl\n')
         newpsf='ligated.psf'
         newpdb='ligated.pdb'
