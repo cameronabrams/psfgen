@@ -108,7 +108,7 @@ cat >> tmp.tcl << EOF
 exit
 EOF
 $VMD -dispdev text -e tmp.tcl -args $DCDARGSTR > $LOG 2>&1
-rm tmp.tcl
+#rm tmp.tcl
 exit
 
 
