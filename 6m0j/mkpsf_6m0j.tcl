@@ -20,6 +20,7 @@ set seed 12345
 set LOG_DCD 0
 set logid -1
 set RBDONLY 0
+set mutations []
 for { set a 0 } { $a < [llength $argv] } { incr a } {
   set arg [lindex $argv $a]
   if { $arg == "-seed" } {
@@ -34,9 +35,14 @@ for { set a 0 } { $a < [llength $argv] } { incr a } {
   if { $arg == "-rbdonly" } {
     set RBDONLY 1
   }
+  if { $arg == "-mutate" } {
+    incr a
+    lappend mutations [split [lindex $argv $a] ,]
+  }
 }
 
 expr srand($seed)
+
 
 # load some custom TcL procedures to set coordinates correctly
 source ${PSFGEN_BASEDIR}/src/loopmc.tcl
@@ -49,9 +55,11 @@ mol new 6m0j.pdb
 package require psfgen
 
 topology $env(HOME)/charmm/toppar/top_all36_prot.rtf
-topology $env(HOME)/charmm/toppar/top_all36_carb_namd_cfa.rtf
+#topology $env(HOME)/charmm/toppar/top_all36_carb_namd_cfa.rtf
+topology ${PSFGEN_BASEDIR}/charmm/top_all36_carb.rtf
 topology $env(HOME)/charmm/toppar/stream/carb/toppar_all36_carb_glycopeptide.str
-topology $env(HOME)/charmm/toppar/toppar_water_ions_namd_nonbfixes.str
+#topology $env(HOME)/charmm/toppar/toppar_water_ions_namd_nonbfixes.str
+topology $env(HOME)/charmm/toppar/toppar_water_ions.str
 
 pdbalias residue HIS HSD
 pdbalias atom ILE CD1 CD
@@ -66,13 +74,23 @@ if { $RBDONLY == 0 } {
   [atomselect top "chain A and protein and resid 19 to 615"] writepdb "A_19_to_615.pdb"
   segment A {
     pdb A_19_to_615.pdb
+    foreach m $mutations {
+      if {[lindex $m 0] == "A"} {
+        mutate [lindex $m 1] [lindex $m 2]
+      }
+    }
   }
   coordpdb A_19_to_615.pdb A
 }
 
 [atomselect top "chain E and protein and resid 333 to 526"] writepdb "E_333_to_526.pdb"
 segment E {
-   pdb E_333_to_526.pdb
+  pdb E_333_to_526.pdb
+  foreach m $mutations {
+    if {[lindex $m 0] == "E"} {
+        mutate [lindex $m 1] [lindex $m 2]
+    }
+  }
 }
 coordpdb E_333_to_526.pdb E
 if { $RBDONLY == 0 } {

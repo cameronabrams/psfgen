@@ -1,6 +1,6 @@
 class Biomolecule:
     ''' Container for handling info for "REMARK 350 BIOMOLECULE: #" stanzas in RCSB PDB files
-        or _pdbx_struct blocks in RCSB CIF files '''
+        or _pdbx_struct blocks in mmCIF files '''
     def __init__(self,pdbrecord=None,cifdict=None):
         #print('__init__ with {}'.format(pdbrecord))
         self.chains=[]
