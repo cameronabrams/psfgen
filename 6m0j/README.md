@@ -16,7 +16,7 @@ Make sure PSFGEN_BASEDIR resolves to the root directory of your local copy of th
 ```
 $ mkdir 6m0j
 $ cd 6m0j
-$ $PSFGEN_BASEDIR/scripts/do_test.sh -pdb 6m0j [-stage] [-npe #] [-psfgen_args [-seed #] [-rbdonly]]
+$ $PSFGEN_BASEDIR/scripts/do_test.sh -pdb 6m0j [-stage] [-npe #] [-psfgen_args [-seed #] [-rbdonly] [-mutate CHAIN,RESID,RESNAME]]
 ```
 
 The optional `-stage` flag, if present, instructs the script to perform the solvated MD simulations in stages to avoid patch-grid errors arising from box shrinkage during volume equilibration.  The `-npe` flag allows the user to specify the number of processing cores to use in the solvated MD simulation; 8 is the default.  The optional `-psfgen_args` flag passes subsequent arguments to the mkpsf script.  The optional `-seed` flag allows the user the specify the seed for the random-number generator. The ``-rbdonly'' deletes the ACE2 chain (chain A) leaving only the receptor binding domain (RBD).
