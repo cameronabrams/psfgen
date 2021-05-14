@@ -1,4 +1,4 @@
 {
     "python.linting.enabled": false,
-    "python.pythonPath": "/home/cfa/anaconda3/envs/py38/bin/python"
+    "python.pythonPath": "/home/cfa/anaconda3/bin/python"
 }
