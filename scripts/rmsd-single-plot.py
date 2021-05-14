@@ -2,14 +2,47 @@ import matplotlib.pyplot as plt
 import argparse as ap
 import numpy as np
 
+def my_subst (target, vardict, vchar, delimchars='{}'):
+    # entire target is a variable
+    if target[0]==vchar and vchar+delimchars[0] not in target:
+        return vardict[target[1:]]
+    elif vchar in target:
+        # there is a variable in there somewhere
+        s=target.index(vchar)
+        l=target.index(delimchars[0])
+        r=target.index(delimchars[1])
+        if l==s+1:
+            repl=target[s:r+1]
+            return target.replace(repl,vardict[target[l+1:r]])
+    else:
+        return target
+
 def namd_config_to_dict(cfg):
+    keys_w_multiple_values=['parameters']
+    bad_chars = '; '
     res={}
     with open(cfg,'r') as f:
         for l in f:
-            tokens=l.lower().strip().split()
-            #print(tokens)
+            if l[0]=='#':
+                continue
+            tokens=l.lower().strip(bad_chars).split()
+            for i in range(len(tokens)):
+                tokens[i]=tokens[i].strip(bad_chars)
             if len(tokens)>=2:
-                res[tokens[0]]=tokens[1]
+                if tokens[0]=='set':
+                    if 'set' not in res:
+                        res['set']={}
+                    res['set'][tokens[1]]=tokens[2]
+                else:
+                    if tokens[0] in keys_w_multiple_values:
+                        if tokens[0] not in res:
+                            res[tokens[0]]=[]
+                        res[tokens[0]].append(tokens[1])
+                    else:
+                        res[tokens[0]]=tokens[1]
+        for k,v in res.items():
+            if k!='set':
+                res[k]=my_subst(v,res['set'],'$')
     return res
 
 fac={}
@@ -30,6 +63,7 @@ if len(args.namd_config)>0:
     for r,n in zip(args.rmsd,args.namd_config):
         namd_p[r]=namd_config_to_dict(n)
         fac[r]=float(namd_p[r]['timestep'])*float(namd_p[r]['dcdfreq'])/1.e6
+        print('Temperature',namd_p[r]['langevintemp'])
     xlabel='time (ns)'
 
 fig,ax=plt.subplots(1,1,figsize=(6,5))
