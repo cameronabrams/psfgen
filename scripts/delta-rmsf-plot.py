@@ -22,6 +22,7 @@ p.add_argument('-rmsfA',type=str,default=[],action='append',help='set A rmsfs')
 p.add_argument('-rmsfB',type=str,default=[],action='append',help='set B rmsfs')
 p.add_argument('-rmsfC',type=str,default=[],action='append',help='set C rmsfs')
 p.add_argument('-rmsfD',type=str,default=[],action='append',help='set D rmsfs')
+p.add_argument('-resid-wts',type=str,default='',help='file of resid weights')
 p.add_argument('-D',type=str,default='A-B',help='delta operation direction')
 p.add_argument('-labelAB',type=str,default='A/B',help='A-B label')
 p.add_argument('-labelCD',type=str,default='C/D',help='C-D label')
@@ -35,6 +36,7 @@ if '-' in args.delta_label:
 
 resA,msfA=load_and_average(args.rmsfA)
 resB,msfB=load_and_average(args.rmsfB)
+
 if args.D == 'A-B':
     dABmsf=msfA-msfB
 else:
@@ -46,6 +48,7 @@ if args.D == 'A-B':
 else:
     dCDmsf=msfD-msfC
 
+
 fig,ax=plt.subplots(3,1,figsize=(6,10),sharex=True)
 ax[2].set_xlabel('Residue Number')
 ax[0].set_ylabel('ΔRMSF {:s} (Å)'.format(args.delta_label))
@@ -54,7 +57,12 @@ ax[2].set_ylabel('RMSF (Å)')
 
 ax[0].plot(resA,dABmsf,label=args.labelAB+' ({:.2f} Å$^2$)'.format(np.square(dABmsf).mean()))
 ax[0].plot(resA,dCDmsf,label=args.labelCD+' ({:.2f} Å$^2$)'.format(np.square(dCDmsf).mean()))
+if len(args.resid_wts)>0:
+    wtr,wtv=np.loadtxt(args.resid_wts,unpack=True)
+    ax[0].bar(wtr,-wtv/2,bottom=0,label="epitope occupancy",color='black',width=1.0,alpha=0.5)
+    ax[0].bar(wtr,wtv/2,bottom=0,label=None,color='black',width=1.0,alpha=0.5)
 ax[0].legend()
+ax[0].set_ylim([-3,3])
 ax[1].set_ylim([0,4])
 ax[1].plot(resA,msfA,label=(postname if args.D=='A-B' else prename)+'-'+args.labelAB)
 ax[1].plot(resA,msfB,label=(prename if args.D=='A-B' else postname)+'-'+args.labelAB)
