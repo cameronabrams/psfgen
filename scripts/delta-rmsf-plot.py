@@ -55,12 +55,24 @@ ax[0].set_ylabel('ΔRMSF {:s} (Å)'.format(args.delta_label))
 ax[1].set_ylabel('RMSF (Å)')
 ax[2].set_ylabel('RMSF (Å)')
 
-ax[0].plot(resA,dABmsf,label=args.labelAB+' ({:.2f} Å$^2$)'.format(np.square(dABmsf).mean()))
-ax[0].plot(resA,dCDmsf,label=args.labelCD+' ({:.2f} Å$^2$)'.format(np.square(dCDmsf).mean()))
+ssAB=dABmsf.mean()
+ssCD=dCDmsf.mean()
 if len(args.resid_wts)>0:
     wtr,wtv=np.loadtxt(args.resid_wts,unpack=True)
     ax[0].bar(wtr,-wtv/2,bottom=0,label="epitope occupancy",color='black',width=1.0,alpha=0.5)
     ax[0].bar(wtr,wtv/2,bottom=0,label=None,color='black',width=1.0,alpha=0.5)
+    ssAB=0.0
+    ssCD=0.0
+    count=0
+    for r,v in zip(wtr,wtv):
+        ssAB+=dABmsf[np.flatnonzero(resA==r)[0]]*v
+        ssCD+=dCDmsf[np.flatnonzero(resA==r)[0]]*v
+        count+=1
+    ssAB/=count
+    ssCD/=count
+# to do: compute the epitope-occupancy-weighted sum-of-fluctuations
+ax[0].plot(resA,dABmsf,label=args.labelAB+' ({:.2f} Å$^2$)'.format(ssAB))
+ax[0].plot(resA,dCDmsf,label=args.labelCD+' ({:.2f} Å$^2$)'.format(ssCD))
 ax[0].legend()
 ax[0].set_ylim([-3,3])
 ax[1].set_ylim([0,4])
