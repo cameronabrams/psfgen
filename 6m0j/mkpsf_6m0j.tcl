@@ -19,6 +19,7 @@ if {![info exists PSFGEN_BASEDIR]} {
 set seed 12345
 set LOG_DCD 0
 set logid -1
+set ACE2ONLY 0
 set RBDONLY 0
 set mutations []
 for { set a 0 } { $a < [llength $argv] } { incr a } {
@@ -35,11 +36,16 @@ for { set a 0 } { $a < [llength $argv] } { incr a } {
   if { $arg == "-rbdonly" } {
     set RBDONLY 1
   }
+  if { $arg == "-ace2only" } {
+    set ACE2ONLY 1
+  }
   if { $arg == "-mutate" } {
     incr a
     lappend mutations [split [lindex $argv $a] ,]
   }
 }
+
+puts "RBDONLY? $RBDONLY ACE2ONLY? $ACE2ONLY $seed"
 
 expr srand($seed)
 
@@ -83,6 +89,7 @@ if { $RBDONLY == 0 } {
   coordpdb A_19_to_615.pdb A
 }
 
+if { $ACE2ONLY == 0 } {
 [atomselect top "chain E and protein and resid 333 to 526"] writepdb "E_333_to_526.pdb"
 segment E {
   pdb E_333_to_526.pdb
@@ -93,6 +100,8 @@ segment E {
   }
 }
 coordpdb E_333_to_526.pdb E
+}
+
 if { $RBDONLY == 0 } {
   set myseg [atomselect top "chain A and resid 901 to 901"]
   $myseg set resname ZN2
@@ -109,6 +118,7 @@ if { $RBDONLY == 0 } {
   }
   coordpdb AS_902_to_904.pdb AS
 }
+if { $ACE2ONLY == 0 } {
 set myseg [atomselect top "chain E and resid 601 to 601"]
 $myseg set resname BGNA
 $myseg writepdb ES_601_to_601.pdb
@@ -116,6 +126,7 @@ segment ES {
    pdb ES_601_to_601.pdb
 }
 coordpdb ES_601_to_601.pdb ES
+}
 if { $RBDONLY == 0 } {
   set myseg [atomselect top "chain A and resid 1001 to 1066"]
   $myseg set name OH2
@@ -126,6 +137,7 @@ if { $RBDONLY == 0 } {
   }
   coordpdb A_1001_to_1066.pdb AWX
 }
+if { $ACE2ONLY == 0 } {
 set myseg [atomselect top "chain E and resid 701 to 714"]
 $myseg set name OH2
 $myseg set resname TIP3
@@ -134,22 +146,26 @@ segment EWX {
    pdb E_701_to_714.pdb
 }
 coordpdb E_701_to_714.pdb EWX
+}
 if { $RBDONLY == 0 } { 
   patch DISU A:133 A:141
   patch DISU A:344 A:361
   patch DISU A:530 A:542
 }
+if { $ACE2ONLY == 0 } {
 patch DISU E:336 E:361
 patch DISU E:379 E:432
 patch DISU E:391 E:525
 patch DISU E:480 E:488
+}
 if { $RBDONLY == 0 } {
 patch NGLB A:90 AS:902
 patch NGLB A:322 AS:904
 patch NGLB A:546 AS:903
 }
-patch NGLB E:343 ES:601
-##### output of python3 parse_pdb_psfgen.py 6m0j.pdb above #####
+if { $ACE2ONLY == 0 } {
+  patch NGLB E:343 ES:601
+}
 
 guesscoord
 
