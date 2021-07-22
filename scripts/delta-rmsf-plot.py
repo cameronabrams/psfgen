@@ -20,7 +20,7 @@ def load_and_average (filenames):
 p=ap.ArgumentParser()
 p.add_argument('-rmsfA',type=str,default=[],nargs='+',help='set A rmsfs')
 p.add_argument('-rmsfB',type=str,default=[],nargs='+',help='set B rmsfs')
-p.add_argument('-rmsfC',type=str,default=[],nargs='+'',help='set C rmsfs')
+p.add_argument('-rmsfC',type=str,default=[],nargs='+',help='set C rmsfs')
 p.add_argument('-rmsfD',type=str,default=[],nargs='+',help='set D rmsfs')
 p.add_argument('-resid-wts',type=str,default='',help='file of resid weights')
 p.add_argument('-D',type=str,default='A-B',help='delta operation direction')
