@@ -50,6 +50,8 @@ function prep_namd_restart {
             firsttimestep=`grep ^firsttimestep $CONF | awk '{print $2}' | sed 's/;$//'`
             if [ -z "${firstttimestep}" ]; then
                firsttimestep=0
+            else
+                echo "$CONF contains a firsttimestep $firsttimestep and a run $stepsrequested"
             fi
             stepsrequested=$(($stepsrequested+$firsttimestep))
         fi
