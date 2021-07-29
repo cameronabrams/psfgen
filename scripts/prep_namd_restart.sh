@@ -48,7 +48,7 @@ function prep_namd_restart {
             # if there is a run statement, the total number of steps would be the
             # number specified in the run statement PLUS the value of firsttimestep
             firsttimestep=`grep ^firsttimestep $CONF | awk '{print $2}' | sed 's/;$//'`
-            if [ -z "${firstttimestep}" ]; then
+            if [ -z "${firsttimestep}" ]; then
                 firsttimestep=0
             else
                 echo "$CONF contains a firsttimestep $firsttimestep and a run $stepsrequested"
