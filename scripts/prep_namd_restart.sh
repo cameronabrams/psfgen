@@ -44,6 +44,14 @@ function prep_namd_restart {
                 echo "Error: $CONF does not contain a run or numsteps statement."
                 return 1
             fi
+        else
+            # if there is a run statement, the total number of steps would be the
+            # number specified in the run statement PLUS the value of firsttimestep
+            firsttimestep=`grep ^firsttimestep $CONF | awk '{print $2}' | sed 's/;$//'`
+            if [ -z "${firstttimestep}" ]; then
+               firsttimestep=0
+            fi
+            stepsrequested=$(($stepsrequested+$firsttimestep))
         fi
         stepsleft=$(($stepsrequested-$stepsrun))
     fi
