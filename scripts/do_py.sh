@@ -13,6 +13,8 @@
 # which you can learn more about in the help for
 # cfapdbparse.py.
 #
+# The flag '-make-gromacs' must be supplied with 
+#
 # change these absolute pathnames to match your system
 #
 if [[ -z "${VMD}" ]]; then
@@ -65,7 +67,9 @@ seed=$RANDOM
 temperature=310
 numsteps=(20000)
 pyparser_args=()
+pyparser=$PYPARSER
 PRODUCTION_STEPS=10000000
+DO_TOPOGROMACS=0
 while [ $i -le $ARGC ] ; do
   if [ "${!i}" = "-pdb" ]; then
     i=$((i+1))
@@ -108,6 +112,13 @@ while [ $i -le $ARGC ] ; do
     i=$((i+1))
     PRODUCTION_STEPS=${!i}
   fi
+  if [ "${!i}" = "-make-gromacs" ]; then
+    i=$((i+1))
+    DO_TOPOGROMACS=1
+    TG_TOP=${!i}
+    i=$((i+1))
+    TG_PDB=${!i}
+  fi
   i=$((i+1))
 done
 
@@ -117,7 +128,7 @@ if (( $nparse == 0 )) ; then
     nparse=1
     pyparser_args=("")
 fi
-echo "#### PyParser $pyparser will run $nparse times in series"
+echo "#### PyParser $pyparser will run $nparse time(s) in series"
 for t in `seq 0 $((nparse-1))`; do
     echo "####  -> ${pyparser_args[$t]}"
 done
@@ -179,7 +190,7 @@ echo "#### No binary inputs yet -- this run begins using PDB coordinates" > _bin
 firsttimestep=0
 ls=`echo "${#numsteps[@]} - 1" | bc`
 for s in `seq 0 $ls`; do
-    echo "Running namd2 (stage $s) on solvated system..."
+    echo "Running namd2 (stage $s of $ls) on solvated system..."
     lastnamd=run${TASK}_stage${s}.namd
     lastsys=config${TASK}_stage${s}
     cat $PSFGEN_BASEDIR/templates/solv.namd | \
@@ -204,6 +215,7 @@ for s in `seq 0 $ls`; do
     echo "binvelocities  ${lastsys}.vel"  >> _bin.inp
     echo "extendedsystem ${lastsys}.xsc"  >> _bin.inp
 done
+echo "All NAMD tasks complete.  Packaging for production."
 
 # Prep for production MD
 # copy all charmm parameter files to this directory and
@@ -229,6 +241,11 @@ tar zvcf prod.tgz $CURRPSF \
                   `cat par.inp | awk '{print $2}'` \
                   prod.namd
 
-rm cell.inp par.inp _bin.inp _par.inp *restart*
+rm cell.inp _bin.inp _par.inp *restart*
+if (( $DO_TOPOGROMACS == 1 )); then
+    echo "Executing $PSFGEN_BASEDIR/scripts/tg.sh  -psf $CURRPSF -i config${TASK}_stage${s} -top $TG_TOP -pdb $TG_PDB"
+    $PSFGEN_BASEDIR/scripts/tg.sh  -psf $CURRPSF -i config${TASK}_stage${s} -top $TG_TOP -pdb $TG_PDB ; #-mdp nvt.mdp -tpr test2.tpr
+fi
+
 echo "Done.  Created prod.tgz."
 

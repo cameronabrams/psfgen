@@ -284,7 +284,7 @@ def WriteHeaders(fp,charmm_topologies,local_topologies,pdbaliases):
     fp.write('package require psfgen\n')
     fp.write('psfcontext mixedcase\n')
     CommonPSFGENheader(fp,charmm_topologies,local_topologies)
-    print(pdbaliases)
+    #print(pdbaliases)
     for al in pdbaliases:
         fp.write('pdbalias {}\n'.format(al))
     for k,v in _ResNameDict_PDB_to_CHARMM_.items():
