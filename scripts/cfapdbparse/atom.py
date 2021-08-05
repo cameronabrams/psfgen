@@ -1,4 +1,4 @@
-_PDBAtomNameDict_={'CL':'CLA'}
+_PDBAtomNameDict_={ 'CL':'CLA', 'O':'OH2' }
 class Atom:
     def __init__(self,pdbrecord=None,cifdict=None):
         if pdbrecord!=None and cifdict!=None:

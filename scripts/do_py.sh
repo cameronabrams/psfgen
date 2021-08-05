@@ -16,7 +16,7 @@
 # change these absolute pathnames to match your system
 #
 if [[ -z "${VMD}" ]]; then
-    VMD=/opt/vmd/1.9.4a38/bin/vmd
+    VMD=/opt/vmd/1.9.4a51/bin/vmd
     if [[ ! -f $VMD ]]; then
         echo "No vmd found at $VMD"
         exit
@@ -112,6 +112,11 @@ while [ $i -le $ARGC ] ; do
 done
 
 nparse=${#pyparser_args[@]}
+# handle case of a single parser run with no arguments
+if (( $nparse == 0 )) ; then
+    nparse=1
+    pyparser_args=("")
+fi
 echo "#### PyParser $pyparser will run $nparse times in series"
 for t in `seq 0 $((nparse-1))`; do
     echo "####  -> ${pyparser_args[$t]}"
@@ -190,7 +195,7 @@ for s in `seq 0 $ls`; do
         sed s/%FIRSTTIMESTEP%/$firsttimestep/g > $lastnamd 
     $CHARMRUN +p${NPE} $NAMD2 $lastnamd > run${TASK}_stage${s}.log
     if [ $? -ne 0 ]; then
-        echo "NAMD failes.  Check log file run${TASK}_stage${s}.log"
+        echo "NAMD fails.  Check log file run${TASK}_stage${s}.log"
     fi
     firsttimestep=`echo "100 + $firsttimestep + ${numsteps[$s]}" | bc`
     ss=$((s+1))

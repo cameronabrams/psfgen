@@ -129,22 +129,22 @@ class Link:
             else:
                return False
     def __str__(self):
-        retstr='{}\n'+\
-                '   name1         {:s}\n'+\
-                '   altloc1       {:s}\n'+\
-                '   resname1      {:s}\n'+\
-                '   chainID1      {:s}\n'+\
-                '   resseq1       {:d}\n'+\
-                '   icode1        {:s}\n'+\
-                '   name2         {:s}\n'+\
-                '   altloc2       {:s}\n'+\
-                '   resname2      {:s}\n'+\
-                '   chainID2      {:s}\n'+\
-                '   resseq2       {:d}\n'+\
-                '   icode2        {:s}\n'+\
-                '   sym1          {:s}\n'+\
-                '   sym2          {:s}\n'+\
-                '   link_distance {:.3f}'
+        retstr='# {}\n'+\
+                '#   name1         {:s}\n'+\
+                '#   altloc1       {:s}\n'+\
+                '#   resname1      {:s}\n'+\
+                '#   chainID1      {:s}\n'+\
+                '#   resseq1       {:d}\n'+\
+                '#   icode1        {:s}\n'+\
+                '#   name2         {:s}\n'+\
+                '#   altloc2       {:s}\n'+\
+                '#   resname2      {:s}\n'+\
+                '#   chainID2      {:s}\n'+\
+                '#   resseq2       {:d}\n'+\
+                '#   icode2        {:s}\n'+\
+                '#   sym1          {:s}\n'+\
+                '#   sym2          {:s}\n'+\
+                '#   link_distance {:.3f}'
         return retstr.format(self.record_name,self.name1,self.altloc1,self.resname1,self.chainID1,self.resseqnum1,self.icode1,self.name2,self.altloc2,self.resname2,self.chainID2,self.resseqnum2,self.icode2,self.sym1,self.sym2,self.link_distance)
     def psfgen_patchline(self):
         if self.resname1=='ASN' and _seg_class_[self.resname2]=='GLYCAN':
@@ -176,6 +176,6 @@ class Link:
                 #return 'patch SA26E {}:{} {}:{}\n'.format(self.segname1,self.resseqnum1,self.segname2,self.resseqnum2)
                 return 'patch SA26AT {}:{} {}:{}\n'.format(self.segname1,self.resseqnum1,self.segname2,self.resseqnum2)
             else:
-                return '### patch unknown for '+str(self)+'\n'
+                return '### patch unknown for the following link\n'+'#'+self.pdbrecord+'\n'
 
 

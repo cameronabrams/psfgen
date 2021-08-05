@@ -23,6 +23,9 @@ def residshift(selname,shift):
     retstr+='${} set resid $new_resid\n'.format(selname)
     return retstr
 
+''' charmm_namify converts commonly found atom and residue names in PDB files to their 
+    appropriate charmm names -- this is only used for NON-PROTEIN SEGMENTS.  In atom.py, you
+    must put an associated entry in the global _PDBAtomNameDict_ in order for this to work. '''
 def charmm_namify(selname,iswater=False):
     retstr=''
     retstr+='set new_resname [list]\n'
