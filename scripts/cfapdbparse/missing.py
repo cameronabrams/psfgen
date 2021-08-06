@@ -1,7 +1,7 @@
 class Missing:
     def __init__(self,pdbrecord=None,cifdict=None):
         if pdbrecord!=None and cifdict!=None:
-            print("Error: Missing __init__ called with both a pdbrecord and cifdict.\nUsing pdbrecord.")
+            print("Error: <Missing> __init__ called with both a pdbrecord and cifdict.\nUsing pdbrecord.")
         if pdbrecord!=None:
             self.pdbrecord=pdbrecord
             self.record_name=pdbrecord[0:6]
