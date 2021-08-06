@@ -234,7 +234,7 @@ rm cell.inp _bin.inp _par.inp *restart*
 echo "Done.  Created namdprod.tgz."
 if (( $DO_TOPOGROMACS == 1 )); then
     echo "Executing $PSFGEN_BASEDIR/scripts/tg.sh  -psf $CURRPSF -i config${TASK}_stage${s} -top $TG_TOP -pdb $TG_PDB"
-    $PSFGEN_BASEDIR/scripts/tg.sh  -psf $CURRPSF -i config${TASK}_stage${s} -top $TG_TOP -pdb $TG_PDB ; #-mdp nvt.mdp -tpr test2.tpr
+    $PSFGEN_BASEDIR/scripts/tg.sh  -psf $CURRPSF -i config${TASK}_stage${s} -top $TG_TOP -pdb $TG_PDB
     tar zvcf gmx.tgz $TG_TOP $TG_PDB
     echo "Done. Created gmx.tgz."
 fi
