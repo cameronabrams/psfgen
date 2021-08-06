@@ -2,8 +2,8 @@
 # topogromacs control script
 # cameron f abrams cfa22@drexel.edu
 
-PDB="tg_coor.pdb"
-TOP="tg_top.pdb"
+PDB=""
+TOP="none"
 INPUTNAME="none"
 PSF="none"
 MDP=""
@@ -46,6 +46,29 @@ for cmd in vmd gmx ; do
     fi
 done
 
+if [ "$PSF" = "none" ]; then
+   echo "Error: You must specify the input psf file name with the -psf option."
+   exit
+fi
+if [ "$INPUTNAME" = "none" ]; then
+   echo "Error: You must specify the input name (prefix of coor and xsc files) with the -i option."
+   exit
+fi
+if [ "$TOP" = "none" ]; then
+   echo "Error: You must specify the output gromacs topology file name with the -top option."
+   exit
+fi
+if [ "$PDB" = "none" ]; then
+   echo "Error: You must specify the output gromacs pdb file name with the -pdb option."
+   exit
+fi
+for f in $PSF ${INPUTNAME}.coor ${INPUTNAME}.xsc $TOP $PDB; do
+  if [ ! -f $f ]; then
+    echo "Error: $f not found.  Cannot execute topogromacs."
+    exit
+  fi
+done
+
 echo "Executing topogromacs VMD script to convert $PSF/$INPUTNAME to $TOP/$PDB..."
 vmd -dispdev text -e $PSFGEN_BASEDIR/scripts/tg.tcl -args -psf $PSF -top $TOP -i $INPUTNAME 2>&1 > topogromacs.log
 if [ $? -ne 0 ]; then
@@ -54,6 +77,15 @@ if [ $? -ne 0 ]; then
 fi
 gmx editconf -f tg_needsbox.pdb -o $PDB -box `cat tg-cell-nm.in` 2>&1 >> topogromacs.log
 echo "Done.  Results in topogromacs.log."
-echo "Do this next: gmx grompp -f whatever.mdp -c $PDB -p $TOP -o whatever.tpr -maxwarn 2"
-# example grompp for production md
-#gmx grompp -f $MDP -c $PDB -p $TOP -o $TPR -maxwarn 2
+if [ "$MDP" != "" ] && [ "$TPR" != "" ] && [ $TOP != "" ]; then
+  for f in $MDP $PDB $TOP; do
+    if [ ! -f $f ]; then
+      echo "Error: $f not found.  Cannot execute gmx grompp."
+      exit
+    fi
+  done
+  gmx grompp -f $MDP -c $PDB -p $TOP -o $TPR -maxwarn 2
+else
+   echo "Do this next: gmx grompp -f whatever.mdp -c $PDB -p $TOP -o whatever.tpr -maxwarn 2"
+fi
+
