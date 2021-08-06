@@ -5,7 +5,7 @@
 [Read the source paper for this structure](http://dx.doi.org/10.1038/s41586-020-2180-5)
 
 ## Instructions
-This workflow uses the `cfapdbparser` Python package and the general bash driver script `do_py.sh`.   Make sure your environment variable PSFGEN_BASEDIR resolves to the root directory of your local copy of this repository (mine is ${HOME}/research/psfgen).  It is also assumed below that CHARMRUN resolves to your local charmrun executable and NAMD2 resolves to your local NAMD2 executable.  (For me, these are /home/cfa/namd/NAMD_2.14_Source/Linux-x86_64-g++/charmrun and /home/cfa/namd/NAMD_2.14_Source/Linux-x86_64-g++/namd2.
+This workflow uses the `cfapdbparser` Python package and the general bash driver script `do_py.sh`.   Make sure your environment variable PSFGEN_BASEDIR resolves to the root directory of your local copy of this repository (mine is ${HOME}/research/psfgen).  It is also assumed below that CHARMRUN resolves to your local charmrun executable and NAMD2 resolves to your local NAMD2 executable.  (For me, these are /home/cfa/namd/NAMD_2.14_Source/Linux-x86_64-g++/charmrun and /home/cfa/namd/NAMD_2.14_Source/Linux-x86_64-g++/namd2).
 
 ```bash
 > mkdir my_6m0j_example
