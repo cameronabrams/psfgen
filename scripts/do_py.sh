@@ -233,7 +233,7 @@ cat $PSFGEN_BASEDIR/templates/prod.namd | \
     sed s/%TEMPERATURE%/${temperature}/g | \
     sed s/%FIRSTTIMESTEP%/$firsttimestep/g > prod.namd
  
-tar zvcf prod.tgz $CURRPSF \
+tar zvcf namdprod.tgz $CURRPSF \
                   $CURRPDB \
                   config${TASK}_stage${s}.coor \
                   config${TASK}_stage${s}.vel \
@@ -242,10 +242,10 @@ tar zvcf prod.tgz $CURRPSF \
                   prod.namd
 
 rm cell.inp _bin.inp _par.inp *restart*
+echo "Done.  Created namdprod.tgz."
 if (( $DO_TOPOGROMACS == 1 )); then
     echo "Executing $PSFGEN_BASEDIR/scripts/tg.sh  -psf $CURRPSF -i config${TASK}_stage${s} -top $TG_TOP -pdb $TG_PDB"
     $PSFGEN_BASEDIR/scripts/tg.sh  -psf $CURRPSF -i config${TASK}_stage${s} -top $TG_TOP -pdb $TG_PDB ; #-mdp nvt.mdp -tpr test2.tpr
+    tar zvcf gmx.tgz $TG_TOP $TG_PDB
+    echo "Done. Created gmx.tgz."
 fi
-
-echo "Done.  Created prod.tgz."
-
