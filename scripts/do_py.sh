@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # driver for cfapdbparse.py
-# c 2020 cameron f abrams cfa22@drexel.edu
+# c 2020, 2021 cameron f abrams cfa22@drexel.edu
 #
 # This script implements a workflow that generates an
 # equilibrated solvated PSF/PDB/COOR/VEL/XSC datafile
@@ -13,48 +13,31 @@
 # which you can learn more about in the help for
 # cfapdbparse.py.
 #
-# The flag '-make-gromacs' must be supplied with 
+# The flag '-make-gromacs' must be supplied with a pdb and topology file name 
+# for output if the user wishes to create Gromacs input using topoGromacs
 #
-# change these absolute pathnames to match your system
-#
-if [[ -z "${VMD}" ]]; then
-    VMD=/opt/vmd/1.9.4a51/bin/vmd
-    if [[ ! -f $VMD ]]; then
-        echo "No vmd found at $VMD"
-        exit
-    fi
-fi
-if [[ -z "${CHARMRUN}" ]]; then
-    CHARMRUN=${HOME}/namd/NAMD_2.14_Source/Linux-x86_64-g++/charmrun
-    if [[ ! -f $CHARMRUN ]]; then
-        echo "No charmrun found at $CHARMRUN"
-        exit
-    fi
-fi
-if [[ -z "${NAMD2}" ]]; then
-    NAMD2=${HOME}/namd/NAMD_2.14_Source/Linux-x86_64-g++/namd2
-    if [[ ! -f $NAMD2 ]]; then
-        echo "No namd2 found at $NAMD2"
-        exit
-    fi
-fi
+
 if [[ -z "${PSFGEN_BASEDIR}" ]]; then
     PSFGEN_BASEDIR=${HOME}/research/psfgen
-fi
-if [[ -z "${PYTHON3}" ]]; then
-    if [[ -f ${HOME}/anaconda3/bin/python3 ]]; then
-        PYTHON3=${HOME}/anaconda3/bin/python3
-    else
-        PYTHON3=/usr/bin/python3
-    fi
-    if [[ ! -f $PYTHON3 ]]; then
-        echo "No python3 found at $PYTHON3"
-        exit
+    if [[ ! -d $PSFGEN_BASEDIR ]]; then
+        echo "Error: No PSFGEN_BASEDIR found."
+        exit -1
     fi
 fi
+source $PSFGEN_BASEDIR/scripts/utils.sh
+
 if [[ -z "${PYPARSER}" ]]; then
     PYPARSER=${PSFGEN_BASEDIR}/scripts/cfapdbparse/cfapdbparse.py
+    if [[ ! -f $PYPARSER ]]; then
+        echo "Error: No PYPARSER found."
+        exit -1
+    fi
 fi
+
+check_command vmd VMD 
+check_command namd2 NAMD2 
+check_command charmrun CHARMRUN
+check_command python3 PYTHON3 
 
 RCSB=https://files.rcsb.org/download
 
@@ -122,15 +105,21 @@ while [ $i -le $ARGC ] ; do
   i=$((i+1))
 done
 
+echo "#### do_py.sh: NAMD/Gromacs system builder -- Cameron F Abrams -- cfa22@drexel.edu"
+echo "#### Command:"
+echo "#    do_py.sh ${@}"
+
 nparse=${#pyparser_args[@]}
 # handle case of a single parser run with no arguments
 if (( $nparse == 0 )) ; then
     nparse=1
     pyparser_args=("")
 fi
-echo "#### PyParser $pyparser will run $nparse time(s) in series"
+echo "#### PyParser $pyparser will run $nparse time$(ess $nparse) in series"
 for t in `seq 0 $((nparse-1))`; do
-    echo "####  -> ${pyparser_args[$t]}"
+    if [ ! "${pyparser_args[$t]}" = "" ]; then
+        echo "####     PyParser arguments for run #$((t+1)): \"${pyparser_args[$t]}\""
+    fi
 done
 
 npdb=${#PDB[@]}
@@ -139,12 +128,12 @@ if [ $npdb -eq 0 ]; then
    exit
 fi
 
-echo "#### The following $npdb PDB files are used"
+echo "#### The following $npdb PDB file$(ess $npdb) $(isare $npdb) used"
 BASEPDB=${PDB[0]}.pdb
 AUXPDB=()
-echo "#### Base: $BASEPDB"
+echo "####     Base: $BASEPDB"
 for p in `seq 1 $((npdb-1))`; do
-    echo "#### Auxiliary $p: ${PDB[$p]}"
+    echo "####     Auxiliary $p: ${PDB[$p]}"
     AUXPDB+=("${PDB[$p]}")
 done
 
@@ -175,7 +164,7 @@ done
 # solvate
 TASK=$((TASK+1))
 echo "TASK $TASK: Generating solvated system config${TASK}.psf/.pdb from ${CURRPSF}+${CURRPDB}..."
-$VMD -dispdev text -e $PSFGEN_BASEDIR/scripts/solv.tcl -args -psf $CURRPSF -pdb $CURRPDB -outpre config${TASK}  > mysolv.log 2>&1
+$VMD -dispdev text -e $PSFGEN_BASEDIR/scripts/solv.tcl -args -psf $CURRPSF -pdb $CURRPDB -outpre config${TASK}  > mysolv.log
 CURRPSF=config${TASK}.psf
 CURRPDB=config${TASK}.pdb
 
@@ -215,7 +204,7 @@ for s in `seq 0 $ls`; do
     echo "binvelocities  ${lastsys}.vel"  >> _bin.inp
     echo "extendedsystem ${lastsys}.xsc"  >> _bin.inp
 done
-echo "All NAMD tasks complete.  Packaging for production."
+echo "NAMD task$(ess ${#numsteps[@]}) complete.  Packaging for production."
 
 # Prep for production MD
 # copy all charmm parameter files to this directory and
@@ -249,3 +238,4 @@ if (( $DO_TOPOGROMACS == 1 )); then
     tar zvcf gmx.tgz $TG_TOP $TG_PDB
     echo "Done. Created gmx.tgz."
 fi
+echo "#### do_py.sh is done."
