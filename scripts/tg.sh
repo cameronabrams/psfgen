@@ -62,7 +62,7 @@ if [ "$PDB" = "none" ]; then
    echo "Error: You must specify the output gromacs pdb file name with the -pdb option."
    exit
 fi
-for f in $PSF ${INPUTNAME}.coor ${INPUTNAME}.xsc $PDB; do
+for f in $PSF ${INPUTNAME}.coor ${INPUTNAME}.xsc; do
   if [ ! -f $f ]; then
     echo "Error: $f not found.  Cannot execute topogromacs."
     exit
