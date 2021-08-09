@@ -77,7 +77,9 @@ pbc readxst ${INPUTNAME}.xsc
 set cell [molinfo top get {a b c}]
 
 set protein_chains [lsort -unique [[atomselect top "protein and name CA"] get chain]]
+puts "# Chains detected: $protein_chains"
 set protein_segnames [lsort -unique [[atomselect top "protein and name CA"] get segname]]
+puts "# Segnames detected: $protein_segnames"
 foreach P $protein_chains {
     set oions [atomselect top "chain $P and ion"]
     $oions set chain I
