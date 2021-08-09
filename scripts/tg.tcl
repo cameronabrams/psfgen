@@ -82,13 +82,25 @@ set protein_segnames [lsort -unique [[atomselect top "protein and name CA"] get 
 puts "# Segnames detected: $protein_segnames"
 foreach P $protein_chains {
     set oions [atomselect top "chain $P and ion"]
-    $oions set chain I
-    $oions set segname ION
+    set oions_count [$oions num]
+    if { $oions_count > 0 } {
+       $oions set chain I
+       $oions set segname ION
+       puts "# Changing chain to I and segname to ION for $oions_count ions in chain $P"
+    }
     set glycans [atomselect top "chain $P and glycan"]
-    $glycans set segname $P
+    set glycans_count [$glycans num]
+    if { $glycans_count > 0 } {
+      $glycans set segname $P
+      puts "# Changing glycan segname to $P"
+    }
     set xw [atomselect top "chain $P and water"]
-    $xw set chain W
-    $xw set segname WTX
+    set xw_count [$xw num]
+    if { $xw_num > 0 } {
+      $xw set chain W
+      $xw set segname WTX
+      puts "# Changing crystal water chain to W and segname to WTX"
+    }
 }
 
 puts "# Reanalyzing topology after necessary chain/segname changes"
