@@ -91,12 +91,11 @@ set cell [molinfo top get {a b c}]
 # each glycan.  This, among other things, must be undone.
 # Note: If the parent PDB file gives a glycan a fully unique chain ID, cfaparsepdb.py
 # currently (8/9/21) by default does not revert that to the chain ID of the protein to 
-# which it is connected.  So, those "orphan" glycans need to be processed separately
-# (not implemented).
+# which it is connected.  So, those "orphan" glycans need to be processed separately.
 set protein_chains [lsort -unique [[atomselect top "protein and name CA"] get chain]]
-puts "# Chains detected: $protein_chains"
+puts "# Protein chains detected: $protein_chains"
 set protein_segnames [lsort -unique [[atomselect top "protein and name CA"] get segname]]
-puts "# Segnames detected: $protein_segnames"
+puts "# Protein segnames detected: $protein_segnames"
 foreach P $protein_chains {
     set oions [atomselect top "chain $P and ion"]
     set oions_count [$oions num]
@@ -113,11 +112,56 @@ foreach P $protein_chains {
     }
     set xw [atomselect top "chain $P and water"]
     set xw_count [$xw num]
-    if { $xw_num > 0 } {
+    if { $xw_count > 0 } {
       $xw set chain W
       $xw set segname WTX
       puts "# Changing crystal water chain to W and segname to WTX"
     }
+}
+# Here we identify and process orphan chains.  First, we identify all chainID's that have not 
+# already been identified as having protein atoms; these are the orphans.  Then we 
+# interrogate each orphan chain to find out what *existing* protein chain that exactly
+# one of its atoms is bonded to.  If such a connection exists, we then set the orphan chain's ID 
+# and segname to the chain ID of that "outside" protein atom.
+set non_protein_chains [lsort -unique [[atomselect top "not protein and not ion and not water"] get chain]]
+puts "# Chains with non-protein/ion/water atoms detected: $non_protein_chains"
+set non_protein_segnames [lsort -unique [[atomselect top "not protein and not ion and not water"] get segname]]
+puts "# Segnames with non-protein/ion/water atoms detected: $non_protein_segnames"
+set orphan_chains [list]
+foreach npc $non_protein_chains {
+  if { $npc in $protein_chains } {
+  } else {
+    lappend orphan_chains $npc
+  }
+}
+if { [llength $orphan_chains] > 0 } {
+  puts "# Chains that have not been processed for topogromacs: $orphan_chains"
+  foreach OC $orphan_chains {
+    set ocsel [atomselect top "chain $OC"]
+    set ocatoms [$ocsel get index]
+    set ocbl [$ocsel getbonds]
+    set outside [list]
+    foreach abl $ocbl {
+      foreach abli $abl {
+        if { $abli in $ocatoms } {
+
+        } else {
+          lappend outside $abli
+        }
+      }
+    }
+    if { [llength $outside] > 0 } {
+      puts "# Orphan chain $OC: atom(s) outside of chain to which atom(s) in chain are bonded: $outside"
+      set ownerchain [lsort -unique [[atomselect top "index [lindex $outside 0]"] get chain]]
+      if { $ownerchain in $protein_chains } {
+        puts "#   -> Setting chain ID and segname to $ownerchain"
+        $ocsel set chain $ownerchain
+        $ocsel set segname $ownerchain 
+      }
+    } else {
+      puts "# Orphan chain $OC is independent and not connected to any protein atom."
+    }
+  }
 }
 
 puts "# Reanalyzing topology after necessary chain/segname changes"
