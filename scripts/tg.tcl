@@ -89,29 +89,9 @@ foreach P $protein_chains {
     $xw set segname WTX
 }
 
-
-# make some changes to undo my original segnames and chains selections
-# 1. put the Zn ion into the ION segment
-#set zn [atomselect top "chain A and name ZN"]
-#$zn set chain I
-#$zn set segname ION
-
-# 2. put the gycans into their parent chains' segmments
-#set as [atomselect top "chain A and segname AS AG00 AG01 AG02 AG03"]
-#$as set segname A
-#set es [atomselect top "chain E and segname ES EG00"]
-#$es set segname E
-
-# 3. put the crystal waters into chain W and give them
-# a common segname
-#set awx [atomselect top "chain A and segname AWX AW"]
-#$awx set chain W
-#$awx set segname WTX
-#set ewx [atomselect top "chain E and segname EWX EW"]
-#$ewx set chain W
-#$ewx set segname WTX
-
+puts "# Reanalyzing topology after necessary chain/segname changes"
 mol reanalyze top
+puts "# Done reanalyzing"
 
 # at this point fragments are out of order, so let's try to fix that
 set fragsellist [list]
