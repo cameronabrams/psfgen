@@ -266,7 +266,7 @@ proc awm { molid } {
 # align molecule on selection
 proc amos { molid selstr } {
     set nf [molinfo top get numframes]
-    set p [atomselect $molid protein]
+    set p [atomselect $molid "protein or glycan"]
     set sr [atomselect $molid "$selstr"]
     set s [atomselect $molid "$selstr"]
     $sr frame 0
