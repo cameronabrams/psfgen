@@ -20,6 +20,7 @@ set centerselstr "protein or glycan"
 set PSFOUT tg_reordered.psf
 set CHARMMPARFILES [list]
 set parinp par.inp
+set default_resid_pad 100
 for { set a 0 } { $a < [llength $argv] } { incr a } {
   set arg [lindex $argv $a]
   if { $arg == "-psf" } {
@@ -157,15 +158,25 @@ if { [llength $orphan_chains] > 0 } {
       puts "# Orphan chain $OC: atom(s) outside of chain to which atom(s) in chain are bonded: $outside"
       set ownerchain [lsort -unique [[atomselect top "index [lindex $outside 0]"] get chain]]
       if { $ownerchain in $protein_chains } {
-        puts "#   -> Setting chain ID and segname to $ownerchain"
+        set highest_resid [lindex [lsort -u -integer -decreasing [[atomselect top "chain $ownerchain and not water"] get resid]] 0]
+        set this_offset [expr $highest_resid + $default_resid_pad]
         $ocsel set chain $ownerchain
-        $ocsel set segname $ownerchain 
+        $ocsel set segname $ownerchain
+        set bad_resids [$ocsel get resid]
+        set new_resids [list]
+        foreach bi $bad_resids {
+          lappend new_resids [expr $bi + $this_offset]
+        }
+        $ocsel set resid $new_resids
+        puts "#   -> Setting chain ID and segname to $ownerchain with lowest resid [lindex $new_resids 0]"
       }
     } else {
       puts "# Orphan chain $OC is independent and not connected to any protein atom."
     }
   }
 }
+
+# to do -- put ions BACK in chain I if they aren't there -- this can happen if there is an orphan/protein chain I already
 
 puts "# Reanalyzing topology after necessary chain/segname changes"
 mol reanalyze top
@@ -193,6 +204,7 @@ mol addfile tg_reordered.pdb
 set all [atomselect top all]
 pbc set $cell
 
+# generate cell dimensions in nanometers
 set fp [open "tg-cell-nm.in" "w"]
 puts $fp "[expr [lindex $cell 0] / 10.0]  [expr [lindex $cell 1] / 10.0] [expr [lindex $cell 2] / 10.0]"
 close $fp

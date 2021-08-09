@@ -5,17 +5,22 @@ function check_command {
     cmd=$1
     envvar=$2
     if ! command -v $cmd &> /dev/null; then
-        # no vmd in the users PATH...
-        if [[ -z "${!envvar}" ]]; then
+        if [[ ! -z "${!envvar}" ]]; then
             # user did not set a environment variable
             echo "Error: $cmd could not be found"
             exit
-        elif [[ ! -f ${!envvar} ]]; then
-            echo "No $cmd found at environment variable ${!envvar}"
-            exit
+        else
+            #echo "here"
+            if [[ ! -f ${envvar} ]]; then
+               echo "No $cmd found at environment variable ${envvar}"
+               exit
+            fi
         fi
     else
-        export ${envvar}=$cmd
+        # if the name of an environment variable is provided, set it
+        if [[ ! -z "${envvar}" ]]; then
+           export ${envvar}=$cmd
+        fi
     fi
 }
 

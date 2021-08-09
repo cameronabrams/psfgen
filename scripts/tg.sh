@@ -1,7 +1,14 @@
 #!/bin/bash
 # topogromacs control script
 # cameron f abrams cfa22@drexel.edu
-
+if [[ -z "${PSFGEN_BASEDIR}" ]]; then
+    PSFGEN_BASEDIR=${HOME}/research/psfgen
+    if [[ ! -d $PSFGEN_BASEDIR ]]; then
+        echo "Error: No PSFGEN_BASEDIR found."
+        exit -1
+    fi
+fi
+source $PSFGEN_BASEDIR/scripts/utils.sh
 PDB=""
 TOP="none"
 INPUTNAME="none"
@@ -43,13 +50,8 @@ while [ $i -le $ARGC ] ; do
   i=$((i+1))
 done
 
-for cmd in vmd gmx ; do
-    if ! command -v $cmd &> /dev/null
-    then
-        echo "Error: $cmd could not be found"
-        exit
-    fi
-done
+check_command vmd
+check_command gmx
 
 if [ "$PSF" = "none" ]; then
    echo "Error: You must specify the input psf file name with the -psf option."
