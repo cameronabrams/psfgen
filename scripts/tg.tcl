@@ -69,6 +69,7 @@ close $pf
 
 package require topotools
 package require pbctools
+puts "# Reading $PSF, ${INPUTNAME}.coor, and ${INPUTNAME}.xsc"
 mol new $PSF
 mol addfile ${INPUTNAME}.coor
 pbc readxst ${INPUTNAME}.xsc
