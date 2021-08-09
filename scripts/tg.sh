@@ -8,6 +8,7 @@ INPUTNAME="none"
 PSF="none"
 MDP=""
 TPR=""
+LOG="topogromacs.log"
 i=1
 ARGC=$#
 while [ $i -le $ARGC ] ; do
@@ -30,6 +31,10 @@ while [ $i -le $ARGC ] ; do
   if [ "${!i}" = "-tpr" ]; then
     i=$((i+1))
     TPR=${!i}
+  fi
+  if [ "${!i}" = "-log" ]; then
+    i=$((i+1))
+    LOG=${!i}
   fi
   if [ "${!i}" = "-i" ]; then
     i=$((i+1))
@@ -70,13 +75,13 @@ for f in $PSF ${INPUTNAME}.coor ${INPUTNAME}.xsc; do
 done
 
 echo "Executing topogromacs VMD script to convert $PSF/$INPUTNAME to $TOP/$PDB..."
-vmd -dispdev text -e $PSFGEN_BASEDIR/scripts/tg.tcl -args -psf $PSF -top $TOP -i $INPUTNAME 2>&1 > topogromacs.log
+vmd -dispdev text -e $PSFGEN_BASEDIR/scripts/tg.tcl -args -psf $PSF -top $TOP -i $INPUTNAME 2>&1 > $LOG
 if [ $? -ne 0 ]; then
     echo "Topogromacs script failed. Check topogromacs.log."
     exit 1
 fi
-gmx editconf -f tg_needsbox.pdb -o $PDB -box `cat tg-cell-nm.in` 2>&1 >> topogromacs.log
-echo "Done.  Results in topogromacs.log."
+gmx editconf -f tg_needsbox.pdb -o $PDB -box `cat tg-cell-nm.in` 2>&1 >> $LOG
+echo "Done.  Results in $LOG."
 if [ "$MDP" != "" ] && [ "$TPR" != "" ] && [ $TOP != "" ]; then
   for f in $MDP $PDB $TOP; do
     if [ ! -f $f ]; then
