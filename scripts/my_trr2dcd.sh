@@ -87,10 +87,10 @@ if [ -f $DCD ]; then
    echo "# Output $DCD exists with $nframes_converted frames."
    b=`echo "$nframes_converted*$nstxout*$dt" | bc -l`
    echo "# Will begin reading $TRR at time $b ps."
-   exit
+   echo "# Copying $DCD to PREV-$DCD..."
    cp $DCD PREV-${DCD}
 fi
-exit
+
 # make appropriate ndx files
 echo "q" > tmp
 gmx make_ndx -f $PDB -o tst.ndx < tmp
