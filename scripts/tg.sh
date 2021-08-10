@@ -18,6 +18,7 @@ TPR=""
 LOG="topogromacs.log"
 INTERPDB="tg_needsbox.pdb"
 CELLDIMFILE="tg-cell-nm.in"
+SYSTEMNAME="cfa-tg-psfgen"
 i=1
 ARGC=$#
 while [ $i -le $ARGC ] ; do
@@ -52,6 +53,10 @@ while [ $i -le $ARGC ] ; do
   if [ "${!i}" = "--interpdb" ]; then
     i=$((i+1))
     INTERPDB=${!i}
+  fi
+  if [ "${!i}" = "--systemname" ]; then
+    i=$((i+1))
+    SYSTEMNAME=${!i}
   fi
   if [ "${!i}" = "-i" ]; then
     i=$((i+1))
@@ -104,6 +109,7 @@ if [ "$MDP" != "" ] && [ "$TPR" != "" ] && [ $TOP != "" ]; then
       exit
     fi
   done
+  cat $TOP | sed s/vmdmolecule2/$SYSTEMNAME/ > .tmp; mv .tmp $TOP
   gmx grompp -f $MDP -c $PDB -p $TOP -o $TPR -maxwarn 2
 else
    echo "Next command: gmx grompp -f whatever.mdp -c $PDB -p $TOP -o whatever.tpr -maxwarn 2"
