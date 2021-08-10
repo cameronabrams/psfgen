@@ -16,6 +16,8 @@ PSF="none"
 MDP=""
 TPR=""
 LOG="topogromacs.log"
+INTERPDB="tg_needsbox.pdb"
+CELLDIMFILE="tg-cell-nm.in"
 i=1
 ARGC=$#
 while [ $i -le $ARGC ] ; do
@@ -42,6 +44,14 @@ while [ $i -le $ARGC ] ; do
   if [ "${!i}" = "-log" ]; then
     i=$((i+1))
     LOG=${!i}
+  fi
+  if [ "${!i}" = "--cell-dim-file" ]; then
+    i=$((i+1))
+    CELLDIMFILE=${!i}
+  fi
+  if [ "${!i}" = "--interpdb" ]; then
+    i=$((i+1))
+    INTERPDB=${!i}
   fi
   if [ "${!i}" = "-i" ]; then
     i=$((i+1))
@@ -76,13 +86,16 @@ for f in $PSF ${INPUTNAME}.coor ${INPUTNAME}.xsc; do
   fi
 done
 
-echo "Executing topogromacs VMD script to convert $PSF/$INPUTNAME to $TOP/$PDB..."
-vmd -dispdev text -e $PSFGEN_BASEDIR/scripts/tg.tcl -args -psf $PSF -top $TOP -i $INPUTNAME 2>&1 > $LOG
+echo "Executing topogromacs VMD script to convert $PSF/$INPUTNAME to $TOP/$INTERPDB"
+echo "Command: vmd -dispdev text -e $PSFGEN_BASEDIR/scripts/tg.tcl -args -psf $PSF -top $TOP -i $INPUTNAME -opdb $INTERPDB --cell-dim-file $CELLDIMFILE 2>&1 > $LOG"
+vmd -dispdev text -e $PSFGEN_BASEDIR/scripts/tg.tcl -args -psf $PSF -top $TOP -i $INPUTNAME -opdb $INTERPDB --cell-dim-file $CELLDIMFILE 2>&1 > $LOG
 if [ $? -ne 0 ]; then
     echo "Topogromacs script failed. Check topogromacs.log."
     exit 1
 fi
-gmx editconf -f tg_needsbox.pdb -o $PDB -box `cat tg-cell-nm.in` 2>&1 >> $LOG
+echo "Calling gmx editconf to combine box size info from $CELLDIMFILE with $INTERPDB to generate $PDB"
+echo "Command: gmx editconf -f $INTERPDB -o $PDB -box `cat $CELLDIMFILE` 2>&1 >> $LOG"
+gmx editconf -f $INTERPDB -o $PDB -box `cat $CELLDIMFILE` 2>&1 >> $LOG
 echo "Done.  Results in $LOG."
 if [ "$MDP" != "" ] && [ "$TPR" != "" ] && [ $TOP != "" ]; then
   for f in $MDP $PDB $TOP; do
@@ -93,6 +106,6 @@ if [ "$MDP" != "" ] && [ "$TPR" != "" ] && [ $TOP != "" ]; then
   done
   gmx grompp -f $MDP -c $PDB -p $TOP -o $TPR -maxwarn 2
 else
-   echo "Do this next: gmx grompp -f whatever.mdp -c $PDB -p $TOP -o whatever.tpr -maxwarn 2"
+   echo "Next command: gmx grompp -f whatever.mdp -c $PDB -p $TOP -o whatever.tpr -maxwarn 2"
 fi
 
