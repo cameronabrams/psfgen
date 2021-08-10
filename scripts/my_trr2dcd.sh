@@ -11,6 +11,14 @@
 #
 # Cameron F Abrams cfa22@drexel.edu
 # 2021
+if [[ -z "${PSFGEN_BASEDIR}" ]]; then
+    PSFGEN_BASEDIR=${HOME}/research/psfgen
+    if [[ ! -d $PSFGEN_BASEDIR ]]; then
+        echo "Error: No PSFGEN_BASEDIR found."
+        exit -1
+    fi
+fi
+source $PSFGEN_BASEDIR/scripts/utils.sh
 
 PDB="tg_coor.pdb"
 TPR="tg.tpr"
@@ -60,13 +68,27 @@ for infile in $PSF $TRR $PDB $TPR; do
     fi
 done
 
-for cmd in vmd gmx ; do
-    if ! command -v $cmd &> /dev/null
-    then
-        echo "Error: $cmd command could not be found."
-        exit
-    fi
-done
+check_command vmd
+check_command gmx
+check_command catdcd
+
+gmx dump $TPR -mo tmp.mdp
+dt=`grep ^dt tmp.mdp|awk '{print $3}'`
+nstxout=`grep ^nstxout tmp.mdp|awk '{print $3}'`
+nsteps=`grep ^nsteps tmp.mdp|awk '{print $3}'`
+
+nframes_expected=`echo $nsteps / $nstxout + 1|bc`
+b=0
+
+if [ -f $DCD ]; then
+   nframes_converted=`catdcd -num $DCD | grep Total | awk '{print $3}'`
+   echo "# Output $DCD exists with $nframes_converted frames."
+   b=`echo "($nframes_converted + 1) * $dt" | bc -l`
+   echo "# Will begin reading $TRR at time $b ps."
+   cp $DCD PREV-${DCD}
+fi
+exit
+# make appropriate ndx files
 echo "q" > tmp
 gmx make_ndx -f $PDB -o tst.ndx < tmp
 if [ "$CSELSTR" != "" ]; then
@@ -79,11 +101,12 @@ cat > tmp << EOF
 1
 0
 EOF
-gmx trjconv -f $TRR -s $PDB -o tmp1.trr -pbc nojump -center -n all.ndx < tmp
+
+gmx trjconv -f $TRR -b $b -s $PDB -o tmp1.trr -pbc nojump -center -n all.ndx < tmp
 cat > tmp << EOF
 0
 EOF
-gmx trjconv -f tmp1.trr -s $TPR -o tmp2.trr -pbc mol < tmp
+gmx trjconv -f tmp1.trr -b $b -s $TPR -o tmp2.trr -pbc mol < tmp
 cat > tmp.tcl << EOF
 mol new $PSF
 mol addfile tmp2.trr waitfor all
@@ -94,5 +117,9 @@ puts "\$n frames written to $DCD"
 exit
 EOF
 vmd -dispdev text -e tmp.tcl
+if [ -f PREV-${DCD} ]; then
+    catdcd -o tmp.dcd PREV-${DCD} ${DCD}
+    mv tmp.dcd ${DCD}
+fi
 rm -f tmp tmp.tcl tmp1.trr tmp2.trr
 
