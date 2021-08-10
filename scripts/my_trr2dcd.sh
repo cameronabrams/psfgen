@@ -78,6 +78,7 @@ nstxout=`grep -w ^nstxout tmp.mdp| grep -v compressed|awk '{print $3}'`
 nsteps=`grep ^nsteps tmp.mdp|awk '{print $3}'`
 echo "$dt $nsteps $nstxout ($nsteps/$nstxout)+1"
 nframes_expected=`echo "($nsteps/$nstxout)+1"|bc`
+echo "$TPR implies $nframes_expected frames are in $TRR"
 b=0
 
 if [ -f $DCD ]; then
