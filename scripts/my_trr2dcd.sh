@@ -72,7 +72,7 @@ check_command vmd
 check_command gmx
 check_command catdcd
 
-gmx dump -s $TPR -mo tmp.mdp
+gmx dump -s $TPR -om tmp.mdp
 dt=`grep ^dt tmp.mdp|awk '{print $3}'`
 nstxout=`grep -w ^nstxout tmp.mdp| grep -v compressed|awk '{print $3}'`
 nsteps=`grep ^nsteps tmp.mdp|awk '{print $3}'`
