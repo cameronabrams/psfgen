@@ -83,8 +83,9 @@ b=0
 if [ -f $DCD ]; then
    nframes_converted=`catdcd -num $DCD | grep Total | awk '{print $3}'`
    echo "# Output $DCD exists with $nframes_converted frames."
-   b=`echo "($nframes_converted + 1) * $dt" | bc -l`
+   b=`echo "($nframes_converted+1)*$dt" | bc -l`
    echo "# Will begin reading $TRR at time $b ps."
+   exit
    cp $DCD PREV-${DCD}
 fi
 exit
