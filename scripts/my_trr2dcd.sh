@@ -72,13 +72,14 @@ check_command vmd
 check_command gmx
 check_command catdcd
 
-gmx dump $TPR -mo tmp.mdp
+gmx dump -s $TPR -mo tmp.mdp
 dt=`grep ^dt tmp.mdp|awk '{print $3}'`
 nstxout=`grep -w ^nstxout tmp.mdp| grep -v compressed|awk '{print $3}'`
 nsteps=`grep ^nsteps tmp.mdp|awk '{print $3}'`
 #echo "$dt $nsteps $nstxout ($nsteps/$nstxout)+1"
 nframes_expected=`echo "($nsteps/$nstxout)+1"|bc`
-echo "$TPR implies $nframes_expected frames are in $TRR"
+frame_interval_ps=`echo "$dt*$nstxout"|bc`
+echo "$TPR: $nframes_expected frames are in $TRR, interval $frame_interval_ps ps"
 b=0
 
 if [ -f $DCD ]; then
