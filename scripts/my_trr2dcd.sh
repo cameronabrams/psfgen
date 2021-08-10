@@ -76,7 +76,7 @@ gmx dump $TPR -mo tmp.mdp
 dt=`grep ^dt tmp.mdp|awk '{print $3}'`
 nstxout=`grep -w ^nstxout tmp.mdp| grep -v compressed|awk '{print $3}'`
 nsteps=`grep ^nsteps tmp.mdp|awk '{print $3}'`
-echo "$dt $nsteps $nstxout ($nsteps/$nstxout)+1"
+#echo "$dt $nsteps $nstxout ($nsteps/$nstxout)+1"
 nframes_expected=`echo "($nsteps/$nstxout)+1"|bc`
 echo "$TPR implies $nframes_expected frames are in $TRR"
 b=0
@@ -84,7 +84,7 @@ b=0
 if [ -f $DCD ]; then
    nframes_converted=`catdcd -num $DCD | grep Total | awk '{print $3}'`
    echo "# Output $DCD exists with $nframes_converted frames."
-   b=`echo "($nframes_converted+1)*$nstxout*$dt" | bc -l`
+   b=`echo "$nframes_converted*$nstxout*$dt" | bc -l`
    echo "# Will begin reading $TRR at time $b ps."
    exit
    cp $DCD PREV-${DCD}
