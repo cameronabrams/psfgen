@@ -74,10 +74,10 @@ check_command catdcd
 
 gmx dump $TPR -mo tmp.mdp
 dt=`grep ^dt tmp.mdp|awk '{print $3}'`
-nstxout=`grep ^nstxout tmp.mdp|awk '{print $3}'`
+nstxout=`grep -w ^nstxout tmp.mdp|awk '{print $3}'`
 nsteps=`grep ^nsteps tmp.mdp|awk '{print $3}'`
 echo "$dt $nsteps $nstxout ($nsteps/$nstxout)+1"
-nframes_expected=`echo "($nsteps*$nstxout)+1"|bc`
+nframes_expected=`echo "($nsteps/$nstxout)+1"|bc`
 b=0
 
 if [ -f $DCD ]; then
