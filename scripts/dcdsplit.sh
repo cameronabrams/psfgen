@@ -1,4 +1,5 @@
 #!/bin/bash
+# don't use this
 if [[ -z "${PSFGEN_BASEDIR}" ]]; then
     PSFGEN_BASEDIR=${HOME}/research/psfgen
     if [[ ! -d $PSFGEN_BASEDIR ]]; then
