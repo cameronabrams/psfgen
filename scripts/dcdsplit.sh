@@ -30,13 +30,17 @@ Nrem=`echo "$Ntot-$N*$Nper"|bc`
 echo "Ntot $Ntot Nper $Nper Nrem $Nrem"
 first=1; # dcd frame numbering begins at "1" not "0"
 last=$Nper
+slice=1
 while [[ $last -le $Ntot ]]; do
    echo "first $first last $last"
    first=$((last+1))
    last=$((last+Nper))
+   catdcd -first $first -last $last -o ${DCD%.dcd}-slice${slice}.dcd $DCD
+   slice=$((slice+1))
 done
 if (($Nrem>0)); then
    last=$((first+$Nrem-1))
    echo "rem first $first last $last"
+   catdcd -first $first -last $last -o ${DCD%.dcd}-slice${slice}.dcd $DCD
 fi
 
