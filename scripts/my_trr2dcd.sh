@@ -113,11 +113,15 @@ cat > tmp << EOF
 0
 EOF
 
+# center on the centersel
 gmx trjconv -f $TRR -b $b -s $PDB -o tmp1.trr -pbc nojump -center -n all.ndx < tmp
 cat > tmp << EOF
 0
 EOF
+# put molecules back together
 gmx trjconv -f tmp1.trr -b $b -s $TPR -o tmp2.trr -pbc mol < tmp
+
+# convert to dcd
 cat > tmp.tcl << EOF
 mol new $PSF
 mol addfile tmp2.trr waitfor all
