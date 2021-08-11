@@ -24,6 +24,13 @@ function check_command {
     fi
 }
 
+function check_file {
+    if [ ! -f $check_file ]; then
+       echo "Error: $check_file not found."
+       exit 
+    fi
+}
+
 function ess {
     n=$1
     if (( $n > 1 )); then
