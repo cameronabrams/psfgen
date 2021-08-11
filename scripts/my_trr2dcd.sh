@@ -132,7 +132,7 @@ puts "\$n frames written to $DCD"
 exit
 EOF
 vmd -dispdev text -e tmp.tcl
-if [ -f PREV-${DCD} ]; then
+if [ -f PREV-${DCD} ] && $APPEND; then
     catdcd -o tmp.dcd PREV-${DCD} ${DCD}
     mv tmp.dcd ${DCD}
 fi
