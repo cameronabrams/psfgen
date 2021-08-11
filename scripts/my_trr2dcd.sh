@@ -26,6 +26,7 @@ TRR="tg.trr"
 PSF="tg_redordered.psf"
 CSELSTR=""
 DCD=""
+APPEND=1
 
 i=1
 ARGC=$#
@@ -53,6 +54,9 @@ while [ $i -le $ARGC ] ; do
   if [ "${!i}" = "-dcd" ]; then
     i=$((i+1))
     DCD=${!i}
+  fi
+  if [ "${!i}" = "-no-append" ]; then
+    APPEND=0
   fi
   i=$((i+1))
 done
@@ -83,12 +87,16 @@ echo "$TPR: $nframes_expected frames are in $TRR, interval $frame_interval_ps ps
 b=0
 
 if [ -f $DCD ]; then
-   nframes_converted=`catdcd -num $DCD | grep Total | awk '{print $3}'`
-   echo "# Output $DCD exists with $nframes_converted frames."
-   b=`echo "$nframes_converted*$nstxout*$dt" | bc -l`
-   echo "# Will begin reading $TRR at time $b ps."
-   echo "# Copying $DCD to PREV-$DCD..."
-   cp $DCD PREV-${DCD}
+   if $APPEND; then
+    nframes_converted=`catdcd -num $DCD | grep Total | awk '{print $3}'`
+    echo "# Output $DCD exists with $nframes_converted frames."
+    b=`echo "$nframes_converted*$nstxout*$dt" | bc -l`
+    echo "# Will begin reading $TRR at time $b ps."
+    echo "# Copying $DCD to PREV-$DCD..."
+    cp $DCD PREV-${DCD}
+  else
+    echo "$DCD found; will be overwritten"
+  fi
 fi
 
 # make appropriate ndx files
