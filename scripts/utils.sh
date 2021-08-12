@@ -2,22 +2,30 @@ function check_command {
     # check for executable named by first argument or contained
     # by a possible environment variable named by the second
     # if the environment variable is not set, set it
+    envvar="NONE"
     cmd=$1
-    envvar=$2
+    if [ "$#" -eq 2 ]; then
+        cmd=$1
+        envvar=$2
+    fi
+    echo "checking $cmd $envvar"
     if ! command -v $cmd &> /dev/null; then
-        if [[ ! -z "${!envvar}" ]]; then
+        if [[ "${envvar}" == "NONE" ]]; then
             # user did not set a environment variable
             echo "Error: $cmd could not be found"
             exit
         else
             #echo "here"
-            if [[ ! -f ${envvar} ]]; then
-               echo "No $cmd found at environment variable ${envvar}"
+            if [[ ! -f ${!envvar} ]]; then
+               echo "No $cmd found at environment variable ${!envvar}"
                exit
+            else
+               echo "Aliasing $cmd to ${!envvar}"
+               alias $cmd=${!envvar}
             fi
         fi
     else
-        # if the name of an environment variable is provided, set it
+        # if the name of an unset environment variable is provided, set it
         if [[ ! -z "${envvar}" ]]; then
            export ${envvar}=$cmd
         fi

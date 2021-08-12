@@ -1,0 +1,39 @@
+set SYS %SYS%
+
+paraTypeCharmm on
+source par.inp
+
+structure   ${SYS}.psf; # PSF
+coordinates ${SYS}.pdb; # PDB
+
+outputname gb_bnm 
+
+numsteps 0 
+
+GBIS on 
+solventDielectric 74.69 
+ionConcentration 0.3 
+alphaCutoff 14
+switching on 
+switchdist 9. 
+cutoff 10
+pairlistdist 11.5
+
+sasa on
+surfaceTension 0.0072 
+timestep 1 
+nonbondedFreq 1
+fullElectFrequency 1
+exclude scaled1-4 
+temperature 310
+set ts 0
+
+coorfile open dcd ${SYS}.dcd  
+
+while { ![coorfile read] } { 
+    firstTimestep $ts 
+    run 0
+    incr ts 1
+} 
+coorfile close 
+
