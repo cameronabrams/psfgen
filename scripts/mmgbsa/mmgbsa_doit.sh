@@ -68,21 +68,21 @@ vmd -dispdev text -e $PSFGEN_BASEDIR/scripts/mmgbsa/stripsplit.tcl -args -Asel $
 # generate the config file for each type of system, run namd2 to compute energies on existing trajectory, 
 # extract potential energy from ENERGY lines in namd2 log
 if [ "$DOCALC" == "YES" ]; then 
-    for sys in $Aname $Bname $ABname; do
-       pf=m-${sys}
-       c=${pf}.namd
-       l=${pf}.log
-       e=${pf}.e
-       cat ${TEMPLATECF} | sed s/%SYS%/${sys}/g  > $c
-       echo "Running $namd2 +p${NPE} $c"
-       namd2 +p${NPE} $c > $l
-       echo "Generated $l"
-       if [ "$sys" == "$Aname" ] ; then
-          grep ^ENERGY $l | awk '{print $2,$14}' > $e
-       else
-          grep ^ENERGY $l | awk '{print $14}' > $e
-       fi
-    done
+  for sys in $Aname $Bname $ABname; do
+    pf=m-${sys}
+    c=${pf}.namd
+    l=${pf}.log
+    e=${pf}.e
+    cat ${TEMPLATECF} | sed s/%SYS%/${sys}/g  > $c
+    echo "Running $namd2 +p${NPE} $c"
+    namd2 +p${NPE} $c > $l
+    echo "Generated $l"
+    if [ "$sys" == "$Aname" ] ; then
+      grep ^ENERGY $l | awk '{print $2,$14}' > $e
+    else
+      grep ^ENERGY $l | awk '{print $14}' > $e
+    fi
+  done
 fi
 
 # perform the running average of the difference (complex)-((ligand)+(target)) 
