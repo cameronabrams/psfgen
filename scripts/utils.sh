@@ -8,7 +8,6 @@ function check_command {
         cmd=$1
         envvar=$2
     fi
-    echo "checking $cmd $envvar"
     if ! command -v $cmd &> /dev/null; then
         if [[ "${envvar}" == "NONE" ]]; then
             # user did not set a environment variable

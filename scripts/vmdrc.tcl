@@ -2,6 +2,15 @@
 # cameron f abrams, 2020
 # cfa22@drexel.edu
 
+
+proc have_common_elements { list1 list2 } {
+   foreach i $list1 j $list2 {
+      if { $i in $list2 } { return 1 }
+      if { $j in $list1 } { return 1 }
+   }
+   return 0
+}
+
 # draw an arrow from pt 'start' to point 'end'
 proc vmd_draw_arrow {mol start end} {
     # an arrow is made of a cylinder and a cone
@@ -744,8 +753,51 @@ proc axeq { ose_resid molid chain in_name c1_resid } {
        return "b" 
     }
 }
+
+proc extract_psf_pdb { psf pdb selstr opsf opdb } {
+    mol new $psf
+    mol addfile $pdb
+    set all [atomselect top all]
+    set allsegs [lsort -unique [$all get segid]]
+    set sel [atomselect top "($selstr)"]
+    set notsel [atomselect top "not ($selstr)"]
+    set selnum [$sel num]
+    set selsegs [lsort -unique  [$sel get segid]]
+    set Xsegs [list]
+    foreach s $allsegs {
+        if {[lsearch -exact $selsegs $s] >= 0} {
+            set insel [atomselect top "segid $s and ($selstr)"]
+            set notinsel [atomselect top "segid $s and not ($selstr)"]
+            if {[$notinsel num]>0} {
+                foreach rn [$notinsel get resid] an [$notinsel get name] {
+                    lappend Xsegs [list $s $rn $an]
+                }
+            }
+        } else {
+            lappend Xsegs [list $s]
+        }
+    }
+    package require psfgen
+    readpsf $psf
+    coordpdb $pdb
+    foreach xs $Xsegs {
+        if {[llength $xs]==1} {
+            delatom $xs
+        } else {
+            delatom [lindex $xs 0] [lindex $xs 1] [lindex $xs 2]
+        }
+    }
+    writepsf $opsf
+    writepdb $opdb
+}
+
+
+
 atomselect macro dppc_head "resname DPPC and name C1 HA HB C11 H11A H11B C12 H12A H12B C13 H13A H13B H13C C14 H14A H14B H14C C15 H15A H15B H15C P O11 O12 O13 O14 N"
 atomselect macro dppc_tail "resname DPPC and not name C1 HA HB C11 H11A H11B C12 H12A H12B C13 H13A H13B H13C C14 H14A H14B H14C C15 H15A H15B H15C P O11 O12 O13 O14 N"
 atomselect macro glycan "resname NAG MAN BMA FUC GAL BGNA AMAN BMAN AFUC BGAL ANE5" 
+
+
+
 menu main on
 

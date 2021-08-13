@@ -53,6 +53,7 @@ pyparser_args=()
 pyparser=$PYPARSER
 PRODUCTION_STEPS=10000000
 DO_TOPOGROMACS=0
+SEL_STR=""
 while [ $i -le $ARGC ] ; do
   if [ "${!i}" = "-pdb" ]; then
     i=$((i+1))
@@ -101,6 +102,10 @@ while [ $i -le $ARGC ] ; do
     TG_TOP=${!i}
     i=$((i+1))
     TG_PDB=${!i}
+  fi
+  if [ "${!i}" = "-selection" ]; then
+    i=$((i+1))
+    SEL_STR=${!i}
   fi
   i=$((i+1))
 done
@@ -160,6 +165,20 @@ for pi in `seq 0 $((nparse-1))`; do
     fi
    read CURRPSF CURRPDB CURRCFG < .tmpvar
 done
+
+# downselect
+if [[ "$SEL_STR" != "" ]]; then
+    TASK=$((TASK+1))
+    echo "TASK $TASK: Downselecting based on $SEL_STR"
+    cat > tmp.tcl << EOF
+    set selstr [join [split "$SEL_STR" "-"] " "]
+    extract_psf_pdb $CURRPSF $CURRPDB \$selstr config${TASK}.psf config${TASK}.pdb
+    exit
+EOF
+    $VMD -dispdev text -e tmp.tcl > ${TASK}-psfgen.log
+    CURRPSF=config${TASK}.psf
+    CURRPDB=config${TASK}.pdb
+fi
 
 # solvate
 TASK=$((TASK+1))

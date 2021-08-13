@@ -13,14 +13,6 @@ proc usage {} {
    puts "    <dcd1> <dcd2> ..."
 }
 
-proc have_common_elements { list1 list2 } {
-   foreach i $list1 j $list2 {
-      if { $i in $list2 } { return 1 }
-      if { $j in $list1 } { return 1 }
-   }
-   return 0
-}
-
 if {![info exists PSFGEN_BASEDIR]} {
   # see if user set an environment variable
   if {[info exists env(PSFGEN_BASEDIR)]} {
