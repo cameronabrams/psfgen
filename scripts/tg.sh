@@ -92,7 +92,7 @@ for f in $PSF ${INPUTNAME}.coor ${INPUTNAME}.xsc; do
 done
 
 echo "Executing topogromacs VMD script to convert $PSF/$INPUTNAME to $TOP/$INTERPDB"
-echo "Command: vmd -dispdev text -e $PSFGEN_BASEDIR/scripts/tg.tcl -args -psf $PSF -top $TOP -i $INPUTNAME -opdb $INTERPDB --cell-dim-file $CELLDIMFILE
+echo "Command: vmd -dispdev text -e $PSFGEN_BASEDIR/scripts/tg.tcl -args -psf $PSF -top $TOP -i $INPUTNAME -opdb $INTERPDB --cell-dim-file $CELLDIMFILE"
 vmd -dispdev text -e $PSFGEN_BASEDIR/scripts/tg.tcl -args -psf $PSF -top $TOP -i $INPUTNAME -opdb $INTERPDB --cell-dim-file $CELLDIMFILE
 if [ $? -ne 0 ]; then
     echo "Topogromacs script failed."
