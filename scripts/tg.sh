@@ -92,10 +92,10 @@ for f in $PSF ${INPUTNAME}.coor ${INPUTNAME}.xsc; do
 done
 
 echo "Executing topogromacs VMD script to convert $PSF/$INPUTNAME to $TOP/$INTERPDB"
-echo "Command: vmd -dispdev text -e $PSFGEN_BASEDIR/scripts/tg.tcl -args -psf $PSF -top $TOP -i $INPUTNAME -opdb $INTERPDB --cell-dim-file $CELLDIMFILE 2>&1 > $LOG"
-vmd -dispdev text -e $PSFGEN_BASEDIR/scripts/tg.tcl -args -psf $PSF -top $TOP -i $INPUTNAME -opdb $INTERPDB --cell-dim-file $CELLDIMFILE 2>&1 > $LOG
+echo "Command: vmd -dispdev text -e $PSFGEN_BASEDIR/scripts/tg.tcl -args -psf $PSF -top $TOP -i $INPUTNAME -opdb $INTERPDB --cell-dim-file $CELLDIMFILE
+vmd -dispdev text -e $PSFGEN_BASEDIR/scripts/tg.tcl -args -psf $PSF -top $TOP -i $INPUTNAME -opdb $INTERPDB --cell-dim-file $CELLDIMFILE
 if [ $? -ne 0 ]; then
-    echo "Topogromacs script failed. Check topogromacs.log."
+    echo "Topogromacs script failed."
     exit 1
 fi
 echo "Calling gmx editconf to combine box size info from $CELLDIMFILE with $INTERPDB to generate $PDB"
