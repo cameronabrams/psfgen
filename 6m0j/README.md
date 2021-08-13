@@ -26,10 +26,10 @@ This system can also be post-processed using [topogromacs](https://doi.org/10.10
 ```
 Of course, you can call the `top` and `pdb` files whatever you like.  Using `gmx grompp` with these two files and an MD parameters (`mdp`) file allows for creation of a `tpr` file for use with `mdrun`.
 
-Note that the argument of the `-pdb` option is a string that instructs the script to download `6m0j.pdb` from the RCSB if it is not already present in the working directory.  This means that by editing an existing `6m0j.pdb` in the working directory provides a route to make modifications to the system that the parser might not be able to handle.
-
-For example, to *only* include the RBD but *not* the ACE2, one could use VMD to generate a local `6m0j.pdb` that only contains chain E.
-
+A restricted selection of atoms from the pdb file can be used to define the final system using the `-selection <str-with-dashes-for-spaces>` option.  The argument is interpreted as a VMD atomselection string in which dashes are converted to spaces.  This definitely restricts the kind of strings you can use for restricting but it works for making systems from complete subunits.  For example, to make a system with just the RBD domain without ACE2:
+```bash
+> $PSFGEN_BASEDIR/scripts/do_py.sh -pdb 6m0j -solv-stage-steps 100,200,400 -temperature 310 -selection chain-E
+```
 
 2017-2021, Cameron F Abrams, cfa22@drexel.edu
 
