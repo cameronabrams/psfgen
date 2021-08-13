@@ -307,10 +307,12 @@ puts $fp "[expr [lindex $cell 0] / 10.0]  [expr [lindex $cell 1] / 10.0] [expr [
 close $fp
 
 topo writegmxtop $GMXTOPNAME $CHARMMPARFILES 
+puts "Done with call to topogromacs."
+flush stdout
 pbc wrap -now -compound fragment -centersel $centerselstr -center com
 [atomselect top "all"] writepdb $PDBOUT
 
 puts "# Generated final output files $PSFOUT and $GMXTOPNAME"
 puts "# Next command:"
-puts "# > gmx editconf -f $PDBOUT-o tg_final.pdb -box `cat $CELLDIMFILE`"
+puts "# > gmx editconf -f $PDBOUT -o tg_final.pdb -box `cat $CELLDIMFILE`"
 exit
