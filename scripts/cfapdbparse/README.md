@@ -4,7 +4,7 @@ This python script automates the process of building an input script for `psfgen
 
 Cameron F Abrams -- cfa22@drexel.edu
 
-2020
+2020-2021
 
 
 ### How it works:
