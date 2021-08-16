@@ -5,9 +5,9 @@
 # drexel university
 # chemical and biological engineering
 
-set scriptname [lindex $argv 0]
+set scriptname solv
 
-set pad 10; # pad in angstroms
+set pad 10; # default pad in angstroms
 set pdb "empty.pdb"
 set psf "empty.psf"
 set outpre "ionized"
@@ -36,7 +36,14 @@ for { set i 0 } { $i < [llength $argv] } { incr i } {
 }
 
 set outputname1 ${outpre}_wb
-
+if { ! [file exists $psf] } {
+   vmdcon -err "${scriptname}: $psf not found."
+   exit
+}
+if { ! [file exists $pdb] } {
+   vmdcon -err "${scriptname}: $pdb not found."
+   exit
+}
 mol new $psf
 mol addfile $pdb
 
@@ -54,7 +61,7 @@ foreach d {0 1 2} {
       set maxspan $thisspan
    }
 }
-vmdcon -info "${scriptname}: Maximum span $maxspan Angstroms"
+vmdcon -info "${scriptname}: Maximum span [format %.2f $maxspan] Angstroms"
 
 set sympad [list 0 0 0]
 if { $cubic == 1 } {
