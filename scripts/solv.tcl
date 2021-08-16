@@ -53,7 +53,7 @@ foreach d {0 1 2} {
    }
 }
 
-set sympad [0 0 0]
+set sympad [list 0 0 0]
 if { $cubic == 1 } {
    foreach d {0 1 2} {
       set thisspan [expr [lindex $box 1 $d ] - [lindex $box 0 $d]]
