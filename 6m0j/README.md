@@ -25,6 +25,7 @@ This system can also be post-processed using [topogromacs](https://doi.org/10.10
 > $PSFGEN_BASEDIR/scripts/do_py.sh -pdb 6m0j -pyparser-args "-mut E_N501Y -mut E_K417N -mut E_E484K" -solv-stage-steps 100,200,400 -temperature 310 -make-gromacs gmx_6m0j.top gmx_6m0j.pdb
 ```
 Of course, you can call the `top` and `pdb` files whatever you like.  Using `gmx grompp` with these two files and an MD parameters (`mdp`) file allows for creation of a `tpr` file for use with `mdrun`.
+NOTE:  You must comment out all statements of the form `display update ui` in the topogromacs plugin source.
 
 A restricted selection of atoms from the pdb file can be used to define the final system using the `-selection <str-with-dashes-for-spaces>` option.  The argument is interpreted as a VMD atomselection string in which dashes are converted to spaces.  This definitely restricts the kind of strings you can use for restricting but it works for making systems from complete subunits.  For example, to make a system with just the RBD domain without ACE2:
 ```bash
