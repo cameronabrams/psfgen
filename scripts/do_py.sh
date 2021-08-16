@@ -187,6 +187,8 @@ fi
 # solvate
 TASK=$((TASK+1))
 echo "TASK $TASK: Generating solvated system config${TASK}.psf/.pdb from ${CURRPSF}+${CURRPDB}..."
+echo "Command:"
+echo "$VMD -dispdev text -e $PSFGEN_BASEDIR/scripts/solv.tcl -args -psf $CURRPSF -pdb $CURRPDB -outpre config${TASK} $CUBICBOX > mysolv.log"
 $VMD -dispdev text -e $PSFGEN_BASEDIR/scripts/solv.tcl -args -psf $CURRPSF -pdb $CURRPDB -outpre config${TASK} $CUBICBOX > mysolv.log
 CURRPSF=config${TASK}.psf
 CURRPDB=config${TASK}.pdb
