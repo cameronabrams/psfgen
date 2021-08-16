@@ -5,6 +5,8 @@
 # drexel university
 # chemical and biological engineering
 
+set scriptname [info script]
+
 set pad 10; # pad in angstroms
 set pdb "empty.pdb"
 set psf "empty.psf"
@@ -52,18 +54,19 @@ foreach d {0 1 2} {
       set maxspan $thisspan
    }
 }
+vmdcon -info "${scriptname}: Maximum span $maxspan Angstroms"
 
 set sympad [list 0 0 0]
 if { $cubic == 1 } {
+   vmdcon -info "${scriptname}: Enforcing cubic box"
    foreach d {0 1 2} {
-      set thisspan [expr [lindex $box 1 $d ] - [lindex $box 0 $d]]
+      set thisspan [expr [lindex $minmax 1 $d ] - [lindex $minmax 0 $d]]
       lset sympad $d [expr 0.5*($maxspan-$thisspan)]
    }
 }
-
 foreach d {0 1 2} {
-  lset box 0 $d [expr [lindex $minmax 0 $d] - $pad - $sympad]
-  lset box 1 $d [expr [lindex $minmax 1 $d] + $pad + $sympad]
+  lset box 0 $d [expr [lindex $minmax 0 $d] - $pad - [lindex $sympad $d]]
+  lset box 1 $d [expr [lindex $minmax 1 $d] + $pad + [lindex $sympad $d]]
   lset basisvec $d [expr [lindex $box 1 $d ] - [lindex $box 0 $d]] 
   lset origin $d [expr 0.5*([lindex $box 1 $d ] + [lindex $box 0 $d])] 
 }
@@ -83,6 +86,6 @@ puts $fp "cellbasisvector2 0 [lindex $basisvec 1] 0"
 puts $fp "cellbasisvector3 0 0 [lindex $basisvec 2]"
 puts $fp "cellorigin $origin"
 close $fp
-puts "Generated cell.inp."
+vmdcon -info "${scriptname}: Generated cell.inp."
 
 quit
