@@ -5,7 +5,7 @@
 # drexel university
 # chemical and biological engineering
 
-set scriptname [info script]
+set scriptname $argv0
 
 set pad 10; # pad in angstroms
 set pdb "empty.pdb"
