@@ -45,7 +45,7 @@ set basisvec { ? ? ? }
 set origin { ? ? ? }
 
 set minmax [measure minmax $a]
-set maxspan -9999
+set maxspan [expr -9999]
 foreach d {0 1 2} {
    set thisspan [expr [lindex $box 1 $d ] - [lindex $box 0 $d]]
    if { $thisspan > $maxspan } {
