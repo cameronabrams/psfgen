@@ -54,6 +54,7 @@ pyparser=$PYPARSER
 PRODUCTION_STEPS=10000000
 DO_TOPOGROMACS=0
 SEL_STR=""
+CUBICBOX=""
 while [ $i -le $ARGC ] ; do
   if [ "${!i}" = "-pdb" ]; then
     i=$((i+1))
@@ -106,6 +107,9 @@ while [ $i -le $ARGC ] ; do
   if [ "${!i}" = "-selection" ]; then
     i=$((i+1))
     SEL_STR=${!i}
+  fi
+  if [ "${!i}" = "-cubic-box" ]; then
+    CUBICBOX="-cubic"
   fi
   i=$((i+1))
 done
@@ -183,7 +187,7 @@ fi
 # solvate
 TASK=$((TASK+1))
 echo "TASK $TASK: Generating solvated system config${TASK}.psf/.pdb from ${CURRPSF}+${CURRPDB}..."
-$VMD -dispdev text -e $PSFGEN_BASEDIR/scripts/solv.tcl -args -psf $CURRPSF -pdb $CURRPDB -outpre config${TASK}  > mysolv.log
+$VMD -dispdev text -e $PSFGEN_BASEDIR/scripts/solv.tcl -args -psf $CURRPSF -pdb $CURRPDB -outpre config${TASK} $CUBICBOX > mysolv.log
 CURRPSF=config${TASK}.psf
 CURRPDB=config${TASK}.pdb
 

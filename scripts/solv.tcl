@@ -9,11 +9,15 @@ set pad 10; # pad in angstroms
 set pdb "empty.pdb"
 set psf "empty.psf"
 set outpre "ionized"
+set cubic 0
 
 for { set i 0 } { $i < [llength $argv] } { incr i } {
     if { [lindex $argv $i] == "-pad" } {
        incr i
        set pad [lindex $argv $i]
+    }
+    if { [lindex $argv $i] == "-cubic" } {
+       set cubic 1
     }
     if { [lindex $argv $i] == "-pdb"} {
        incr i
@@ -41,10 +45,25 @@ set basisvec { ? ? ? }
 set origin { ? ? ? }
 
 set minmax [measure minmax $a]
+set maxspan -9999
+foreach d {0 1 2} {
+   set thisspan [expr [lindex $box 1 $d ] - [lindex $box 0 $d]]
+   if { $thisspan > $maxspan } {
+      set maxspan $thisspan
+   }
+}
+
+set sympad [0 0 0]
+if { $cubic == 1 } {
+   foreach d {0 1 2} {
+      set thisspan [expr [lindex $box 1 $d ] - [lindex $box 0 $d]]
+      lset sympad $d [expr 0.5*($maxspan-$thisspan)]
+   }
+}
 
 foreach d {0 1 2} {
-  lset box 0 $d [expr [lindex $minmax 0 $d] - $pad]
-  lset box 1 $d [expr [lindex $minmax 1 $d] + $pad]
+  lset box 0 $d [expr [lindex $minmax 0 $d] - $pad - $sympad]
+  lset box 1 $d [expr [lindex $minmax 1 $d] + $pad + $sympad]
   lset basisvec $d [expr [lindex $box 1 $d ] - [lindex $box 0 $d]] 
   lset origin $d [expr 0.5*([lindex $box 1 $d ] + [lindex $box 0 $d])] 
 }
