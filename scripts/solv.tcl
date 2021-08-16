@@ -49,7 +49,7 @@ set origin { ? ? ? }
 set minmax [measure minmax $a]
 set maxspan [expr -9999]
 foreach d {0 1 2} {
-   set thisspan [expr [lindex $box 1 $d ] - [lindex $box 0 $d]]
+   set thisspan [expr [lindex $minmax 1 $d ] - [lindex $minmax 0 $d]]
    if { $thisspan > $maxspan } {
       set maxspan $thisspan
    }
