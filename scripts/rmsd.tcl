@@ -22,7 +22,6 @@ proc main { argv } {
     set sel_align ""
     set max_frames 0
     set argc [llength $argv]
-    puts "$argv"
     flush stdout
     set dcd []
     set rmsd_outfile "rmsd.dat"
@@ -63,19 +62,19 @@ proc main { argv } {
         }
     }
     if { [string length $psf] == 0 } {
-        puts "Error: Specify PSF with -psf"
+        vmdcon -err "Specify PSF with -psf"
         exit
     }
     if { [llength $dcd] == 0 } {
-        puts "Error: Specify one or more DCD's with -dcd file1.dcd -dcd file2.dcd ..."
+        vmdcon -err "Specify one or more DCD's with -dcd file1.dcd -dcd file2.dcd ..."
         exit
     }
     if { [string length $sel_measure] == 0 } {
-        puts "Error: Specify chain selection to be measured with with -sel-measure \"<string-with-dashes-for-spaces>\""
+        vmdcon -err "Specify chain selection to be measured with with -sel-measure \"<string-with-dashes-for-spaces>\""
         exit
     }
     if { [string length $sel_align] == 0 } {
-        puts "Setting alignment selection equal to measure selection."
+        vmdcon -info "Setting alignment selection equal to measure selection."
         set sel_align $sel_measure
     }
 
@@ -137,10 +136,10 @@ proc main { argv } {
         puts $fp "$r [format %.4f $f]"
     }
     close $fp
-    puts "Created $rmsf_outfile"
+    vmdcon -info "Created $rmsf_outfile"
 
 }
-puts "$argv"
+
 main $argv
 exit
 

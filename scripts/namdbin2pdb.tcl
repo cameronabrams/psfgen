@@ -8,4 +8,3 @@ mol addfile $namdbin waitfor all
 set a [atomselect top all]
 $a writepdb $pdb
 exit
-

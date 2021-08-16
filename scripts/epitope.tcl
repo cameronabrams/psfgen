@@ -62,7 +62,7 @@ proc debug {} {
     set counts [update_resid_counts $counts $test_set ]
 
     foreach r $test_set {
-        puts "resid $r count [dict get $counts $r]"
+        vmdcon -info "resid $r count [dict get $counts $r]"
     }
 }
 
@@ -72,7 +72,6 @@ proc main { argv } {
     set chainB ""
     set max_frames 0
     set argc [llength $argv]
-    puts "$argv"
     flush stdout
     set dcd []
     set outfile "epitope.dat"
@@ -100,19 +99,19 @@ proc main { argv } {
     }
     
     if { [string length $psf] == 0 } {
-        puts "Error: Specify PSF with -psf"
+        vmdcon -err "Specify PSF with -psf"
         exit
     }
     if { [llength $dcd] == 0 } {
-        puts "Error: Specify one or more DCD's with -dcd file1.dcd -dcd file2.dcd ..."
+        vmdcon -err "Specify one or more DCD's with -dcd file1.dcd -dcd file2.dcd ..."
         exit
     }
     if { [string length $chainA] == 0 } {
-        puts "Error: Specify chainA designation with -chainA \"<letter>\""
+        vmdcon -err "Specify chainA designation with -chainA \"<letter>\""
         exit
     }
     if { [string length $chainB] == 0 } {
-        puts "Error: Specify chainB designation with -chainB \"<letter>\""
+        vmdcon -err "Specify chainB designation with -chainB \"<letter>\""
         exit
     }
 
@@ -127,5 +126,3 @@ proc main { argv } {
 
 main $argv
 exit
-
-#debug

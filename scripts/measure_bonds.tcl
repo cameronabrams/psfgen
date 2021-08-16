@@ -5,10 +5,9 @@
 # writes all lines back out to file
 
 # first argument is PSF, second is PDB or COOR, third is name of input file
-puts "#### measure_bonds.tcl: args: $argv"
+vmdcon -info "measure_bonds.tcl: args: $argv"
 if { [llength $argv] != 4 } {
-    puts "ERROR: measure_bonds.tcl expects four positional arguments:"
-    puts "psf coor infile-to-be-modified fixed-pdb"
+    vmdcon -error "measure_bonds.tcl expects four positional arguments:\n        psf coor infile-to-be-modified fixed-pdb"
     exit 1
 }
 set psf [lindex $argv 0]
@@ -49,5 +48,5 @@ foreach c $CH i $RES1 j $RES2 b $bl {
 }
 close $fp
 $a writepdb $fixed
-puts "#### measure_bonds.tcl: $infile modified and $fixed created"
+vmdcon -info "measure_bonds.tcl: $infile modified and $fixed created"
 exit

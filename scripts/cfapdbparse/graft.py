@@ -84,7 +84,7 @@ class Graft:
         a+='set gra [atomselect ${} "chain {} and resid {} and noh"]\n'.format(self.molecule.molid_varname,self.source_chain,self.source_res1)
         a+='set tra [atomselect ${} "chain {} and resid {} to {}"]\n'.format(self.molecule.molid_varname,self.source_chain,self.source_res1,self.source_res2)
         a+=r'if { [$ref num] != [$gra num] } {'+'\n'
-        a+='    puts "psfgen: warning: target and graft alignment references are not congruent"\n'
+        a+='    vmdcon -warn "psfgen: warning: target and graft alignment references are not congruent"\n'
         a+='}\n'
         a+=sel.backup('tra')
         a+='$tra move [measure fit $gra $ref]\n'
