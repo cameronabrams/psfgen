@@ -58,7 +58,13 @@ CUBICBOX=""
 while [ $i -le $ARGC ] ; do
   if [ "${!i}" = "-pdb" ]; then
     i=$((i+1))
-    PDB+=("${!i}")
+    val="${!i}"
+    while [[ $val != -* ]]; do
+      PDB+=("$val")
+      i=$((i+1))
+      val="${!i}"
+    done
+    i=$((i-1))
   fi
   if [ "${!i}" = "-namd2" ]; then
     i=$((i+1))
@@ -83,7 +89,7 @@ while [ $i -le $ARGC ] ; do
   fi
   if [ "${!i}" = "-pyparser-args" ]; then
     i=$((i+1))
-    pyparser_args+=("${!i}")
+    pyparser_args+=("${!i}") 
   fi
   if [ "${!i}" = "-pyparser" ]; then
     i=$((i+1))
