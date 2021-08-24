@@ -62,6 +62,9 @@ while [ $i -le $ARGC ] ; do
     while [[ $val != -* ]]; do
       PDB+=("$val")
       i=$((i+1))
+      if [ $i -gt $ARGC ]; then
+         break
+      fi
       val="${!i}"
     done
     i=$((i-1))

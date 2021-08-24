@@ -86,7 +86,7 @@ class Chain:
         Daughter.source_chainID=self.chainID
         Daughter.parent_molecule=self.parent_molecule
         return Daughter
-    def MakeSegments(self,Links,Mutations=[],Grafts=[],Attachments=[]):
+    def MakeSegments(self,Links,Mutations=[],Grafts=[],Attachments=[],Deletions=[]):
         ''' scans residues in a chain to divvy them up into segments '''
         self.Segments=[]
         for r in self.residues:
@@ -145,6 +145,17 @@ class Chain:
                             found=True
             if not found:
                 print('#### Warning: no protein segment in chain {} found for mutation {}'.format(self.chainID,str(m)))
+                # apportion mutations to their correct segments
+        for d in [_ for _ in Deletions if _.chainID==self.chainID]:
+            found=False
+            for s in self.Segments:
+                if s.segtype=='PROTEIN':
+                    for r in s.residues:
+                        if r.resseqnum==d.resseqnum:
+                            s.deletions.append(d)
+                            found=True
+            if not found:
+                print('#### Warning: no protein segment in chain {} found for deletion {}'.format(self.chainID,str(d)))
         # apportion grafts to their correct segments
         for g in [_ for _ in Grafts if _.target_chain==self.chainID]:
             found=False

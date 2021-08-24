@@ -550,7 +550,7 @@ class Molecule:
                 ss.resseqnum2+=resseqnumshift
         return 0
 
-    def WritePsfgenInput(self,fp,userMutations=[],prefix='my_',fixConflicts=False,fixEngineeredMutations=False,userGrafts=[],userAttach=[],userSSBonds=[],userIgnoreChains=[],includeTerminalLoops=False,removePDBs=True):
+    def WritePsfgenInput(self,fp,userMutations=[],userDeletions=[],prefix='my_',fixConflicts=False,fixEngineeredMutations=False,userGrafts=[],userAttach=[],userSSBonds=[],userIgnoreChains=[],includeTerminalLoops=False,removePDBs=True):
 
         self.load(fp)
         for g in userGrafts:
@@ -560,10 +560,11 @@ class Molecule:
 
         fp.write('mol top ${}\n'.format(self.molid_varname))
 
-        ''' update the user-specified list of mutations:
+        ''' update the user-specified lists of mutations:
             1. include any conflict-fixes specified in the RCSB-format PDB file
             2. include any possible replicas created when new chains are eventually 
                created via BIOMT operations
+            same for deletions, but only option 2
         '''
         newmutations=[]
         for sa in self.Seqadv:
@@ -573,14 +574,21 @@ class Molecule:
                 newmutations.append(Mutation(seqadv=sa))
         userMutations.extend(newmutations)
         replica_mutations=[]
+        replica_deletions=[]
         for b in self.Biomolecules:
             for t in b.biomt:
                 for m in userMutations:
                     newc=t.get_replica_chainID(m.chainID)
                     if newc!=m.chainID:
-                        mm=m.replicate(newchainID=t.get_replica_chainID(m.chainID))
+                        mm=m.replicate(newchainID=newc)
                         replica_mutations.append(mm)
+                for d in userDeletions:
+                    newc=t.get_replica_chainID(d.chainID)
+                    if newc!=d.chainID:
+                        dd=d.replicate(newChainID=newc)
+                        replica_deletions.append(dd)
         userMutations.extend(replica_mutations)
+        userDeletions.extend(replica_deletions)
 
         Loops=[]
         for c in self.Chains.values():
@@ -588,7 +596,7 @@ class Molecule:
                 #print('#### segmentifying chain {}'.format(c.chainID))
                 b=self.GetBiomoleculeByChain(c.chainID)
                 #print('#### Chain {} is claimed by Biomolecule {}'.format(c.chainID,b.index))
-                c.MakeSegments(self.Links,Mutations=userMutations,Grafts=userGrafts,Attachments=userAttach)
+                c.MakeSegments(self.Links,Mutations=userMutations,Deletions=userDeletions,Grafts=userGrafts,Attachments=userAttach)
                 for s in c.Segments:
                     for t in b.biomt:
                         #print('#### Chain {} replica in tmat {:d}: {}'.format(c.chainID,t.index,t.get_replica_chainID(c.chainID)))

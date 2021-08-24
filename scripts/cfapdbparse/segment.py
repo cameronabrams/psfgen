@@ -70,6 +70,7 @@ class Segment:
         self.segtype=_seg_class_[r.name]
         self.residues=[r]
         self.mutations=[]
+        self.deletions=[]
         self.graft=''
         self.rootres=''
         self.attach=''
@@ -170,7 +171,12 @@ class Segment:
             for ss in self.subsegbounds:
                 if ss.typ=='FRAGMENT':
                     r=ss.d
-                    stanzastr+='set mysel [atomselect ${} "chain {} and resid {} to {}"]\n'.format(self.get_molecule().molid_varname,self.parent_chain.source_chainID,r.resseqnum1,r.resseqnum2)
+                    delstr=''
+                    for d in self.deletions:
+                        if d.resseqnum >= r.resseqnum1 and d.resseqnum <= r.resseqnum2:
+                            delstr+=' and not resid {}'.format(d.resseqnum)
+                    stanzastr+='set mysel [atomselect ${} "protein and chain {} and resid {} to {} {}"]\n'.format(self.get_molecule().molid_varname,
+                                self.parent_chain.source_chainID,r.resseqnum1,r.resseqnum2,delstr)
                     if not tmat.isidentity():
                          stanzastr+=sel.backup('mysel')
                          stanzastr+='$mysel move {}\n'.format(tmat.OneLiner())
@@ -193,14 +199,20 @@ class Segment:
                         ''' this is either NOT a terminal loop, or if it is, includeTerminalLoops is True '''
                         l=ss.d
                         for rr in l.residues:
-                           nm=ResnameCharmify(rr.name)
-                           stanzastr+='   residue {}{} {} {}\n'.format(rr.resseqnum,rr.insertion,nm,tmat.get_replica_chainID(rr.chainID))
+                            take_it=True
+                            for d in self.deletions:
+                                if d.resseqnum == rr.resseqnum:
+                                    take_it=False
+                                    break
+                            if take_it:
+                                nm=ResnameCharmify(rr.name)
+                                stanzastr+='   residue {}{} {} {}\n'.format(rr.resseqnum,rr.insertion,nm,tmat.get_replica_chainID(rr.chainID))
                         ss.sacrins='0'
-                        if len(l.residues)>3:
-                           # insert sacrificial glycine
-                           rr=l.residues[-1]
-                           ss.sacrins='A' if rr.insertion != '' else chr(ord(rr.insertion)+1)
-                           stanzastr+='   residue {}{} {} {}\n'.format(rr.resseqnum,ss.sacrins,'GLY',tmat.get_replica_chainID(rr.chainID))
+                        if len(l.residues)>3: # this is so that we can perform a steered MD step to bring this end close to where it should meet the rest of protein
+                            # insert sacrificial glycine
+                            rr=l.residues[-1]
+                            ss.sacrins='A' if rr.insertion != '' else chr(ord(rr.insertion)+1)
+                            stanzastr+='   residue {}{} {} {}\n'.format(rr.resseqnum,ss.sacrins,'GLY',tmat.get_replica_chainID(rr.chainID))
             ''' PART 2.1:  Include mutations '''
             #print('### {} mutations'.format(len(self.mutations)))
             for m in self.mutations:

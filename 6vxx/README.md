@@ -19,7 +19,7 @@ This workflow generates a solvated, cleaved, fully glycosylated SARS-CoV-2 S spi
 ```
 $ mkdir 6vxx
 $ cd 6vxx
-$ $PSFGEN_BASEDIR/scripts/do_py.sh -pyparser-args "-grafile $PSFGEN_BASEDIR/6vxx/grafts.inp -smdclose" -pyparser-args "-clv A685 -clv B685 -clv C685" -solv-stage-steps 100,200,400,800,20000 -temperature 310 -pdb 6vxx -pdb 2wah -pdb 4byh -pdb 4b7i
+$ $PSFGEN_BASEDIR/scripts/do_py.sh -pyparser-args "-grafile $PSFGEN_BASEDIR/6vxx/grafts.inp -smdclose" -pyparser-args "-clv A685 B685 C685" -solv-stage-steps 100,200,400,800,20000 -temperature 310 -pdb 6vxx 2wah 4byh 4b7i
 ```
 
 The `do_py.sh` script executes a series of tasks, beginning with downloading the required PDB file from the RCSB (if needed), then passing through a sequence of parse/psfgen/relax cycles to generate a complete vacuum structure, followed by solvation via psfgen, and finally through as series of solvated relaxations via NPT MD.  
@@ -30,4 +30,13 @@ To make an uncleaved S trimer, simply omit the second `-pyparser-args` switch.
 
 The glycans are assigned according to [Watanabe et al.](https://science.sciencemag.org/content/369/6501/330) with glycans classified as "complex" represented by the glycan in 4byh, "hybrid" with 4b7i, and oligomannose with 2wah.
 
-2017-2020, Cameron F Abrams  cfa22@drexel.edu
+Point mutations and point deletions can be indicated with specially-formatted arguments to the `-mut` and `-deletion` arguments passed as part of `-pyparser-args`.  The format of a point mutation is `C_OrrrN` where `C` is a chain ID, `O` is the original one-letter residue name, `rrr` is the residue sequence number, and `N` is the desired mutant one-letter residue name.  Multiple such point-mutation specifications can follow one `-mut` options.  Point-deletions are specified like mutations except with no `N`.
+
+For example, the B.1.617.2 "delta" variant has point mutations T19R, L452R, T478K, D614G, P681R, and D950N, and deletions of F157 and R158.  To perform these mutations and deletions on the 6vxx
+structure, we would include the following in the **first** `-pyparser-args` argument:
+```
+-mut A_L452R A_T478K A_D614G A_P681R A_D950N B_L452R B_T478K B_D614G B_P681R B_D950N C_L452R C_T478K C_D614G C_P681R C_D950N -delete A_F157 A_R158 B_F157 B_R158 C_F157 C_R158
+```
+Notice the residues 681 and 950 are shown in chains A, B, and C; this is of course because the 6vxx structure is **uncleaved**, so S1 and S2 subunits have the same chain ID.  By necessity, cleavage must occur in a **second** invocation of the parser.
+
+2017-2021, Cameron F Abrams  cfa22@drexel.edu

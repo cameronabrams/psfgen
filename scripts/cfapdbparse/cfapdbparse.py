@@ -11,7 +11,7 @@ import argparse
 import os
 import random
 import math
-from datetime import date 
+from datetime import date, datetime
 from molecule import Molecule
 from cleavage import Cleavage
 from mutation import Mutation
@@ -20,6 +20,7 @@ from graft import Graft
 from crot import Crot
 from attach import Attach
 from link import Link
+from deletion import Deletion
 from atom import _PDBAtomNameDict_
 from residue import Residue, _PDBResName123_, _pdb_glycans_, _pdb_ions_, _ResNameDict_PDB_to_CHARMM_, _ResNameDict_CHARMM_to_PDB_, get_residue
 
@@ -364,8 +365,10 @@ if __name__=='__main__':
     parser.add_argument('-prefix',metavar='<str>',default='x01_',help='Output PDB/PSF prefix; each file name will have the format <prefix><pdbcode>.pdb/psf, where <pdbcode> is the 4-letter PDB code of the base molecule.')
     parser.add_argument('-psfgen',metavar='<name>',default='mkpsf.tcl',help='name of TcL script generated as input to VMD/psfgen')
     parser.add_argument('-ignore',metavar='X ...',nargs='+',default=[],type=str,help='Specify chain(s) to ignore.')
-    parser.add_argument('-mut',metavar='C_OrrrN [C_OrrrN] ...',nargs='+',default=[],type=Mutation,help='One or more mutation specifications.  Format: C is chainID, O is one-letter residue code to mutate FROM, rrr is sequence number (can be any number of digits), and N is one-letter residue code to mutate TO.  Multiple mutation instances can be specified with one -mut.  Mutations are automatically replicated if there are BIOMT transformations.')
+    parser.add_argument('-mut',metavar='C_OrrrN [C_OrrrN] ...',nargs='+',default=[],type=Mutation,help='One or more point-mutation specifications.  Format: C is chainID, O is one-letter residue code to mutate FROM, rrr is sequence number (can be any number of digits), and N is one-letter residue code to mutate TO.  Multiple mutation instances can be specified with one -mut.  Mutations are automatically replicated if there are BIOMT transformations.')
     parser.add_argument('-mutfile',metavar='<name>',default='',help='Input file listing mutation specifications')
+    parser.add_argument('-delete',metavar='C_Orrr [C_Orrr] ...',nargs='+',default=[],type=Deletion,help='One or more single-residue deletion specifications.  Format: C is chainID, O is one-letter residue code, rrr is sequence number (can be any number of digits).  Multiple deletion instances can be specified with one -del.  Deletions are automatically replicated if there are BIOMT transformations.')
+    parser.add_argument('-deletefile',metavar='<name>',default='',help='Input file listing deletion specifications')
     parser.add_argument('-clv',metavar='PrrrC [PrrrC] ...',nargs='+',default=[],type=Cleavage,help='One or more cleavage-site specifications.  Format: P is parent chain ID, rrr is residue number immediately N-terminal to the cleavage site, and C is the daughter chain ID that will begin immediately C-terminal to cleavage site. Multiple cleavage instances can be specified after one -clv.')
     parser.add_argument('-clvfile',metavar='<name>',default='',help='input file listing all cleavages (as an alternative to issuing multiple -clv arguments)')
     parser.add_argument('-gra',metavar='<str>,A:XXX-YYY,ZZZ,C:BBB ...',nargs='+',default=[],type=Graft,help='One or more graft specifications; graft resids XXX-YYY of chain A in pdb <str> to chain C of base molecule by overlapping resid ZZZ of chain A of graft and resid BBB of chain C of base.  Grafts are automatically replicated if there are BIOMT transformations.')
@@ -412,6 +415,7 @@ if __name__=='__main__':
     Att=MrgCmdLineAndFileContents(args.att,args.attfile,Attach)
     Uss=MrgCmdLineAndFileContents(args.ssbond,args.ssfile,SSBond)
     Usl=MrgCmdLineAndFileContents(args.link,args.linkfile,Link)
+    Del=MrgCmdLineAndFileContents(args.delete,args.deletefile,Deletion)
     UPDBAliases=MrgCmdLineAndFileContents([' '.join(_.split(',')) for _ in args.pdbalias],args.pdbaliasfile,str)
 
     #PDBAliases=DefaultPDBAliases.extend(UPDBAliases)
@@ -466,7 +470,7 @@ if __name__=='__main__':
 
     psfgen_fp=open(psfgen,'w')
     psfgen_fp.write('### This is an automatically generated psfgen input file\n')
-    psfgen_fp.write('### created using cfapdbparse.py on {}\n'.format(date.today()))
+    psfgen_fp.write('### created using cfapdbparse.py on {} at {}\n'.format(date.today(),datetime.now().strftime('%H:%M:%S')))
     psfgen_fp.write('### cfapdbparse.py is part of the psfgen repository\n')
     psfgen_fp.write('### github.com:cameronabrams/psfgen/scripts\n')
     psfgen_fp.write('### questions to cfa22@drexel.edu\n')
@@ -481,7 +485,7 @@ if __name__=='__main__':
         Base.CleaveChains(Clv)
 
     ''' this will issue the final 'writepsf' and 'writepdb commands '''
-    Loops=Base.WritePsfgenInput(psfgen_fp,userMutations=Mut,fixConflicts=fixConflicts,
+    Loops=Base.WritePsfgenInput(psfgen_fp,userMutations=Mut,userDeletions=Del,fixConflicts=fixConflicts,
                                fixEngineeredMutations=fixEngineeredMutations,prefix=prefix,
                                userGrafts=Gra,userAttach=Att,userSSBonds=Uss,userIgnoreChains=UIC,
                                removePDBs=True)
