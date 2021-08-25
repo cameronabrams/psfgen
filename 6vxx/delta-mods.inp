@@ -1,9 +1,34 @@
 [title]
-SARS-CoV-2 S
+SARS-CoV-2 Delta S
 
 [description]
-6vxx PDB structure, fully glycosylated
+Modifications to 6vxx PDB structure to generate the B.1.617.2 Delta variant, fully glycosylated
 Step 1: Pre-cleavage modifications
+
+[mutations]
+A_L452R
+A_T478K
+A_D614G
+A_P681R
+A_D950N
+B_L452R
+B_T478K
+B_D614G
+B_P681R
+B_D950N
+C_L452R
+C_T478K
+C_D614G
+C_P681R
+C_D950N
+
+[deletions]
+A_F157
+A_R158
+B_F157
+B_R158
+C_F157
+C_R158
 
 [grafts]
 4b7i.pdb,C:1-8,1,A:1301,1500 

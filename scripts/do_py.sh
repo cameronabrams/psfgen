@@ -68,57 +68,47 @@ while [ $i -le $ARGC ] ; do
       val="${!i}"
     done
     i=$((i-1))
-  fi
-  if [ "${!i}" = "-namd2" ]; then
+  elif [ "${!i}" = "-namd2" ]; then
     i=$((i+1))
     NAMD2=${!i}
-  fi
-  if [ "${!i}" = "-charmrun" ]; then
+  elif [ "${!i}" = "-charmrun" ]; then
     i=$((i+1))
     CHARMRUN=${!i}
-  fi
-  if [ "${!i}" = "-solv-stage-steps" ]; then
+  elif [ "${!i}" = "-solv-stage-steps" ]; then
      i=$((i+1))
      ssl=${!i}
      numsteps=($(echo "$ssl" | tr ',' '\n'))
-  fi
-  if [ "${!i}" = "-npe" ]; then
+  elif [ "${!i}" = "-npe" ]; then
     i=$((i+1))
     export NPE=${!i}
-  fi
-  if [ "${!i}" = "-temperature" ]; then
+  elif [ "${!i}" = "-temperature" ]; then
     i=$((i+1))
     export temperature=${!i}
-  fi
-  if [ "${!i}" = "-pyparser-args" ]; then
+  elif [ "${!i}" = "-pyparser-args" ]; then
     i=$((i+1))
     pyparser_args+=("${!i}") 
-  fi
-  if [ "${!i}" = "-pyparser" ]; then
+  elif [ "${!i}" = "-pyparser" ]; then
     i=$((i+1))
     pyparser=${!i}
-  fi
-  if [ "${!i}" = "-python3-path" ]; then
+  elif [ "${!i}" = "-python3-path" ]; then
     i=$((i+1))
     PYTHON3=${!i}
-  fi
-  if [ "${!i}" = "-production-steps" ]; then
+  elif [ "${!i}" = "-production-steps" ]; then
     i=$((i+1))
     PRODUCTION_STEPS=${!i}
-  fi
-  if [ "${!i}" = "-make-gromacs" ]; then
+  elif [ "${!i}" = "-make-gromacs" ]; then
     i=$((i+1))
     DO_TOPOGROMACS=1
     TG_TOP=${!i}
     i=$((i+1))
     TG_PDB=${!i}
-  fi
-  if [ "${!i}" = "-selection" ]; then
+  elif [ "${!i}" = "-selection" ]; then
     i=$((i+1))
     SEL_STR=${!i}
-  fi
-  if [ "${!i}" = "-cubic-box" ]; then
+  elif [ "${!i}" = "-cubic-box" ]; then
     CUBICBOX="-cubic"
+  else
+    echo "${!i}: not recognized"
   fi
   i=$((i+1))
 done
@@ -130,20 +120,20 @@ echo "#    do_py.sh ${@}"
 nparse=${#pyparser_args[@]}
 # handle case of a single parser run with no arguments
 if (( $nparse == 0 )) ; then
-    nparse=1
-    pyparser_args=("")
+  nparse=1
+  pyparser_args=("")
 fi
 echo "#### PyParser $pyparser will run $nparse time$(ess $nparse) in series"
 for t in `seq 0 $((nparse-1))`; do
-    if [ ! "${pyparser_args[$t]}" = "" ]; then
-        echo "####     PyParser arguments for run #$((t+1)): \"${pyparser_args[$t]}\""
-    fi
+  if [ ! "${pyparser_args[$t]}" = "" ]; then
+    echo "####     PyParser arguments for run #$((t+1)): \"${pyparser_args[$t]}\""
+  fi
 done
 
 npdb=${#PDB[@]}
 if [ $npdb -eq 0 ]; then
-   echo "ERROR: must provide at least one PDB code using -pdb XXXX"
-   exit
+  echo "ERROR: must provide at least one PDB code using -pdb XXXX"
+  exit 1
 fi
 
 echo "#### The following $npdb PDB file$(ess $npdb) $(isare $npdb) used"
@@ -151,53 +141,53 @@ BASEPDB=${PDB[0]}.pdb
 AUXPDB=()
 echo "####     Base: $BASEPDB"
 for p in `seq 1 $((npdb-1))`; do
-    echo "####     Auxiliary $p: ${PDB[$p]}"
-    AUXPDB+=("${PDB[$p]}")
+  echo "####     Auxiliary $p: ${PDB[$p]}"
+  AUXPDB+=("${PDB[$p]}")
 done
 
 # download pdb's if necessary
 TASK=0
 for p in `seq 0 $((npdb-1))`; do
-    pdb=${PDB[$p]}
-    if [ ! -e ${pdb}.pdb ]; then
-        echo "Retrieving ${pdb}.pdb..."
-        wget -q ${RCSB}/${pdb}.pdb
-    fi
+  pdb=${PDB[$p]}
+  if [ ! -e ${pdb}.pdb ]; then
+    echo "Retrieving ${pdb}.pdb..."
+    wget -q ${RCSB}/${pdb}.pdb
+  fi
 done
 CURRPDB=$BASEPDB
 
 # cycles of parsing/relaxing
 for pi in `seq 0 $((nparse-1))`; do
-   TASK=$((TASK+1))
-   CURRPSFGEN=psfgen${TASK}.tcl
-   $PYTHON3 $PYPARSER ${pyparser_args[$pi]} -pe ${NPE} -postscript ps${TASK}.sh -psfgen ${CURRPSFGEN} ${CURRPDB}
-   ./ps${TASK}.sh $TASK
-   if [ $? -ne 0 ]; then
-       echo "Postscript ps${TASK}.sh failed."
-       exit 1
-    fi
-   read CURRPSF CURRPDB CURRCFG < .tmpvar
+  TASK=$((TASK+1))
+  CURRPSFGEN=psfgen${TASK}.tcl
+  echo "Bash command:  $PYTHON3 $PYPARSER ${pyparser_args[$pi]} -pe ${NPE} -postscript ps${TASK}.sh -psfgen ${CURRPSFGEN} ${CURRPDB}"
+  $PYTHON3 $PYPARSER ${pyparser_args[$pi]} -pe ${NPE} -postscript ps${TASK}.sh -psfgen ${CURRPSFGEN} ${CURRPDB}
+  ./ps${TASK}.sh $TASK
+  if [ $? -ne 0 ]; then
+    echo "Postscript ps${TASK}.sh failed."
+    exit 1
+  fi
+  read CURRPSF CURRPDB CURRCFG < .tmpvar
 done
 
 # downselect
 if [[ "$SEL_STR" != "" ]]; then
-    TASK=$((TASK+1))
-    echo "TASK $TASK: Downselecting based on $SEL_STR"
-    cat > tmp.tcl << EOF
-    set selstr [join [split "$SEL_STR" "-"] " "]
-    extract_psf_pdb $CURRPSF $CURRPDB \$selstr config${TASK}.psf config${TASK}.pdb
-    exit
+  TASK=$((TASK+1))
+  echo "TASK $TASK: Downselecting based on $SEL_STR"
+  cat > tmp.tcl << EOF
+  set selstr [join [split "$SEL_STR" "-"] " "]
+  extract_psf_pdb $CURRPSF $CURRPDB \$selstr config${TASK}.psf config${TASK}.pdb
+  exit
 EOF
-    $VMD -dispdev text -e tmp.tcl > ${TASK}-psfgen.log
-    CURRPSF=config${TASK}.psf
-    CURRPDB=config${TASK}.pdb
+  $VMD -dispdev text -e tmp.tcl > ${TASK}-psfgen.log
+  CURRPSF=config${TASK}.psf
+  CURRPDB=config${TASK}.pdb
 fi
 
 # solvate
 TASK=$((TASK+1))
 echo "TASK $TASK: Generating solvated system config${TASK}.psf/.pdb from ${CURRPSF}+${CURRPDB}..."
-echo "Command:"
-echo "$VMD -dispdev text -e $PSFGEN_BASEDIR/scripts/solv.tcl -args -psf $CURRPSF -pdb $CURRPDB -outpre config${TASK} $CUBICBOX > mysolv.log"
+echo "Bash command: $VMD -dispdev text -e $PSFGEN_BASEDIR/scripts/solv.tcl -args -psf $CURRPSF -pdb $CURRPDB -outpre config${TASK} $CUBICBOX > mysolv.log"
 $VMD -dispdev text -e $PSFGEN_BASEDIR/scripts/solv.tcl -args -psf $CURRPSF -pdb $CURRPDB -outpre config${TASK} $CUBICBOX > mysolv.log
 CURRPSF=config${TASK}.psf
 CURRPDB=config${TASK}.pdb
@@ -213,7 +203,7 @@ echo "#### No binary inputs yet -- this run begins using PDB coordinates" > _bin
 firsttimestep=0
 ls=`echo "${#numsteps[@]} - 1" | bc`
 for s in `seq 0 $ls`; do
-    echo "Running namd2 (stage $s of $ls) on solvated system..."
+    echo "Running namd2 (stage $s of ${#numsteps[@]}) on solvated system..."
     lastnamd=run${TASK}_stage${s}.namd
     lastsys=config${TASK}_stage${s}
     cat $PSFGEN_BASEDIR/templates/solv.namd | \
@@ -226,7 +216,8 @@ for s in `seq 0 $ls`; do
         sed s/%NUMSTEPS%/${numsteps[$s]}/g | \
         sed s/%SEED%/${seed}/g | \
         sed s/%TEMPERATURE%/${temperature}/g | \
-        sed s/%FIRSTTIMESTEP%/$firsttimestep/g > $lastnamd 
+        sed s/%FIRSTTIMESTEP%/$firsttimestep/g > $lastnamd
+    echo "Bash command:  $CHARMRUN +p${NPE} $NAMD2 $lastnamd > run${TASK}_stage${s}.log"
     $CHARMRUN +p${NPE} $NAMD2 $lastnamd > run${TASK}_stage${s}.log
     if [ $? -ne 0 ]; then
         echo "NAMD fails.  Check log file run${TASK}_stage${s}.log"
@@ -267,7 +258,8 @@ tar zvcf namdprod.tgz $CURRPSF \
 rm cell.inp _bin.inp _par.inp *restart*
 echo "Done.  Created namdprod.tgz."
 if (( $DO_TOPOGROMACS == 1 )); then
-    echo "Executing $PSFGEN_BASEDIR/scripts/tg.sh  -psf $CURRPSF -i config${TASK}_stage${s} -top $TG_TOP -pdb $TG_PDB"
+    echo "Generating Gromacs topology"
+    echo "Bash command: $PSFGEN_BASEDIR/scripts/tg.sh  -psf $CURRPSF -i config${TASK}_stage${s} -top $TG_TOP -pdb $TG_PDB"
     $PSFGEN_BASEDIR/scripts/tg.sh  -psf $CURRPSF -i config${TASK}_stage${s} -top $TG_TOP -pdb $TG_PDB
     tar zvcf gmx.tgz $TG_TOP $TG_PDB
     echo "Done. Created gmx.tgz."

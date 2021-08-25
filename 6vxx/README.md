@@ -6,10 +6,14 @@
 
 ## Files provided here
 
-`grafts.inp`:  A list of glycans to be grafted onto the main molecule.  Each item in the list is of the form
-```
-PDB.pdb,X:#-#,Y:#,#
-```
+1. `grafts.inp`:  A specially-formatted "modsfile" lising glycans to be grafted onto the main molecule.  
+2. `delta-mods.inp`: A modsfile that, in addition to specifying glycans, also specifies mutations and deletions to generate a B.1.617.2 Delta variant
+
+
+Each item in a `[grafts]` stanza of a modsfile is of the form
+    ```
+    PDB.pdb,X:#-#,Y:#,#
+    ```
 where `PDB.pdb` is the name of pdb file in the RCSB that contains the glycan, and `X:#-#` indicates the chain and resid span for that glycan in that file.  `Y:#` designates the target chain and resid onto which the graft is placed.  Note that the target residue and the **first** residue in the graft must have heavy-atom order/type congruency (should be same resname).  Finally, the last number is a desired resid offset; this number is added to the **target** resid and all subsequent residues in the graft are "downstream" by resid of that number.  With multiple grafts, it is usually a good idea to set the offsets so they are at least 100 apart and 100 greater then the highest resid in the existing target molecule.
 
 ## Instructions
@@ -19,24 +23,19 @@ This workflow generates a solvated, cleaved, fully glycosylated SARS-CoV-2 S spi
 ```
 $ mkdir 6vxx
 $ cd 6vxx
-$ $PSFGEN_BASEDIR/scripts/do_py.sh -pyparser-args "-grafile $PSFGEN_BASEDIR/6vxx/grafts.inp -smdclose" -pyparser-args "-clv A685 B685 C685" -solv-stage-steps 100,200,400,800,20000 -temperature 310 -pdb 6vxx 2wah 4byh 4b7i
+$ $PSFGEN_BASEDIR/scripts/do_py.sh -pyparser-args "-modsfile $PSFGEN_BASEDIR/6vxx/grafts.inp -smdclose" -pyparser-args "-clv A685 B685 C685" -solv-stage-steps 100,200,400,800,20000 -temperature 310 -pdb 6vxx 2wah 4byh 4b7i
 ```
 
 The `do_py.sh` script executes a series of tasks, beginning with downloading the required PDB file from the RCSB (if needed), then passing through a sequence of parse/psfgen/relax cycles to generate a complete vacuum structure, followed by solvation via psfgen, and finally through as series of solvated relaxations via NPT MD.  
 
-In this particular case, the driver runs two parser instances in series, indicated by the two `-pyparser-args` arguments.  The first will add missing loops and graft on glycans, and the second executes the cleavages at the furin sites.  The `-smdclose` switch indicates that missing loops that are added by psfgen will be "closed" using steered MD.  Five stages of solvated equilibration are requested (which helps with patch-grid errors as the box size equilibrates).  The 2wah, 4yh, and 4b7i PDB entries contain large glycans that are grafted according to the graft records in `grafts.inp`.
+In this particular case, the driver runs two parser instances in series, indicated by the two `-pyparser-args` arguments.  The first will add missing loops and graft on glycans, and the second executes the cleavages at the furin sites.  The `-smdclose` switch indicates that missing loops that are added by psfgen will be "closed" using steered MD.  Five stages of solvated equilibration are requested (which helps with patch-grid errors as the box size equilibrates).  The 2wah, 4yh, and 4b7i PDB entries contain large glycans that are grafted according to the lines in the `[grafts]` stanza in the modsfile `grafts.inp`.
 
 To make an uncleaved S trimer, simply omit the second `-pyparser-args` switch.
 
 The glycans are assigned according to [Watanabe et al.](https://science.sciencemag.org/content/369/6501/330) with glycans classified as "complex" represented by the glycan in 4byh, "hybrid" with 4b7i, and oligomannose with 2wah.
 
-Point mutations and point deletions can be indicated with specially-formatted arguments to the `-mut` and `-deletion` arguments passed as part of `-pyparser-args`.  The format of a point mutation is `C_OrrrN` where `C` is a chain ID, `O` is the original one-letter residue name, `rrr` is the residue sequence number, and `N` is the desired mutant one-letter residue name.  Multiple such point-mutation specifications can follow one `-mut` options.  Point-deletions are specified like mutations except with no `N`.
+Any desired point mutations can be specified in the `[mutations]` section of the modsfile, and any point deletions can be specified in the `[deletions]` section.  
+The format of a point mutation is `C_OrrrN` where `C` is a chain ID, `O` is the original one-letter residue name, `rrr` is the residue sequence number, and `N` is the desired mutant one-letter residue name.  Point-deletions are specified like mutations except with no `N`.  Each line in any modsfile section can contain only one specification.
 
-For example, the B.1.617.2 "delta" variant has point mutations T19R, L452R, T478K, D614G, P681R, and D950N, and deletions of F157 and R158.  To perform these mutations and deletions on the 6vxx
-structure, we would include the following in the **first** `-pyparser-args` argument:
-```
--mut A_L452R A_T478K A_D614G A_P681R A_D950N B_L452R B_T478K B_D614G B_P681R B_D950N C_L452R C_T478K C_D614G C_P681R C_D950N -delete A_F157 A_R158 B_F157 B_R158 C_F157 C_R158
-```
-Notice the residues 681 and 950 are shown in chains A, B, and C; this is of course because the 6vxx structure is **uncleaved**, so S1 and S2 subunits have the same chain ID.  By necessity, cleavage must occur in a **second** invocation of the parser.
 
 2017-2021, Cameron F Abrams  cfa22@drexel.edu
