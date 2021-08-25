@@ -41,7 +41,7 @@ class Graft:
                         self.source_res1,self.source_ins1=get_ra(resrng[0])
                         self.source_res2,self.source_ins2=get_ra(resrng[1])
                     else:
-                        print('ERROR: Malformed graft source resrange subsubargument: {}'.format(resrange))
+                        print('ERROR: Malformed graft source resrange subsubargument: {}'.format(resrng))
                 else:
                     print('ERROR: Malformed graft source subargument: {}'.format(source_chain_res))
                 self.target_chain=target_chain_res[0]

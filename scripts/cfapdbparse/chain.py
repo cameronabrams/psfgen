@@ -167,7 +167,7 @@ class Chain:
                         s.apply_graft(g)
                         found=True
             if not found:
-                print('#### Warning: no target residue {} found in segments of chain {} for graft {}'.format(g.target_res,c.chainID,str(g)))
+                print('#### Warning: no target residue {} found in segments of chain {} for graft {}'.format(g.target_res,g.target_chain,str(g)))
         # create a new segment for each attachment
         for a in Attachments:
             self.ImportAttachmentSegment(a)
