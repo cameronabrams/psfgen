@@ -379,8 +379,8 @@ class Molecule:
         self.chainIDs_available=sorted(list(self.chainIDs_allowed.difference(set(chainIDs_detected))))
 
         self.Biomolecules.insert(0,Biomolecule()) # make the 0th biomolecule the asymmetric unit
-        self.Biomolecules[0].biomt[0].chains=list(chainIDs_detected)[:]  # all explicitly detected chains are here
-        self.Biomolecules[0].activeChains=list(chainIDs_detected)[:]
+        self.Biomolecules[0].biomt[0].chainIDs=list(chainIDs_detected)[:]  # all explicitly detected chains are here
+        self.Biomolecules[0].activeChainIDs=list(chainIDs_detected)[:]
         if requestedBiologicalAssembly==None:
             self.activeBiologicalAssembly=self.Biomolecules[0]
         else:

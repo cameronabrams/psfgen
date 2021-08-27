@@ -43,8 +43,8 @@ The TMD is grown in as an alpha helix continuing from the MPER.
 
 ```
 $ export PSFGEN_BASEDIR=/path/to/psfgen/repository/on/your/system
-$ mkdir my_5jyn
-$ cd my_5jyn
+$ mkdir my_3cp1
+$ cd my_3cp1
 $ $PSFGEN_BASEDIR/5jyn/do_test.sh [-restart] [-psfgen_args -seed <#> -mper-extend -tmd-extend -do-stalk]
 ```
 

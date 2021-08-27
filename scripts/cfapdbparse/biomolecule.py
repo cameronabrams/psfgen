@@ -63,8 +63,8 @@ class Biomolecule:
             desig='Asymmetric Unit'
         else:
             desig='Biological Assembly'
-        activeLabel='**ACTIVE** ' if isActive else ''
-        print('{}{}{} {:d}{}'.format(indent,activeLabel,desig,self.index,activeLabel))
+        activeLabel='**ACTIVE**' if isActive else ''
+        print('{}{} {} {:d} {}'.format(indent,activeLabel,desig,self.index,activeLabel))
         if len(self.pdbx_struct)>0:
             print(indent*2,self.pdbx_struct)
         for b in self.biomt:

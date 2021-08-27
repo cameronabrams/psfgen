@@ -99,7 +99,7 @@ if [ $? -ne 0 ]; then
 fi
 echo "Calling gmx editconf to combine box size info from $CELLDIMFILE with $INTERPDB to generate $PDB"
 echo "Command: gmx editconf -f $INTERPDB -o $PDB -box `cat $CELLDIMFILE` 2>&1 >> $LOG"
-gmx editconf -f $INTERPDB -o $PDB -box `cat $CELLDIMFILE` 2>&1 >> $LOG
+gmx editconf -quiet -f $INTERPDB -o $PDB -box `cat $CELLDIMFILE` 2>&1 >> $LOG
 echo "Done.  Results in $LOG."
 if [ "$MDP" != "" ] && [ "$TPR" != "" ] && [ $TOP != "" ]; then
   for f in $MDP $PDB $TOP; do
@@ -109,7 +109,7 @@ if [ "$MDP" != "" ] && [ "$TPR" != "" ] && [ $TOP != "" ]; then
     fi
   done
   cat $TOP | sed s/vmdmolecule2/$SYSTEMNAME/ > .tmp; mv .tmp $TOP
-  gmx grompp -f $MDP -c $PDB -p $TOP -o $TPR -maxwarn 2
+  gmx grompp -quiet -f $MDP -c $PDB -p $TOP -o $TPR -maxwarn 2
 else
    echo "Next command: gmx grompp -f whatever.mdp -c $PDB -p $TOP -o whatever.tpr -maxwarn 2"
 fi
