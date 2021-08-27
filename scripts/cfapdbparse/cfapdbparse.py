@@ -32,7 +32,7 @@ def vmd_instructions(fp,script,logname='tmp.log',args='',msg=''):
     else:
         fp.write(r'$VMD -dispdev text -e '+script+r' > '+logname+' 2>&1\n')
     fp.write('if [ $? -ne 0 ]; then\n')
-    fp.write('   echo "VMD failed.  Check the log file {}."\n'.format(logname))
+    fp.write('   echo "VMD failed.  Check the log file {}. Exiting."\n'.format(logname))
     fp.write('   exit 1\n')
     fp.write('fi\n')
 
@@ -62,7 +62,7 @@ def namd_instructions(fp,cfgname,psf,coor,outname,logname,
     fp.write('echo "NAMD2) config={} log={} outputname={} msg={}"\n'.format(cfgname,logname,outname,msg))
     fp.write(r'$CHARMRUN '+namdp+r' $NAMD2 '+cfgname+r' > '+logname+'\n')
     fp.write('if [ $? -ne 0 ]; then\n')
-    fp.write('   echo "NAMD failed.  Check log file {}."\n'.format(logname))
+    fp.write('   echo "NAMD failed.  Check log file {}. Exiting."\n'.format(logname))
     fp.write('   exit 1\n')
     fp.write('fi\n')
 
@@ -359,6 +359,7 @@ if __name__=='__main__':
     PostMod['Crot']=[]
 
     parser.add_argument('pdbcif',nargs='+',metavar='<?.pdb|cif>',type=str,help='Name(s) of pdb or CIF file to parse; First is treated as the base molecule')
+    parser.add_argument('-ba','--biological-assembly',metavar='#',default=0,type=int,help='Biological assembly to construct; one may be selected from those defined in PDB/mmCIF metadata.  If not specified, the explicit model is built.')
     parser.add_argument('-charmmtopo',metavar='<name> ...',nargs='+',default=[],help='Additional (standard) CHARMM topology files in your CHARMM directory')
     parser.add_argument('-loctopo',metavar='<name> ...',nargs='+',default=[],help='Additional (local) CHARMM topology files in the $PSFGEN_BASEDIR/charmm directory')
     parser.add_argument('-charmmparam',metavar='<name> ...',nargs='+',default=[],help='Additional (standard) CHARMM parameter files in your CHARMM directory')
@@ -414,6 +415,16 @@ if __name__=='__main__':
         print('### Vebosity level: {}'.format(args.verbosity))
     else:
        args.verbosity=0
+
+    if args.verbosity>0:
+        for k,v in vars(args).items():
+            if type(v) is list and len(v)>0:
+                print('-{:s} '.format(k)+' '.join(v),end=' ')
+            elif type(v) is str and len(v)>0:
+                print('-{:s} {}'.format(k,v),end=' ')
+            elif not type(v) is str and not type(v) is list:
+                print('-{:s} {}'.format(k,v),end=' ')
+        print()
 
     Mut=MrgCmdLineAndFileContents(args.mut,args.mutfile,Mutation)
     Clv=MrgCmdLineAndFileContents(args.clv,args.clvfile,Cleavage)
@@ -474,9 +485,9 @@ if __name__=='__main__':
     PDBfiles=args.pdbcif
     Molecules=[]
     if '.cif' in PDBfiles[0]:
-        Molecules.append(Molecule(cif=PDBfiles[0],userLinks=Usl))
+        Molecules.append(Molecule(cif=PDBfiles[0],userLinks=Usl,requestedBiologicalAssembly=args.biological_assembly))
     elif '.pdb' in PDBfiles[0]:
-        Molecules.append(Molecule(pdb=PDBfiles[0],userLinks=Usl))
+        Molecules.append(Molecule(pdb=PDBfiles[0],userLinks=Usl,requestedBiologicalAssembly=args.biological_assembly))
     for p in PDBfiles[1:]:
         if '.cif' in p:
             Molecules.append(Molecule(cif=p))
@@ -549,9 +560,29 @@ if __name__=='__main__':
     fp=open(postscriptname,'w')
     fp.write(r'#!/bin/bash'+'\n')
     fp.write('# {}: completes the build of {}\n'.format(postscriptname,currpsf))
-    fp.write('echo "Postscript {} begins."\n'.format(postscriptname))
-    fp.write('TASK=$1\n')
-    fp.write('echo "Completing the task-'+r'${TASK}'+' build of {}"\n'.format(currpsf))
+    fp.write('''
+source $PSFGEN_BASEDIR/scripts/utils.sh
+nesting_level=1
+TASK=1
+i=1
+ARGC=$#
+while [ $i -le $ARGC ] ; do
+  if [ "${!i}" = "-task" ]; then
+    i=$((i+1))
+    TASK=${!i}
+  elif [ "${!i}" = "-nesting-level" ]; then
+    i=$((i+1))
+    nesting_level=${!i}
+  else
+    echo "${!i} not known. Exiting."
+    exit 1
+  fi
+  i=$((i+1))
+done
+ind=`indent $nesting_level "#"`
+''')
+    fp.write('echo "$ind Postscript {} begins."\n'.format(postscriptname))
+    fp.write('echo "$ind Completing the task-'+r'${TASK}'+' build of {}"\n'.format(currpsf))
     vmd_instructions(fp,psfgen,logname=r'psfgen${TASK}.log',msg='generates psf={} pdb={}'.format(currpsf,currpdb))
     fp.write("cat {} | sed \'1,/#### BEGIN PATCHES/d;/#### END PATCHES/,$d\' > patches.inp\n".format(psfgen))
     outname=r'postnamd${TASK}-1'
@@ -572,7 +603,7 @@ if __name__=='__main__':
     fp.write(r'if [[ $npiercings -gt 0 ]]; then'+'\n')
     fp.write(r'  echo "Error: There are $npiercings piercings in '+'{}"\n'.format(currpdb))
     fp.write('  grep pierces {}\n'.format(logname))
-    fp.write('  echo "Change your relaxation parameters and try again."\n')
+    fp.write('  echo "$ind Change your relaxation parameters and try again."\n')
     fp.write('  exit 1\n')
     fp.write('fi\n')
     if 'do_preclose_min_smd' in PostMod and PostMod['do_preclose_min_smd']:
@@ -585,7 +616,7 @@ if __name__=='__main__':
         fp.write('cat > close_these.inp << EOF\n')
         for l in sorted(Loops, key=lambda x: len(x.residues)):
             if (l.term and len(l.residues)>2):
-                fp.write('{} {} {}\n'.format(l.replica_chainID,l.residues[-1].resseqnum,l.nextfragntermres))
+                fp.write('{} {} {}\n'.format(l.replica_chainID,l.residues[-1].resseqnum,l.nextfragntermresid))
         fp.write('EOF\n')
         # measures to find the initial distances; generated fixed.pdb to fix the N atoms 
         logname=r'close${TASK}.log'
@@ -614,9 +645,9 @@ if __name__=='__main__':
         fp.write('cat > closure_patches.inp << EOF\n')
         for l in sorted(Loops, key=lambda x: len(x.residues)):
             if (l.term and len(l.residues)>2):
-                #fp.write('# will try to close bond between {} and {} on chain {}...\n'.format(l.residues[-1].resseqnum,l.nextfragntermres,l.replica_chainID))
+                #fp.write('# will try to close bond between {} and {} on chain {}...\n'.format(l.residues[-1].resseqnum,l.nextfragntermresid,l.replica_chainID))
                 fp.write('patch HEAL {c}:{ll} {c}:{l} {c}:{r} {c}:{rr}\n'.format(c=l.replica_chainID,
-                            ll=l.residues[-2].resseqnum,l=l.residues[-1].resseqnum,r=l.nextfragntermres,rr=(l.nextfragntermres+1)))
+                            ll=l.residues[-2].resseqnum,l=l.residues[-1].resseqnum,r=l.nextfragntermresid,rr=(l.nextfragntermresid+1)))
         fp.write('EOF\n')
         tfp=open('topologies.inp','w')
         CommonPSFGENheader(tfp,CTopo,LocTopo)
@@ -652,7 +683,7 @@ if __name__=='__main__':
         fp.write('fi\n')
 
     fp.write('echo {} {} {} > .tmpvar\n'.format(currpsf,currpdb,currcfg))
-    fp.write('echo "Postscript {} finishes."\n'.format(postscriptname))
+    fp.write('echo "$ind Postscript {} finishes."\n'.format(postscriptname))
     fp.write('exit 0')
     fp.close()
     os.system('chmod 744 {}'.format(postscriptname))

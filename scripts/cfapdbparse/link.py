@@ -83,7 +83,7 @@ class Link:
     def pdb_line(self):
         pdbline='{:6s}'.format(self.record_name)+6*' '+'{:>4s}'.format(self.name1+' ' if len(self.name1)<3 else self.name1)+'{:1s}'.format(self.altloc1)+'{:3s}'.format(self.resname1)+' '+'{:1s}'.format(self.chainID1)+'{:4d}'.format(self.resseqnum1)+'{:1s}'.format(self.icode1)+16*' '+'{:4>s}'.format(self.name2+' ' if len(self.name2)<3 else self.name2)+'{:1s}'.format(self.altloc2)+'{:3s}'.format(self.resname2)+' '+'{:1s}'.format(self.chainID2)+'{:4d}'.format(self.resseqnum2)+'{:1s}'.format(self.icode2)+2*' '+'{:>6s}'.format(self.sym1)+' '+'{:>6s}'.format(self.sym2)+'{:6.2f}'.format(self.link_distance)
         return pdbline
-    def updateSegnames(self,R,B):
+    def updateSegnames(self,R,ab):
         '''this is a problem for biomt'''
         c1=self.chainID1[0]
         c2=self.chainID2[0]
@@ -93,15 +93,14 @@ class Link:
         ooc2=oc2
         ''' these may be aliases for replica chains; need source chains to get res/atom to get segname,
             then update segname stringwise '''
-        for b in B:
-            for t in b.biomt:
-                if not t.isidentity():
-                    oc1=t.get_base_chainID(c1)
-                    oc2=t.get_base_chainID(c2)        
-                    if c1!=oc1:
-                       ooc1=oc1
-                    if c2!=oc2:
-                       ooc2=oc2
+        for t in ab.biomt:
+            if not t.isidentity():
+                oc1=t.get_base_chainID(c1)
+                oc2=t.get_base_chainID(c2)        
+                if c1!=oc1:
+                    ooc1=oc1
+                if c2!=oc2:
+                    ooc2=oc2
         #print(c1,c2,ooc1,ooc2)
         self.residue1=get_residue(R,ooc1,self.resseqnum1)
         self.residue2=get_residue(R,ooc2,self.resseqnum2)
@@ -112,6 +111,10 @@ class Link:
         sn2=self.atom2.segname
         self.segname1=c1+(sn1[1:] if len(sn1)>1 else '')
         self.segname2=c2+(sn2[1:] if len(sn2)>1 else '')
+
+    def isActive(self,aIDs,igIDs):
+        return (self.chainID1 in aIDs and self.chainID1 not in igIDs and self.chainID2 in aIDs and self.chainID2 not in igIDs)
+
     def isInLink(self,chain,resid,pos=''):
         if pos=='':
             if (self.chainID1==chain and self.resseqnum1==resid) or (self.chainID2==chain and self.resseqnum2==resid):

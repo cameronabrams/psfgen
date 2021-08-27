@@ -19,54 +19,53 @@ LOG="topogromacs.log"
 INTERPDB="tg_needsbox.pdb"
 CELLDIMFILE="tg-cell-nm.in"
 SYSTEMNAME="cfa-tg-psfgen"
+nesting_level=1
 i=1
 ARGC=$#
 while [ $i -le $ARGC ] ; do
   if [ "${!i}" = "-pdb" ]; then
     i=$((i+1))
     PDB=${!i}
-  fi
-  if [ "${!i}" = "-psf" ]; then
+  elif [ "${!i}" = "-psf" ]; then
     i=$((i+1))
     PSF=${!i}
-  fi
-  if [ "${!i}" = "-top" ]; then
+  elif [ "${!i}" = "-top" ]; then
     i=$((i+1))
     TOP=${!i}
-  fi
-  if [ "${!i}" = "-mdp" ]; then
+  elif [ "${!i}" = "-mdp" ]; then
     i=$((i+1))
     MDP=${!i}
-  fi
-  if [ "${!i}" = "-tpr" ]; then
+  elif [ "${!i}" = "-tpr" ]; then
     i=$((i+1))
     TPR=${!i}
-  fi
-  if [ "${!i}" = "-log" ]; then
+  elif [ "${!i}" = "-log" ]; then
     i=$((i+1))
     LOG=${!i}
-  fi
-  if [ "${!i}" = "--cell-dim-file" ]; then
+  elif [ "${!i}" = "--cell-dim-file" ]; then
     i=$((i+1))
     CELLDIMFILE=${!i}
-  fi
-  if [ "${!i}" = "--interpdb" ]; then
+  elif [ "${!i}" = "--interpdb" ]; then
     i=$((i+1))
     INTERPDB=${!i}
-  fi
-  if [ "${!i}" = "--systemname" ]; then
+  elif [ "${!i}" = "--systemname" ]; then
     i=$((i+1))
     SYSTEMNAME=${!i}
-  fi
-  if [ "${!i}" = "-i" ]; then
+  elif [ "${!i}" = "-i" ]; then
     i=$((i+1))
     INPUTNAME=${!i}
+  elif [ "${!i}" = "-nesting-level" ]; then
+    i=$((i+1))
+    nesting_level=${!i}
+  else
+    echo "${!i} unknown."
   fi
   i=$((i+1))
 done
 
 check_command vmd
 check_command gmx
+
+INDENT=`indent $nesting_level "#"`
 
 if [ "$PSF" = "none" ]; then
    echo "Error: You must specify the input psf file name with the -psf option."

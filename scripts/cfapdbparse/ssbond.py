@@ -108,6 +108,7 @@ class SSBond:
                '  length      {:.3f}\n'
         return retstr.format(self.record_name,self.resname1,self.chainID1,self.resseqnum1,self.icode1,self.resname2,self.chainID2,self.resseqnum2,self.icode2,self.sym1,self.sym2,self.length)
     def psfgen_patchline(self):
-       return 'patch DISU {}:{} {}:{}\n'.format(self.chainID1,self.resseqnum1,self.chainID2,self.resseqnum2)
-
+        return 'patch DISU {}:{} {}:{}\n'.format(self.chainID1,self.resseqnum1,self.chainID2,self.resseqnum2)
+    def isActive(self,aIDs,igIDs):
+        return (self.chainID1 in aIDs and self.chainID2 in aIDs and self.chainID1 not in igIDs and self.chainID2 not in igIDs)
 

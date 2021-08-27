@@ -147,10 +147,11 @@ class Segment:
                  #print('{} {} {} {} {}'.format(j,b.d.chainID,b.d.residues[0].resseqnum,b.d.residues[-1].resseqnum,'terminated' if b.d.term else 'not terminated'))
         for j,b in enumerate(self.subsegbounds):
             if b.typ=='LOOP':
-                b.d.nextfragntermres='0'
+                b.d.nextfragntermresid='0'
                 if b.d.term:  # should be a terminated loop (has a frag c-terminal to it)
                     # look ahead
-                    b.d.nextfragntermres=self.subsegbounds[j+1].d.resseqnum1
+                    b.d.nextfragntermresid=self.subsegbounds[j+1].d.resseqnum1
+                    b.d.nextfragntermresname=self.residues[self.subsegbounds[j+1].l].name
         return Loops
 
     def write_psfgen_stanza(self,includeTerminalLoops=False,tmat=None):
@@ -242,8 +243,15 @@ class Segment:
                     else:
                         if (ss.sacrins!='0' and i>0 and i<(len(self.subsegbounds)-1)):
                             fragss=self.subsegbounds[i+1]
+                            nter='NTER'
+                            rn=l.nextfragntermresname
+                            if rn=='PRO':
+                                nter='PROP'
+                            if rn=='GLY':
+                                nter='GLYP'
                             stanzastr+='patch CTER {}:{}{}\n'.format(rep_segname,l.residues[-1].resseqnum,l.residues[-1].insertion)
-                            stanzastr+='patch NTER {}:{}\n'.format(rep_segname,l.nextfragntermres)
+                            stanzastr+='## making residue with name {} an nter with patch {}\n'.format(rn,nter)
+                            stanzastr+='patch {} {}:{}\n'.format(nter,rep_segname,l.nextfragntermresid)
                             stanzastr+='delatom {} {}{}\n'.format(rep_segname,l.residues[-1].resseqnum,ss.sacrins)
             return stanzastr,Loops
         elif self.segtype=='GLYCAN':
@@ -296,7 +304,7 @@ class Segment:
                  stanzastr+='$mysel move {}\n'.format(tmat.OneLiner())
             stanzastr+='$mysel writepdb {}\n'.format(pdb)
             if not tmat.isidentity():
-                 stanzastr+=sel.restor('mysel')
+                 stanzastr+=sel.restore('mysel')
             stanzastr+='segment {} {{\n'.format(rep_segname)
             stanzastr+='    pdb {}\n'.format(pdb)
             stanzastr+='}\n'

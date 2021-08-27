@@ -1,25 +1,28 @@
+""" biomolecule.py -- handling all biological assemblies in a PDB/mmCIF file """
 class Biomolecule:
     ''' Container for handling info for "REMARK 350 BIOMOLECULE: #" stanzas in RCSB PDB files
         or _pdbx_struct blocks in mmCIF files '''
     def __init__(self,pdbrecord=None,cifdict=None):
-        #print('__init__ with {}'.format(pdbrecord))
-        self.chains=[]
+        self.chains_depot=[]
         self.biomt=[]
         self.pdbx_struct={}
-        if pdbrecord!=None and cifdict!=None:
-           print('Warning: Biomolecule.__init__ called with both a pdbrecord and cifdb; using pdbrecord')
-        if pdbrecord!=None:
+        if pdbrecord==None and cifdict==None:
+            # this is interpreted as the "asymmetric unit"; i.e., an assembly composed of only those
+            # atoms explicitly in the PDB/mmCIF file
+            self.index=0 # signifies asymmetric unit
+            self.biomt.append(BiomT()) # give it the identity biomt
+        elif pdbrecord!=None:
             if 'BIOMOLECULE:' in pdbrecord:
-               self.index=int(pdbrecord[23:25].strip())
-            if 'IDENTITY' in pdbrecord:  
-                # caller would like an identity created, most likely because no 
-                # BIOMOLECULE or PDBX_STRUCT was in the input file
-                self.index=1
-                self.biomt.append(BiomT())
+                self.index=int(pdbrecord[23:25].strip())  # take the index explicitly assigned in the PDB file
+            else:
+                print('Error:  Cannot parse PDBRecord [{}]'.format(pdbrecord))
         elif cifdict!=None:
             self.index=int(cifdict['id'])
             for k in ['method_details','oligomeric_details','oligomeric_count']:
                 self.pdbx_struct[k]=cifdict[k]
+        else:
+           print('Warning: Biomolecule.__init__() called with both a pdbrecord and cifdict; using pdbrecord')
+
             
     def parsePDBrecordwords(self,words):
         if len(words)>2:
@@ -28,10 +31,15 @@ class Biomolecule:
             if 'AUTHOR DETERMINED BIOLOGICAL UNIT:' in phrase:
            #     print(words[-1])
                 self.pdbx_struct['author_biol_unit']=words[-1]
+#                self.pdbx_struct['software_used']=[_.replace(',','') for _ in words[4:]]
             elif 'SOFTWARE DETERMINED QUATERNARY STRUCTURE:' in phrase:
-                self.pdbx_struct['software_quat_struct']=words[-1]
+           #     print(words[-1])
+                self.pdbx_struct['software_biol_unit']=words[-1]
+#                self.pdbx_struct['software_used']=[_.replace(',','') for _ in words[4:]]
             elif 'SOFTWARE USED:' in phrase:
-                self.pdbx_struct['software_used']=[_.replace(',','') for _ in words[4:]]
+           #     print(words[-1])
+                self.pdbx_struct['software_used']=words[-1]
+#                self.pdbx_struct['software_used']=[_.replace(',','') for _ in words[4:]]
             elif 'TOTAL BURIED SURFACE AREA:' in phrase:
                 self.pdbx_struct['total_buried_surface_area']=int(words[-2])
                 self.pdbx_struct['surface_area_units']=words[-1]
@@ -41,31 +49,48 @@ class Biomolecule:
                 self.pdbx_struct['change_solv_fe']=float(words[-2])
                 self.pdbx_struct['fe_units']=words[-1]
             elif 'APPLY THE FOLLOWING TO CHAINS:' in phrase:
-                self.chains.extend([_.replace(',','') for _ in words[7:]])
+                self.chain_depot=[_.replace(',','') for _ in words[7:]]
             elif 'AND CHAINS:' in phrase:
-                self.chains.extend([_.replace(',','') for _ in words[4:]])
+                self.chain_depot.extend([_.replace(',','') for _ in words[4:]])
             elif 'BIOMT' in words[2]:
                 self.parseBIOMT(words)
             else:
                 print('#### ERROR: Unrecognized PDB-format REMARK 350 line:')
                 print(' '.join(words))
-    def show(self,indent='    '):
-        print('{}Biomolecule {:d}'.format(indent,self.index))
-        print(indent,self.pdbx_struct,self.chains)
+    
+    def show(self,isActive=False,indent='    '):
+        if self.index==0:
+            desig='Asymmetric Unit'
+        else:
+            desig='Biological Assembly'
+        activeLabel='**ACTIVE** ' if isActive else ''
+        print('{}{}{} {:d}{}'.format(indent,activeLabel,desig,self.index,activeLabel))
+        if len(self.pdbx_struct)>0:
+            print(indent*2,self.pdbx_struct)
         for b in self.biomt:
-            b.show(indent)
+            b.show(indent*2)
+    
     def parseBIOMT(self,words):
         ax=int(words[2][-1])
-        if ax==1:
-            self.biomt.append(BiomT())
+        if ax==1:   # "BIOMT1" detected
+            new_BiomT=BiomT(index=len(self.biomt))
+            # empty the chain_depot
+            if len(self.chain_depot)==0:
+                print('Warning: New BIOMT detected but no chains are designated for it.')
+            else:
+                new_BiomT.chainIDs=self.chain_depot[:]
+                self.chain_depot=[]
+            self.biomt.append(new_BiomT)
         self.biomt[-1].parseBIOMT(ax,words)
+    
     def CIFBiomT(self,cifdict):
-        self.biomt.append(BiomT())
+        self.biomt.append(BiomT(index=len(self.biomt)))
         self.biomt[-1].CIFBiomT(cifdict)
 
 class BiomT:
-    def __init__(self):
-        self.index=-1
+    def __init__(self,index=0):
+        self.chainIDs=[]
+        self.index=index
         self.tmat=[[1, 0, 0, 0],[0, 1, 0, 0],[0, 0, 1, 0]]
         self.replicachainID_from_sourcechainID={}
         self.sourcechainID_from_replicachainID={}
@@ -84,10 +109,11 @@ class BiomT:
             self.tmat[i][3]=float(cifdict['vector[{}]'.format(i+1)])
 
     def show(self,indent='    '):
-        print('{}BIOMT {:d}'.format(indent,self.index))
+        print('{}BIOMT {:d} operates on chains {:s}'.format(indent,self.index,', '.join(self.chainIDs)))
         if not self.isidentity():
             print('{}    TMAT'.format(indent),self.tmat)
-            print('{}    REPC'.format(indent),self.replicachainID_from_sourcechainID)
+            if len(self.replicachainID_from_sourcechainID)>0:
+                print('{}    REPC'.format(indent),self.replicachainID_from_sourcechainID)
         else:
             print('{}    IDENTITY'.format(indent))
     def isidentity(self):
@@ -96,7 +122,7 @@ class BiomT:
             return True
         else:
             return False 
-    def mapchains(self,c,newc):
+    def mapChainIDs(self,c,newc):
         self.replicachainID_from_sourcechainID[c]=newc
         self.sourcechainID_from_replicachainID[newc]=c
     def get_replica_chainID(self,c):

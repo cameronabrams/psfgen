@@ -18,13 +18,7 @@ if __name__=='__main__':
     parser.add_argument('-cif',action='append',metavar='<?.cif>',default=[],help='name of CIF file')
     parser.add_argument('-n',nargs='+',default=[])
     args=parser.parse_args()
-    
-    for k,v in vars(args).items():
-        if type(v) is list:
-            print('-{:s} '.format(k)+' '.join(v),end=' ')
-        else:
-            print('-{:s} {}'.format(k,v),end=' ')
-    print()
+
     PDBfiles=args.pdb
     CIFfiles=args.cif    
     for p in PDBfiles:

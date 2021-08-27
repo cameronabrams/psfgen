@@ -53,3 +53,9 @@ function isare {
         echo "is"
     fi
 }
+
+function indent {
+    l=$1
+    c=$2
+    yes "$2" | head -$l | tr -d "\n"
+}

@@ -51,6 +51,7 @@ temperature=310
 numsteps=(20000)
 pyparser_args=()
 pyparser=$PYPARSER
+solvation_log="mysolv.log"
 PRODUCTION_STEPS=10000000
 DO_TOPOGROMACS=0
 SEL_STR=""
@@ -74,6 +75,9 @@ while [ $i -le $ARGC ] ; do
   elif [ "${!i}" = "-charmrun" ]; then
     i=$((i+1))
     CHARMRUN=${!i}
+  elif [ "${!i}" = "-solvation-log" ]; then
+    i=$((i+1))
+    solvation_log=${!i}
   elif [ "${!i}" = "-solv-stage-steps" ]; then
      i=$((i+1))
      ssl=${!i}
@@ -113,8 +117,9 @@ while [ $i -le $ARGC ] ; do
   i=$((i+1))
 done
 
-echo "#### do_py.sh: NAMD/Gromacs system builder -- Cameron F Abrams -- cfa22@drexel.edu"
-echo "#### Command:"
+echo "# do_py.sh: NAMD/Gromacs system builder -- Cameron F Abrams -- cfa22@drexel.edu"
+echo "# Uses $pyparser as the PyParser"
+echo "# Command:"
 echo "#    do_py.sh ${@}"
 
 nparse=${#pyparser_args[@]}
@@ -123,10 +128,10 @@ if (( $nparse == 0 )) ; then
   nparse=1
   pyparser_args=("")
 fi
-echo "#### PyParser $pyparser will run $nparse time$(ess $nparse) in series"
+echo "# PyParser $pyparser will run $nparse time$(ess $nparse) in series"
 for t in `seq 0 $((nparse-1))`; do
   if [ ! "${pyparser_args[$t]}" = "" ]; then
-    echo "####     PyParser arguments for run #$((t+1)): \"${pyparser_args[$t]}\""
+    echo "#     PyParser arguments for run #$((t+1)): \"${pyparser_args[$t]}\""
   fi
 done
 
@@ -136,12 +141,12 @@ if [ $npdb -eq 0 ]; then
   exit 1
 fi
 
-echo "#### The following $npdb PDB file$(ess $npdb) $(isare $npdb) used"
+echo "# The following $npdb PDB file$(ess $npdb) $(isare $npdb) used"
 BASEPDB=${PDB[0]}.pdb
 AUXPDB=()
-echo "####     Base: $BASEPDB"
+echo "#     Base: $BASEPDB"
 for p in `seq 1 $((npdb-1))`; do
-  echo "####     Auxiliary $p: ${PDB[$p]}"
+  echo "#     Auxiliary $p: ${PDB[$p]}"
   AUXPDB+=("${PDB[$p]}")
 done
 
@@ -150,7 +155,7 @@ TASK=0
 for p in `seq 0 $((npdb-1))`; do
   pdb=${PDB[$p]}
   if [ ! -e ${pdb}.pdb ]; then
-    echo "Retrieving ${pdb}.pdb..."
+    echo "# Retrieving ${pdb}.pdb..."
     wget -q ${RCSB}/${pdb}.pdb
   fi
 done
@@ -160,11 +165,14 @@ CURRPDB=$BASEPDB
 for pi in `seq 0 $((nparse-1))`; do
   TASK=$((TASK+1))
   CURRPSFGEN=psfgen${TASK}.tcl
-  echo "Bash command:  $PYTHON3 $PYPARSER ${pyparser_args[$pi]} -pe ${NPE} -postscript ps${TASK}.sh -psfgen ${CURRPSFGEN} ${CURRPDB}"
-  $PYTHON3 $PYPARSER ${pyparser_args[$pi]} -pe ${NPE} -postscript ps${TASK}.sh -psfgen ${CURRPSFGEN} ${CURRPDB}
-  ./ps${TASK}.sh $TASK
+  PS=parser-postscript-task${TASK}.sh
+  echo "# Task $TASK: Using $pyparser to generate Tcl script and VMD to execute it"
+  echo "# Bash command:  $PYTHON3 $PYPARSER ${pyparser_args[$pi]} -pe ${NPE} -postscript ps${TASK}.sh -psfgen ${CURRPSFGEN} ${CURRPDB}"
+  $PYTHON3 $PYPARSER ${pyparser_args[$pi]} -pe ${NPE} -postscript $PS -psfgen ${CURRPSFGEN} ${CURRPDB}
+  echo "# Bash command: ./$PS $TASK -task $TASK -nesting-level 2"
+  ./$PS -task $TASK -nesting-level 2
   if [ $? -ne 0 ]; then
-    echo "Postscript ps${TASK}.sh failed."
+    echo "Error: Postscript $PS failed; see output immediately above. Exiting."
     exit 1
   fi
   read CURRPSF CURRPDB CURRCFG < .tmpvar
@@ -173,7 +181,7 @@ done
 # downselect
 if [[ "$SEL_STR" != "" ]]; then
   TASK=$((TASK+1))
-  echo "TASK $TASK: Downselecting based on $SEL_STR"
+  echo "# Task $TASK: Downselecting based on selection text $SEL_STR"
   cat > tmp.tcl << EOF
   set selstr [join [split "$SEL_STR" "-"] " "]
   extract_psf_pdb $CURRPSF $CURRPDB \$selstr config${TASK}.psf config${TASK}.pdb
@@ -182,13 +190,18 @@ EOF
   $VMD -dispdev text -e tmp.tcl > ${TASK}-psfgen.log
   CURRPSF=config${TASK}.psf
   CURRPDB=config${TASK}.pdb
+  echo tmp.tcl >> .tmpfiles
 fi
 
 # solvate
 TASK=$((TASK+1))
-echo "TASK $TASK: Generating solvated system config${TASK}.psf/.pdb from ${CURRPSF}+${CURRPDB}..."
-echo "Bash command: $VMD -dispdev text -e $PSFGEN_BASEDIR/scripts/solv.tcl -args -psf $CURRPSF -pdb $CURRPDB -outpre config${TASK} $CUBICBOX > mysolv.log"
-$VMD -dispdev text -e $PSFGEN_BASEDIR/scripts/solv.tcl -args -psf $CURRPSF -pdb $CURRPDB -outpre config${TASK} $CUBICBOX > mysolv.log
+echo "# Task $TASK: Generating solvated system config${TASK}.psf/.pdb from ${CURRPSF}+${CURRPDB}"
+echo "# Bash command: $VMD -dispdev text -e $PSFGEN_BASEDIR/scripts/solv.tcl -args -psf $CURRPSF -pdb $CURRPDB -outpre config${TASK} $CUBICBOX > $solvation_log"
+$VMD -dispdev text -e $PSFGEN_BASEDIR/scripts/solv.tcl -args -psf $CURRPSF -pdb $CURRPDB -outpre config${TASK} $CUBICBOX > $solvation_log
+if [ $? -ne 0 ]; then
+    echo "Error: Solvation using VMD failed.  Check $solvation_log. Exiting."
+    exit 1
+fi
 CURRPSF=config${TASK}.psf
 CURRPDB=config${TASK}.pdb
 
@@ -199,28 +212,30 @@ if [ ! -f "$CURRCFG" ]; then
 fi
 # get parameter designations from last config file
 grep ^parameters $CURRCFG | grep -v water > _par.inp
-echo "#### No binary inputs yet -- this run begins using PDB coordinates" > _bin.inp
+echo "# No binary inputs yet -- this run begins using PDB coordinates" > _bin.inp
 firsttimestep=0
 ls=`echo "${#numsteps[@]} - 1" | bc`
 for s in `seq 0 $ls`; do
-    echo "Running namd2 (stage $s of ${#numsteps[@]}) on solvated system..."
+    echo "# Running namd2 (stage $s of ${#numsteps[@]}) on solvated system"
     lastnamd=run${TASK}_stage${s}.namd
     lastsys=config${TASK}_stage${s}
+    thislog=run${TASK}_stage${s}.log
     cat $PSFGEN_BASEDIR/templates/solv.namd | \
-        sed "/#### SYSTEM CONFIGURATION FILES BEGIN/r _bin.inp" | \
-        sed "/#### SYSTEM CONFIGURATION FILES END/i structure $CURRPSF" | \
-        sed "/#### SYSTEM CONFIGURATION FILES END/i coordinates $CURRPDB" | \
-        sed "/#### PARAMETER FILES BEGIN/r _par.inp" | \
+        sed "/# SYSTEM CONFIGURATION FILES BEGIN/r _bin.inp" | \
+        sed "/# SYSTEM CONFIGURATION FILES END/i structure $CURRPSF" | \
+        sed "/# SYSTEM CONFIGURATION FILES END/i coordinates $CURRPDB" | \
+        sed "/# PARAMETER FILES BEGIN/r _par.inp" | \
         sed s/%STAGE%/${s}/g | \
         sed s/%OUT%/${lastsys}/g | \
         sed s/%NUMSTEPS%/${numsteps[$s]}/g | \
         sed s/%SEED%/${seed}/g | \
         sed s/%TEMPERATURE%/${temperature}/g | \
         sed s/%FIRSTTIMESTEP%/$firsttimestep/g > $lastnamd
-    echo "Bash command:  $CHARMRUN +p${NPE} $NAMD2 $lastnamd > run${TASK}_stage${s}.log"
-    $CHARMRUN +p${NPE} $NAMD2 $lastnamd > run${TASK}_stage${s}.log
+    echo "# Bash command:  $CHARMRUN +p${NPE} $NAMD2 $lastnamd > $thislog"
+    $CHARMRUN +p${NPE} $NAMD2 $lastnamd > $thislog
     if [ $? -ne 0 ]; then
-        echo "NAMD fails.  Check log file run${TASK}_stage${s}.log"
+        echo "Error: NAMD failedat stage $s.  Check log file $thislog. Exiting."
+        exit 1
     fi
     firsttimestep=`echo "100 + $firsttimestep + ${numsteps[$s]}" | bc`
     ss=$((s+1))
@@ -229,7 +244,7 @@ for s in `seq 0 $ls`; do
     echo "binvelocities  ${lastsys}.vel"  >> _bin.inp
     echo "extendedsystem ${lastsys}.xsc"  >> _bin.inp
 done
-echo "NAMD task$(ess ${#numsteps[@]}) complete.  Packaging for production."
+echo "# All NAMD task$(ess ${#numsteps[@]}) complete.  Packaging for production."
 
 # Prep for production MD
 # copy all charmm parameter files to this directory and
@@ -237,10 +252,10 @@ echo "NAMD task$(ess ${#numsteps[@]}) complete.  Packaging for production."
 ${PSFGEN_BASEDIR}/scripts/cp_charmm.sh $lastnamd
 firsttimestep=0
 cat $PSFGEN_BASEDIR/templates/prod.namd | \
-    sed "/#### SYSTEM CONFIGURATION FILES BEGIN/r _bin.inp" | \
-    sed "/#### SYSTEM CONFIGURATION FILES END/i structure $CURRPSF" | \
-    sed "/#### SYSTEM CONFIGURATION FILES END/i coordinates $CURRPDB" | \
-    sed "/#### PARAMETER FILES BEGIN/r par.inp" | \
+    sed "/# SYSTEM CONFIGURATION FILES BEGIN/r _bin.inp" | \
+    sed "/# SYSTEM CONFIGURATION FILES END/i structure $CURRPSF" | \
+    sed "/# SYSTEM CONFIGURATION FILES END/i coordinates $CURRPDB" | \
+    sed "/# PARAMETER FILES BEGIN/r par.inp" | \
     sed s/%OUT%/prod/g | \
     sed s/%NUMSTEPS%/$PRODUCTION_STEPS/g | \
     sed s/%SEED%/${seed}/g | \
@@ -256,12 +271,12 @@ tar zvcf namdprod.tgz $CURRPSF \
                   prod.namd
 
 rm cell.inp _bin.inp _par.inp *restart*
-echo "Done.  Created namdprod.tgz."
+echo "# Created namdprod.tgz."
 if (( $DO_TOPOGROMACS == 1 )); then
-    echo "Generating Gromacs topology"
-    echo "Bash command: $PSFGEN_BASEDIR/scripts/tg.sh  -psf $CURRPSF -i config${TASK}_stage${s} -top $TG_TOP -pdb $TG_PDB"
-    $PSFGEN_BASEDIR/scripts/tg.sh  -psf $CURRPSF -i config${TASK}_stage${s} -top $TG_TOP -pdb $TG_PDB
+    echo "# Generating Gromacs topology"
+    echo "# Bash command: $PSFGEN_BASEDIR/scripts/tg.sh  -psf $CURRPSF -i config${TASK}_stage${s} -top $TG_TOP -pdb $TG_PDB"
+    $PSFGEN_BASEDIR/scripts/tg.sh  -psf $CURRPSF -i config${TASK}_stage${s} -top $TG_TOP -pdb $TG_PDB -nesting-level 2
     tar zvcf gmx.tgz $TG_TOP $TG_PDB
-    echo "Done. Created gmx.tgz."
+    echo "# Created gmx.tgz."
 fi
-echo "#### do_py.sh is done."
+echo "# do_py.sh is done.  Thanks for using do_py.sh."

@@ -1,6 +1,7 @@
 *.o
 *_wrap.c
 *.so
+testing/
 tcl-untested/
 prep/
 output/
