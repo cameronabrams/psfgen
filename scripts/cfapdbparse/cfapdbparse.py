@@ -367,7 +367,7 @@ if __name__=='__main__':
     parser.add_argument('-prefix',metavar='<str>',default='x01_',help='Output PDB/PSF prefix; each file name will have the format <prefix><pdbcode>.pdb/psf, where <pdbcode> is the 4-letter PDB code of the base molecule.')
     parser.add_argument('-psfgen',metavar='<name>',default='mkpsf.tcl',help='name of TcL script generated as input to VMD/psfgen')
     parser.add_argument('-ignore',metavar='X ...',nargs='+',default=[],type=str,help='Specify chain(s) to ignore.')
-    parser.add_argument('-modsfile',metavar='<name>',nargs='+',default=[],type=ModsFile,help='One modifications file to rule them all.')
+    parser.add_argument('-modsfile',metavar='<name> ...',nargs='+',default=[],type=ModsFile,help='One (or more) modifications file(s) to rule them all.')
     parser.add_argument('-mut',metavar='C_OrrrN [C_OrrrN] ...',nargs='+',default=[],type=Mutation,help='One or more point-mutation specifications.  Format: C is chainID, O is one-letter residue code to mutate FROM, rrr is sequence number (can be any number of digits), and N is one-letter residue code to mutate TO.  Multiple mutation instances can be specified with one -mut.  Mutations are automatically replicated if there are BIOMT transformations.')
     parser.add_argument('-mutfile',metavar='<name>',default='',help='Input file listing mutation specifications')
     parser.add_argument('-delete',metavar='C_Orrr [C_Orrr] ...',nargs='+',default=[],type=Deletion,help='One or more single-residue deletion specifications.  Format: C is chainID, O is one-letter residue code, rrr is sequence number (can be any number of digits).  Multiple deletion instances can be specified with one -del.  Deletions are automatically replicated if there are BIOMT transformations.')

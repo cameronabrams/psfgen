@@ -20,10 +20,12 @@ where `PDB.pdb` is the name of pdb file in the RCSB that contains the glycan, an
 
 This workflow generates a solvated, cleaved, fully glycosylated SARS-CoV-2 S spike ectodomain trimer based on the 6vxx PDB entry.  It uses the `cfapdbparser.py` package and the general driver `do_py.sh`.   Make sure your environment variable PSFGEN_BASEDIR resolves to the root directory of your local copy of this repository (mine is ${HOME}/research/psfgen).  It is also assumed below that CHARMRUN resolves to your local charmrun executable and NAMD2 resolves to your local NAMD2 executable.  (For me, these are /home/cfa/namd/NAMD_2.14_Source/Linux-x86_64-g++/charmrun and /home/cfa/namd/NAMD_2.14_Source/Linux-x86_64-g++/namd2.
 
-```
-$ mkdir 6vxx
-$ cd 6vxx
-$ $PSFGEN_BASEDIR/scripts/do_py.sh -pyparser-args "-modsfile $PSFGEN_BASEDIR/6vxx/grafts.inp -smdclose" -pyparser-args "-clv A685 B685 C685" -solv-stage-steps 100,200,400,800,20000 -temperature 310 -pdb 6vxx 2wah 4byh 4b7i
+```bash
+> mkdir 6vxx
+> cd 6vxx
+> $PSFGEN_BASEDIR/scripts/do_py.sh -pyparser-args "-modsfile $PSFGEN_BASEDIR/6vxx/grafts.inp -smdclose" \
+                                   -pyparser-args "-clv A685 B685 C685" -solv-stage-steps 100,200,400,800,20000 \
+                                   -temperature 310 -pdb 6vxx 2wah 4byh 4b7i
 ```
 
 The `do_py.sh` script executes a series of tasks, beginning with downloading the required PDB file from the RCSB (if needed), then passing through a sequence of parse/psfgen/relax cycles to generate a complete vacuum structure, followed by solvation via psfgen, and finally through as series of solvated relaxations via NPT MD.  
@@ -35,7 +37,17 @@ To make an uncleaved S trimer, simply omit the second `-pyparser-args` switch.
 The glycans are assigned according to [Watanabe et al.](https://science.sciencemag.org/content/369/6501/330) with glycans classified as "complex" represented by the glycan in 4byh, "hybrid" with 4b7i, and oligomannose with 2wah.
 
 Any desired point mutations can be specified in the `[mutations]` section of the modsfile, and any point deletions can be specified in the `[deletions]` section.  
-The format of a point mutation is `C_OrrrN` where `C` is a chain ID, `O` is the original one-letter residue name, `rrr` is the residue sequence number, and `N` is the desired mutant one-letter residue name.  Point-deletions are specified like mutations except with no `N`.  Each line in any modsfile section can contain only one specification.
+The format of a point mutation is `C_OrrrN` where `C` is a chain ID, `O` is the original one-letter residue name, `rrr` is the residue sequence number, and `N` is the desired mutant one-letter residue name.  Point-deletions are specified like mutations except with no `N`.  Each line in any modsfile section can contain only one specification.  
+
+To build a spike that conforms to the Delta variant sequence:
+```bash
+> mkdir 6vxx
+> cd 6vxx
+> $PSFGEN_BASEDIR/scripts/do_py.sh -pyparser-args "-modsfile $PSFGEN_BASEDIR/6vxx/delta-mods.inp -smdclose" \
+                                   -pyparser-args "-clv A685 B685 C685" -solv-stage-steps 100,200,400,800,20000 \
+                                   -temperature 310 -pdb 6vxx 2wah 4byh 4b7i
+```
+
 
 
 2017-2021, Cameron F Abrams  cfa22@drexel.edu
