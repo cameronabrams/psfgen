@@ -506,13 +506,14 @@ class Molecule:
             return -1
         for clv in Cleavages:
             # daughter_chain_ok=False
-            if clv.parent_chainID in self.Chains:
+            if clv.parent_chainID in self.activeBiologicalAssembly.activeChainIDs:
                 clv_c=self.Chains[clv.parent_chainID]
                 clv.daughter_chainID=self.chainIDs_available.pop(0)
                 daughter=clv_c.Cleave(clv)
                 self.Chains[daughter.chainID]=daughter
-                b=self.GetBiomoleculeByChain(clv.parent_chainID)
-                b.chains.append(daughter.chainID)
+                self.activeBiologicalAssembly.activeChainIDs.append(daughter.chainID)
+                b=self.activeBiologicalAssembly.getBiomT(chainID=clv.parent_chainID)
+                b.chainIDs.append(daughter.chainID)
                 for s in self.SSBonds:
                     if s.chainID1==clv_c.chainID and s.resseqnum1>clv.parent_Cterm_resseqnum:
                         s.chainID1=daughter.chainID

@@ -82,6 +82,13 @@ class Biomolecule:
                 self.chain_depot=[]
             self.biomt.append(new_BiomT)
         self.biomt[-1].parseBIOMT(ax,words)
+
+    def getBiomT(self,chainID=''):
+        if len(chainID)>0:
+            for t in self.biomt:
+                if chainID in t.chainIDs:
+                    return t
+        return None
     
     def CIFBiomT(self,cifdict):
         self.biomt.append(BiomT(index=len(self.biomt)))
