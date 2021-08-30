@@ -464,6 +464,9 @@ if __name__=='__main__':
     PostMod['preclose_params']=DictFromString(args.smdcloseparams)
     PostMod['NAMD_params']=DictFromString(args.namdparams)
     PostMod['Crot']=MrgCmdLineAndFileContents(args.crot,args.crotfile,Crot)
+    if len(args.modsfile)>0:
+        for mf in args.modsfile:
+            PostMod['Crot'].extend(mf.show_type(Crot))
     PostMod['log_dcd_file']=args.logdcd
     PostMod['log_every']=args.logevery
     PostMod['log_save_every']=args.logsaveevery
