@@ -1,3 +1,13 @@
+[title]
+SARS-CoV-2 Delta S
+
+[description]
+Modifications to 7df3 PDB structure to generate the B.1.617.2 Delta variant
+Step 1: Pre-cleavage modifications
+
+[author]
+Cameron F Abrams, cfa22@drexel.edu
+
 [grafts]
 4byh.pdb,C:1-10,1,K:1,0
 4b7i.pdb,C:1-8,1,A:1310,2410
@@ -53,3 +63,8 @@
 4b7i.pdb,C:1-8,1,C:1301,3301
 4byh.pdb,C:1-10,1,U:1,0
 4byh.pdb,C:1-10,1,T:1,0
+
+[crotations]
+GLYCAN,AG07,3104,O4,3105,C1,-60
+GLYCAN,BG07,3104,O4,3105,C1,-60
+GLYCAN,CG07,3104,O4,3105,C1,-60

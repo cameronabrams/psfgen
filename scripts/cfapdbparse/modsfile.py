@@ -8,7 +8,7 @@ from deletion import Deletion
 from cleavage import Cleavage
 
 ModTypes={'mutations':Mutation,'grafts':Graft,'deletions':Deletion,'crotations':Crot,'attachments':Attach,'links':Link,'ssbonds':SSBond,'cleavages':Cleavage}
-
+comment_chars=['#','%']
 class ModsFile:
     def __init__(self,filename=''):
         self.filename=filename
@@ -21,6 +21,8 @@ class ModsFile:
                         self.close_stanza()
                     elif ll[0]=='[':
                         self.open_stanza(ll)
+                    elif ll[0] in comment_chars:
+                        pass
                     else:
                         self.process_line(ll)
    
