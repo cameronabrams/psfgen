@@ -1142,12 +1142,13 @@ proc check_pierced_rings { molid ringsize TOL } {
             set piercer [atomselect $molid "index $a $b"]
             set b_resnames [$piercer get resname]
             set b_names [$piercer get name]
+            set b_segnames [$piercer get segname]
             set b_resids [$piercer get resid]
             set b_chain [$piercer get chain]
             set piercee [atomselect $molid "index $this_ri"]
-            set first "[lindex $b_chain 0]_[lindex $b_resnames 0][lindex $b_resids 0][lindex $b_names 0]($a)"
-            set second "[lindex $b_chain 1]_[lindex $b_resnames 1][lindex $b_resids 1][lindex $b_names 1]($b)"
-            set ring "[lindex [$piercee get chain] 0]_[lindex [$piercee get resname] 0][lindex [$piercee get resid] 0]"
+            set first "[lindex $b_chain 0]([lindex $b_segnames 0])_[lindex $b_resnames 0][lindex $b_resids 0][lindex $b_names 0]($a)"
+            set second "[lindex $b_chain 1]([lindex $b_segnames 1])_[lindex $b_resnames 1][lindex $b_resids 1][lindex $b_names 1]($b)"
+            set ring "[lindex [$piercee get chain] 0]([lindex [$piercee get segname] 0])_[lindex [$piercee get resname] 0][lindex [$piercee get resid] 0]"
             puts "Bond $first-$second pierces $ring"
           }
         }
