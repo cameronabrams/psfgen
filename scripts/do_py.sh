@@ -233,7 +233,8 @@ for s in `seq 0 $ls`; do
         sed s/%FIRSTTIMESTEP%/$firsttimestep/g > $lastnamd
     echo "# Bash command:  $CHARMRUN +p${NPE} $NAMD2 $lastnamd > $thislog"
     $CHARMRUN +p${NPE} $NAMD2 $lastnamd > $thislog
-    if [ $? -ne 0 ]; then
+    if [ $? -ne 0 ]; thenfunction prep_namd_restart {
+
         echo "Error: NAMD failedat stage $s.  Check log file $thislog. Exiting."
         exit 1
     fi
