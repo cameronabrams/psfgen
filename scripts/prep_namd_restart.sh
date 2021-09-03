@@ -8,7 +8,7 @@
 #
 # example:
 #
-# prep_namd_restart -i first_run.conf -l run.log -o restart_run.conf [--new-numsteps ###] [--ensemble (nvt/npt)]
+# ./prep_namd_restart.sh -i first_run.conf -l run.log -o restart_run.conf [--new-numsteps ###] [--ensemble (nvt/npt)]
 #
 # Cameron Abrams cfa22@drexel.edu
 # 2020-2021
@@ -172,7 +172,3 @@ if [ ! -z "${tmdon}" ]; then
     fi
 fi	
 echo "Created restart config $RECONF"
-exit 0
-
-
-
