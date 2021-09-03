@@ -110,5 +110,25 @@ class SSBond:
     def psfgen_patchline(self):
         return 'patch DISU {}:{} {}:{}\n'.format(self.chainID1,self.resseqnum1,self.chainID2,self.resseqnum2)
     def isActive(self,aIDs,igIDs):
-        return (self.chainID1 in aIDs and self.chainID2 in aIDs and self.chainID1 not in igIDs and self.chainID2 not in igIDs)
+        return (self.chainID1 in aIDs and self.chainID2 in aIDs and not (self.chainID1 in igIDs) and not (self.chainID2 in igIDs))
+    def __eq__(self,other):
+        res=True;
+        res&=self.chainID1==other.chainID1
+        res&=self.chainID2==other.chainID2
+        res&=self.resseqnum1==other.resseqnum1
+        res&=self.resseqnum2==other.resseqnum2
+        res&=self.icode1==other.icode1
+        res&=self.icode2==other.icode2
+        return res
+    def inlist(self,ssbonds):
+        for s in ssbonds:
+            if s==self:
+                return True
+        return False
 
+if __name__=="__main__":
+    pdbline1="SSBOND   4 CYS D  378    CYS B  378                          1555   2655  2.04"
+    pdbline2="SSBOND   8 CYS D  378    CYS B  178                          2555   2655  2.04"
+    b=SSBond(record=pdbline1)
+    b2=SSBond(record=pdbline2)
+    print(b==b2)

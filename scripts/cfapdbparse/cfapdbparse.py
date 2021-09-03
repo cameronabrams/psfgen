@@ -381,7 +381,9 @@ if __name__=='__main__':
     parser.add_argument('-crot',metavar='<str>,A,XXX[,YYY],### ...',default=[],nargs='+',type=Crot,help='One or more torsion rotation specifications. Format: <str> is one of phi, psi, omega, chi1, or chi2.  A is the chainID, XXX is the resid of owner of torson, and YYY (if given) marks the end of the sequence C-terminal to XXX that is reoriented by a backbone rotation. ### is the degrees of rotation.  C-rotations are automatically replicated if there are BIOMT transformations.')
     parser.add_argument('-crotfile',metavar='<name>',default='',help='Input file listing all torsion rotations requested (as an alternative to issuing multiple -crot arguments)')
     parser.add_argument('-ssbond',metavar='X_###-Y_### ...',default=[],nargs='+',type=SSBond,help='One or more disulfide bond specification(s) not already in input PDB/CIF: Format: X,Y are chainIDs and ### are resids; if residues are not CYS in wt or by mutations, there is no effect.  Because SSBonds can join chains together, they are NOT automatially replicated if there are BIOMT transformations.')
+    parser.add_argument('-xssbond','--exclude-ssbond',metavar='X_###-Y_### ...',default=[],nargs='+',type=SSBond,help='One or more disulfide bond specification(s) in input PDB/CIF that you want to exclude: Format: X,Y are chainIDs and ### are resids; if residues are not CYS in wt or by mutations, there is no effect.  Because SSBonds can join chains together, they are NOT automatially replicated if there are BIOMT transformations.')
     parser.add_argument('-ssfile',metavar='<name>',default='',help='input file listing all disulfide bonds to add that are not already in the PDB file (as an alternative to issuing multiple -ssbond arguments)')
+    parser.add_argument('-xssfile','--exclude-ssfile',metavar='<name>',default='',help='input file listing all disulfide bonds already in the PDB file that you want to exclude (as an alternative to issuing multiple -xssbond arguments)')
     parser.add_argument('-link',metavar='string',default=[],action='append',type=Link,help='PDB-format LINK record; must have exact spacing; multiple "-link" options can be supplied.')
     parser.add_argument('-linkfile',metavar='<name>',default='',help='Input file with PDB-format LINK records the user would like to enforce that are not in the PDB/CIF file')
     parser.add_argument('-pdbalias',metavar='<str>',default=[],nargs='+',help='One or more psfgen-formatted pdbalias with commas for spaces')
@@ -419,11 +421,11 @@ if __name__=='__main__':
     if args.verbosity>0:
         for k,v in vars(args).items():
             if type(v) is list and len(v)>0:
-                print('-{:s} '.format(k)+' '.join(v),end=' ')
+                print('-{:s} '.format(k)+' '.join([str(_) for _ in v]),end=' ')
             elif type(v) is str and len(v)>0:
                 print('-{:s} {}'.format(k,v),end=' ')
             elif not type(v) is str and not type(v) is list:
-                print('-{:s} {}'.format(k,v),end=' ')
+                print('-{:s} {}'.format(k,str(v)),end=' ')
         print()
 
     Mut=MrgCmdLineAndFileContents(args.mut,args.mutfile,Mutation)
@@ -431,6 +433,7 @@ if __name__=='__main__':
     Gra=MrgCmdLineAndFileContents(args.gra,args.grafile,Graft)
     Att=MrgCmdLineAndFileContents(args.att,args.attfile,Attach)
     Uss=MrgCmdLineAndFileContents(args.ssbond,args.ssfile,SSBond)
+    Uxss=MrgCmdLineAndFileContents(args.exclude_ssbond,args.exclude_ssfile,SSBond)
     Usl=MrgCmdLineAndFileContents(args.link,args.linkfile,Link)
     Del=MrgCmdLineAndFileContents(args.delete,args.deletefile,Deletion)
     if len(args.modsfile)>0:
@@ -444,6 +447,7 @@ if __name__=='__main__':
             Uss.extend(mf.show_type(SSBond))
             Usl.extend(mf.show_type(Link))
             Del.extend(mf.show_type(Deletion))
+            Uxss.extend(mf.show_excl(SSBond))
 
     UPDBAliases=MrgCmdLineAndFileContents([' '.join(_.split(',')) for _ in args.pdbalias],args.pdbaliasfile,str)
     PDBAliases.extend(UPDBAliases)
@@ -518,7 +522,7 @@ if __name__=='__main__':
     ''' this will issue the final 'writepsf' and 'writepdb commands '''
     Loops=Base.WritePsfgenInput(psfgen_fp,userMutations=Mut,userDeletions=Del,fixConflicts=fixConflicts,
                                fixEngineeredMutations=fixEngineeredMutations,prefix=prefix,
-                               userGrafts=Gra,userAttach=Att,userSSBonds=Uss,userIgnoreChains=UIC,
+                               userGrafts=Gra,userAttach=Att,userSSBonds=Uss,userxSSBonds=Uxss,userIgnoreChains=UIC,
                                removePDBs=True)
 
     ''' PostMods alter coordinates to ease minimization; psf is not modified further

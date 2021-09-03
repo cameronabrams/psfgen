@@ -547,7 +547,7 @@ class Molecule:
                 ss.resseqnum2+=resseqnumshift
         return 0
 
-    def WritePsfgenInput(self,fp,userMutations=[],userDeletions=[],prefix='my_',fixConflicts=False,fixEngineeredMutations=False,userGrafts=[],userAttach=[],userSSBonds=[],userIgnoreChains=[],includeTerminalLoops=False,removePDBs=True):
+    def WritePsfgenInput(self,fp,userMutations=[],userDeletions=[],prefix='my_',fixConflicts=False,fixEngineeredMutations=False,userGrafts=[],userAttach=[],userSSBonds=[],userxSSBonds=[],userIgnoreChains=[],includeTerminalLoops=False,removePDBs=True):
 
         self.load(fp)
         for g in userGrafts:
@@ -607,7 +607,7 @@ class Molecule:
         fp.write('#### BEGIN PATCHES\n')
 
         for ss in self.SSBonds:
-            if ss.isActive(self.activeBiologicalAssembly.activeChainIDs,userIgnoreChains):
+            if ss.isActive(self.activeBiologicalAssembly.activeChainIDs,userIgnoreChains) and not ss.inlist(userxSSBonds):
                 fp.write(ss.psfgen_patchline())
         for ss in userSSBonds: # no error checking -- user ought to know not to request SS bonds in chains that aren't there
             fp.write(ss.psfgen_patchline())
