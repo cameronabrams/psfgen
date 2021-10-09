@@ -14,6 +14,7 @@
 # 2020-2021
 
 ENSEMBLE="nochange"
+USERADDSTEPS=0
 i=1
 ARGC=$#
 quiet=0
@@ -32,6 +33,9 @@ while [ $i -le $ARGC ] ; do
   elif [ "${!i}" = "--new-numsteps" ]; then
     i=$((i+1))
     USERSTEPS=${!i}
+  elif [ "${!i}" = "--addsteps" ]; then
+    i=$((i+1))
+    USERADDSTEPS=${!i}
   elif [ "${!i}" = "--ensemble" ]; then
      i=$((i+1))
      ENSEMBLE=${!i}
@@ -97,12 +101,13 @@ else
         if [ -z "${firsttimestep}" ]; then
             firsttimestep=0
         else
-            echo "$CONF contains a firsttimestep $firsttimestep and a run $stepsrequested"
+            echo "Previous $CONF contains a firsttimestep $firsttimestep and a run $stepsrequested"
         fi
-        echo "firsttimestep $firsttimestep"
+        #echo "firsttimestep $firsttimestep"
         stepsrequested=$(($stepsrequested+$firsttimestep))
     fi
     stepsleft=$(($stepsrequested-$stepsrun))
+    stepsleft=$(($stepsleft+$USERADDSTEPS))
 fi
 lastout=`grep "set outputname" $CONF | awk '{print $3}' | sed 's/;$//'`
 if [ -z "${lastout}" ]; then
@@ -113,7 +118,7 @@ if [ -z "${lastout}" ]; then
     fi
 fi
 if [[ $stepsleft -eq 0 ]]; then
-    echo "${LOG} indicates run has finished ($stepsleft steps left); no restart is necessary."
+    echo "${LOG} indicates run has finished ($stepsleft out of $stepsrequested steps left); no restart is necessary."
     echo "The final checkpoint is in ${lastout}.coor, ${lastout}.vel, and ${lastout}.xsc."
     exit 1
 fi 

@@ -11,41 +11,44 @@
 #    -o   outfile.dcd REQUIRED
 #    -sel "selection string" ["protein"]
 #
-if [[ -z "${VMD}" ]]; then
-    VMD=/opt/vmd/1.9.4a38/bin/vmd 
-    if [[ ! -f $VMD ]]; then
-        echo "No vmd found at $VMD"
-        exit
+if [[ -z "${PSFGEN_BASEDIR}" ]]; then
+    PSFGEN_BASEDIR=${HOME}/research/psfgen
+    if [[ ! -d $PSFGEN_BASEDIR ]]; then
+        echo "Error: No PSFGEN_BASEDIR found."
+        exit -1
     fi
 fi
+source $PSFGEN_BASEDIR/scripts/utils.sh
+
+check_command vmd
+check_command catdcd
+
 LOG=center-dry.log
-PSF=
+FULLPSF=
+DRYPSF=
 DCDCSL=
 OUTFILE=
+SELREFCOOR=
+SELREFDCD=
 SEL="protein or glycan"
-POSITIONAL=()
+DCDARGSTR=()
 while [[ $# -gt 0 ]]
 do
 key="$1"
 
 case $key in
-    -vmd)
-    VMD="$2"
-    shift # past argument
-    shift # past value
-    ;;
     -log)
     LOG="$2"
     shift # past argument
     shift # past value
     ;;
-    -psf)
-    PSF="$2"
+    -fullpsf)
+    FULLPSF="$2"
     shift # past argument
     shift # past value
     ;;
-    -dcd)
-    DCDCSL="$2"
+    -drypsf)
+    DRYPSF="$2"
     shift # past argument
     shift # past value
     ;;
@@ -54,18 +57,18 @@ case $key in
     shift
     shift
     ;;
-    -opdb)
-    OPDB="$2"
-    shift
-    shift
-    ;;
     -sel)
     SEL="$2"
     shift
     shift
     ;;
+    -selrefdcd)
+    SELREFDCD="$2"
+    shift
+    shift
+    ;;
     *)    # unknown option
-    POSITIONAL+=("$1") # save it in an array for later
+    DCDARGSTR+=("$1") # save it in an array for later
     shift # past argument
     ;;
 esac
@@ -74,40 +77,68 @@ if [ -z $OUTFILE ]; then
    echo "ERROR: Specify output DCD with -o myout.dcd"
    exit
 fi
-if [ -z $PSF ]; then
-   echo "ERROR: Specify psf file with -psf mypsf.psf"
-   exi
+if [ -z $FULLPSF ]; then
+   echo "ERROR: Specify fully-solvated psf file with -fullpsf mypsf.psf"
+   exit
 fi
-set -- "${POSITIONAL[@]}" # restore positional parameters
+if [ -z $DRYPSF ]; then
+   echo "ERROR: Specify pre-solvated (dry) psf file with -drypsf mypsf.psf"
+   exit
+fi
+if [ ! -z $SELREFDCD ]; then
+   SELREFCOOR="selref.coor"
+   catdcd -o $SELREFCOOR -otype namdbin -first 1 -last 1 $SELREFDCD
+fi
+set -- "${DCDARGSTR[@]}" # restore positional parameters
 
-DCDARGSTR=`echo "$DCDCSL" | sed s/','/' '/g`
-cat > tmp.tcl << EOF
-mol new $PSF 
-foreach dcd \$argv {
-   mol addfile \$dcd waitfor all
-}
-set nf [molinfo top get numframes]
-puts "\$nf frames"
+cat > dry.tcl << EOF
+mol new $FULLPSF
+animate read dcd ${DCDARGSTR[0]} beg 0 end 0
 set sel [atomselect top "$SEL"]
+set fp [open "index.ndx" "w"]
+puts \$fp "[\$sel get index]"
+close \$fp
+exit
+EOF
+
+vmd -dispdev text -e dry.tcl > $LOG 2>&1
+if [ $? -ne "0" ]; then
+    exit 1
+fi
+echo "Created index.ndx"
+
+catdcd -i index.ndx -o dry.dcd -otype dcd ${DCDARGSTR[@]}
+echo "Created dry.dcd"
+cat > center.tcl << EOF
+mol new $DRYPSF
+mol addfile dry.dcd waitfor all
+set nframes [molinfo top get numframes]
+set sel [atomselect top "$SEL"]
+EOF
+if [ ! -z $SELREFCOOR ]; then
+cat >> center.tcl << EOF
+mol new $DRYPSF
+mol addfile $SELREFCOOR
+mol top 0
+set selref [atomselect 1 "$SEL"]
+EOF
+else
+cat >> center.tcl << EOF
 set selref [atomselect top "$SEL"]
+EOF
+fi
+cat >> center.tcl << EOF
 \$selref moveby [vecscale -1.0 [measure center \$selref]]
 \$selref frame 0
-for { set i 0 } { \$i <= [molinfo top get numframes] } { incr i } {
+for { set i 0 } { \$i < \$nframes } { incr i } {
     \$sel frame \$i
     \$sel move [measure fit \$sel \$selref]
 }
 animate write dcd $OUTFILE sel \$sel waitfor all 0
-EOF
-if [ -v OPDB ]; then
-cat >> tmp.tcl << EOF
-\$sel frame 0
-\$sel writepdb $OPDB
-EOF
-fi
-cat >> tmp.tcl << EOF
 exit
 EOF
-$VMD -dispdev text -e tmp.tcl -args $DCDARGSTR > $LOG 2>&1
+echo "Centering..."
+vmd -dispdev text -e center.tcl >> $LOG 2>&1
 if [ $? -ne "0" ]; then
     exit 1
 fi
