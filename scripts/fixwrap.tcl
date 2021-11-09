@@ -25,7 +25,8 @@ proc mycheck { disp hbox } {
 # computes all inter-subunit com-to-com displacement vectors and
 # checks if any are outside [-hbox,hbox].  Identifies subunit
 # move most likely to correct any violations, and returns 
-# this info in a structured list to caller.
+# this info in a structured list to caller.  usels is a list of
+# previously defined atomselections, one per subunit.
 proc allchecks { molid frame usels } {
     set box [molinfo $molid get {a b c}]
     set hbox [vecscale 0.5 $box]
