@@ -18,7 +18,7 @@ class Residue:
         ''' initializing with an atom '''
         if a!=-1:
             self.resseqnum=a.resseqnum
-            self.insertion=''
+            self.insertion=a.insertion
             self.name=a.resname
             self.chainID=a.chainID
             self.source_chainID=a.chainID
@@ -38,7 +38,7 @@ class Residue:
                 self.up=[]
                 self.down=[]
             else:
-                fp.write('ERROR: bad residue construction')
+                print('ERROR: bad residue construction')
 
     def add_atom(self,a):
         if self.resseqnum==a.resseqnum and self.name==a.resname and self.chainID==a.chainID:
@@ -73,16 +73,16 @@ class Residue:
             res.extend(d.get_down_group())
         return res
 
-def get_residue(R,chainID,resseqnum):
+def get_residue(R,chainID,resseqnum,insertion=' '):
     for r in R:
-        if r.chainID==chainID and r.resseqnum==resseqnum:
+        if r.chainID==chainID and r.resseqnum==resseqnum and r.insertion==insertion:
             return r
     return '' 
 
-def get_atom(R,chainID,resseqnum,atname):
+def get_atom(R,chainID,resseqnum,atname,insertion=' '):
 #    print('get_atom() searching for {} in resid {} chain {}'.format(atname,resseqnum,chainID))
     for r in R:
-        if r.chainID==chainID and r.resseqnum==resseqnum:
+        if r.chainID==chainID and r.resseqnum==resseqnum and r.insertion==insertion:
             for a in r.atoms:
                 if a.name==atname:
 #                    print('returning',a)

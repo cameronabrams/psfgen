@@ -28,8 +28,7 @@ FULLPSF=
 DRYPSF=
 DCDCSL=
 OUTFILE=
-SELREFCOOR=
-SELREFDCD=
+REFPDB=
 SEL="protein or glycan"
 DCDARGSTR=()
 while [[ $# -gt 0 ]]
@@ -62,8 +61,8 @@ case $key in
     shift
     shift
     ;;
-    -selrefdcd)
-    SELREFDCD="$2"
+    -refpdb)
+    REFPDB="$2"
     shift
     shift
     ;;
@@ -85,9 +84,11 @@ if [ -z $DRYPSF ]; then
    echo "ERROR: Specify pre-solvated (dry) psf file with -drypsf mypsf.psf"
    exit
 fi
-if [ ! -z $SELREFDCD ]; then
-   SELREFCOOR="selref.coor"
-   catdcd -o $SELREFCOOR -otype namdbin -first 1 -last 1 $SELREFDCD
+if [ -z $REFPDB ]; then
+   echo "ERROR:  You must specify a reference PDB for all alignments that must be"
+   echo "        congruent with the DRYPSF"
+   echo " $REFPDB: not found"
+   exit
 fi
 set -- "${DCDARGSTR[@]}" # restore positional parameters
 
@@ -115,10 +116,10 @@ mol addfile dry.dcd waitfor all
 set nframes [molinfo top get numframes]
 set sel [atomselect top "$SEL"]
 EOF
-if [ ! -z $SELREFCOOR ]; then
+if [ ! -z $REFPDB ]; then
 cat >> center.tcl << EOF
 mol new $DRYPSF
-mol addfile $SELREFCOOR
+mol addfile $REFPDB
 mol top 0
 set selref [atomselect 1 "$SEL"]
 EOF
@@ -137,12 +138,15 @@ for { set i 0 } { \$i < \$nframes } { incr i } {
 animate write dcd $OUTFILE sel \$sel waitfor all 0
 exit
 EOF
-echo "Centering..."
+echo "Centering against $SEL in $REFPDB..."
+
 vmd -dispdev text -e center.tcl >> $LOG 2>&1
 if [ $? -ne "0" ]; then
     exit 1
 fi
-#rm tmp.tcl
+
+rm -f dry.tcl dry.dcd center.tcl
+
 exit
 
 

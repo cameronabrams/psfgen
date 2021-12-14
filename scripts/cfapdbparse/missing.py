@@ -19,13 +19,17 @@ class Missing:
             self.resseqnum=int(cifdict['auth_seq_id'])
             ic=cifdict['pdb_ins_code']
             self.insertion=' ' if ic=='?' else ic
-    def __str__(self):
-        retstr='MISSING\n'+\
-               '   model     {:s}\n'+\
-               '   resname   {:s}\n'+\
-               '   chainID   {:s}\n'+\
-               '   resseqnum {:d}\n'+\
-               '   insertion {:s}\n'
+
+    def __str__(self,verbose=False):
+        if verbose:
+            retstr='MISSING\n'+\
+                   '   model     {:s}\n'+\
+                   '   resname   {:s}\n'+\
+                   '   chainID   {:s}\n'+\
+                   '   resseqnum {:d}\n'+\
+                   '   insertion {:s}\n'
+        else:
+            retstr='{}{}_{}{}{}'
         return retstr.format(self.model,self.resname,self.chainID,self.resseqnum,self.insertion)
     def psfgen_residueline(self):
         return '     residue {} {}{} {}'.format(self.resname,self.resseqnum,self.insertion,self.chainID)

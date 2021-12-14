@@ -21,6 +21,7 @@ from crot import Crot
 from attach import Attach
 from link import Link
 from deletion import Deletion
+from missing import Missing
 from modsfile import ModsFile
 from atom import _PDBAtomNameDict_
 from residue import Residue, _PDBResName123_, _pdb_glycans_, _pdb_ions_, _ResNameDict_PDB_to_CHARMM_, _ResNameDict_CHARMM_to_PDB_, get_residue
@@ -127,7 +128,7 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
                 fp.write('$la move [transaxis z [expr -1 * $p] rad\n')
                 fp.write('$la move [transaxis y [expr -1 & $t] rad\n')
     for crot in PostMod['Crot']:
-        fp.write(crot.psfgen_str(molid=r'$molid'))
+        fp.write(crot.psfgen_str(molid=r'$molid',endIsCterm=('do_preclose_min_smd' in PostMod and PostMod['do_preclose_min_smd'])))
         if logdcd:
             fp.write('log_addframe $molid $logid\n')
     if 'do_preclose_min_smd' in PostMod and PostMod['do_preclose_min_smd']:
@@ -335,6 +336,7 @@ if __name__=='__main__':
     Mut=[]
     Clv=[]
     Uss=[]
+    Mis=[]
     UIC=[]
     # defaults
     psfgen='mkpsf.tcl'
@@ -358,7 +360,9 @@ if __name__=='__main__':
     PostMod['do_gly_mc']=False
     PostMod['Crot']=[]
 
-    parser.add_argument('pdbcif',nargs='+',metavar='<?.pdb|cif>',type=str,help='Name(s) of pdb or CIF file to parse; First is treated as the base molecule')
+    parser.add_argument('-inpdb',default=[],nargs='+',metavar='<?.pdb>',type=str,help='Name(s) of pdb file to parse; First is treated as the base molecule')
+    parser.add_argument('-incif',default=[],nargs='+',metavar='<?.pdb>',type=str,help='Name(s) of mmCIF file to parse; First is treated as the base molecule')
+
     parser.add_argument('-ba','--biological-assembly',metavar='#',default=0,type=int,help='Biological assembly to construct; one may be selected from those defined in PDB/mmCIF metadata.  If not specified, the explicit model is built.')
     parser.add_argument('-charmmtopo',metavar='<name> ...',nargs='+',default=[],help='Additional (standard) CHARMM topology files in your CHARMM directory')
     parser.add_argument('-loctopo',metavar='<name> ...',nargs='+',default=[],help='Additional (local) CHARMM topology files in the $PSFGEN_BASEDIR/charmm directory')
@@ -386,6 +390,8 @@ if __name__=='__main__':
     parser.add_argument('-xssfile','--exclude-ssfile',metavar='<name>',default='',help='input file listing all disulfide bonds already in the PDB file that you want to exclude (as an alternative to issuing multiple -xssbond arguments)')
     parser.add_argument('-link',metavar='string',default=[],action='append',type=Link,help='PDB-format LINK record; must have exact spacing; multiple "-link" options can be supplied.')
     parser.add_argument('-linkfile',metavar='<name>',default='',help='Input file with PDB-format LINK records the user would like to enforce that are not in the PDB/CIF file')
+    parser.add_argument('-missing',metavar='string',default=[],action='append',type=Missing,help='PDB-format REMARK 465 record; must have exact spacing; multiple "-missing" options can be supplied.')
+    parser.add_argument('-missingfile',metavar='<name>',default='',help='Input file with PDB-format REMARK 465 records the user would like to enforce that are not in the PDB/CIF file (may be useful for insertions)')
     parser.add_argument('-pdbalias',metavar='<str>',default=[],nargs='+',help='One or more psfgen-formatted pdbalias with commas for spaces')
     parser.add_argument('-pdbaliasfile',metavar='<str>',default='',help='Input file containing psfgen-formatted pdbaliases')
     parser.add_argument('-logdcd',metavar='<name>.dcd',default='',help='Name of dcd logging file')
@@ -436,6 +442,7 @@ if __name__=='__main__':
     Uxss=MrgCmdLineAndFileContents(args.exclude_ssbond,args.exclude_ssfile,SSBond)
     Usl=MrgCmdLineAndFileContents(args.link,args.linkfile,Link)
     Del=MrgCmdLineAndFileContents(args.delete,args.deletefile,Deletion)
+    Mis=MrgCmdLineAndFileContents(args.missing,args.missingfile,Missing)
     if len(args.modsfile)>0:
         for mf in args.modsfile:
             if args.verbosity>0:
@@ -447,6 +454,7 @@ if __name__=='__main__':
             Uss.extend(mf.show_type(SSBond))
             Usl.extend(mf.show_type(Link))
             Del.extend(mf.show_type(Deletion))
+            Mis.extend(mf.show_type(Missing))
             Uxss.extend(mf.show_excl(SSBond))
 
     UPDBAliases=MrgCmdLineAndFileContents([' '.join(_.split(',')) for _ in args.pdbalias],args.pdbaliasfile,str)
@@ -489,10 +497,10 @@ if __name__=='__main__':
     npe=args.pe
     #print('-pe {:d}; NAMD will use {:d} processors.'.format(args.pe,npe))
  
-    PDBfiles=args.pdbcif
+    PDBfiles=args.inpdb+args.incif
     Molecules=[]
     if '.cif' in PDBfiles[0]:
-        Molecules.append(Molecule(cif=PDBfiles[0],userLinks=Usl,requestedBiologicalAssembly=args.biological_assembly))
+        Molecules.append(Molecule(cif=PDBfiles[0],userLinks=Usl,userMissing=Mis,requestedBiologicalAssembly=args.biological_assembly))
     elif '.pdb' in PDBfiles[0]:
         Molecules.append(Molecule(pdb=PDBfiles[0],userLinks=Usl,requestedBiologicalAssembly=args.biological_assembly))
     for p in PDBfiles[1:]:
@@ -522,8 +530,8 @@ if __name__=='__main__':
     ''' this will issue the final 'writepsf' and 'writepdb commands '''
     Loops=Base.WritePsfgenInput(psfgen_fp,userMutations=Mut,userDeletions=Del,fixConflicts=fixConflicts,
                                fixEngineeredMutations=fixEngineeredMutations,prefix=prefix,
-                               userGrafts=Gra,userAttach=Att,userSSBonds=Uss,userxSSBonds=Uxss,userIgnoreChains=UIC,
-                               removePDBs=True)
+                               userGrafts=Gra,userAttach=Att,userSSBonds=Uss,userxSSBonds=Uxss,
+                               userIgnoreChains=UIC,removePDBs=True)
 
     ''' PostMods alter coordinates to ease minimization; psf is not modified further
         Regardless of whether any modifications are done or not, this will always write 

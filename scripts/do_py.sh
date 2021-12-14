@@ -167,8 +167,8 @@ for pi in `seq 0 $((nparse-1))`; do
   CURRPSFGEN=psfgen${TASK}.tcl
   PS=parser-postscript-task${TASK}.sh
   echo "# Task $TASK: Using $pyparser to generate Tcl script and VMD to execute it"
-  echo "# Bash command:  $PYTHON3 $PYPARSER ${pyparser_args[$pi]} -pe ${NPE} -postscript ps${TASK}.sh -psfgen ${CURRPSFGEN} ${CURRPDB}"
-  $PYTHON3 $PYPARSER ${pyparser_args[$pi]} -pe ${NPE} -postscript $PS -psfgen ${CURRPSFGEN} ${CURRPDB}
+  echo "# Bash command:  $PYTHON3 $PYPARSER ${pyparser_args[$pi]} -pe ${NPE} -postscript ps${TASK}.sh -psfgen ${CURRPSFGEN} -inpdb ${CURRPDB}"
+  $PYTHON3 $PYPARSER ${pyparser_args[$pi]} -pe ${NPE} -postscript $PS -psfgen ${CURRPSFGEN} -inpdb ${CURRPDB}
   echo "# Bash command: ./$PS $TASK -task $TASK -nesting-level 2"
   ./$PS -task $TASK -nesting-level 2
   if [ $? -ne 0 ]; then
@@ -233,7 +233,7 @@ for s in `seq 0 $ls`; do
         sed s/%FIRSTTIMESTEP%/$firsttimestep/g > $lastnamd
     echo "# Bash command:  $CHARMRUN +p${NPE} $NAMD2 $lastnamd > $thislog"
     $CHARMRUN +p${NPE} $NAMD2 $lastnamd > $thislog
-    if [ $? -ne 0 ]; thenfunction prep_namd_restart {
+    if [ $? -ne 0 ]; then
 
         echo "Error: NAMD failedat stage $s.  Check log file $thislog. Exiting."
         exit 1

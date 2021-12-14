@@ -1,25 +1,30 @@
 import operator
 from segment import Segment,_seg_class_,_segname_second_character_
 class Chain:
-    def __init__(self,r,parent_molecule=''):
-        self.chainID=r.chainID
-        self.residues=[r]
-        self.source_chainID=r.chainID # has a value if C-term-product of cleavage
+    def __init__(self,r=None,parent_molecule=''):
+        self.residues=[]
         self.Segments=[]
         self.subCounter={}
         self.subCounter['GLYCAN']=0
         self.subCounter['LIGAND']=0
+        if r!=None:
+            self.chainID=r.chainID
+            self.residues=[r]
+            self.source_chainID=r.chainID # has a value if C-term-product of cleavage
         self.parent_molecule=parent_molecule
 
     def get_molid(self):
         return self.parent_molecule.molid
 
     def add_residue(self,r):
-        if self.chainID==r.chainID:
+        if len(self.residues)==0:
+            self.residues=[r]
+            self.chainID=r.chainID
+        elif self.chainID==r.chainID:
             self.residues.append(r)
     def sort_residues(self):
         ''' sort list of residues by resseqnum '''
-        sorted_residues=sorted(self.residues,key=operator.attrgetter('resseqnum'))
+        sorted_residues=sorted(self.residues,key=operator.attrgetter('resseqnum','insertion'))
         self.residues=sorted_residues
         mn=99999
         mx=-99999
@@ -86,7 +91,7 @@ class Chain:
         Daughter.source_chainID=self.chainID
         Daughter.parent_molecule=self.parent_molecule
         return Daughter
-    def MakeSegments(self,Links,Mutations=[],Grafts=[],Attachments=[],Deletions=[]):
+    def MakeSegments(self,Links,Mutations=[],Grafts=[],Attachments=[],Deletions=[],Missings=[]):
         ''' scans residues in a chain to divvy them up into segments '''
         self.Segments=[]
         for r in self.residues:
@@ -220,3 +225,27 @@ class Chain:
             for a in r.atoms:
                 a.chainID=newchainID
 
+if __name__=='__main__':
+    # testing
+    class Mock:
+        def __init__(self,rsn=0,ic='',rn='',chainID='A'):
+            self.resseqnum=rsn
+            self.name=rn
+            self.insertion=ic
+            self.chainID=chainID
+        def __str__(self):
+            return '{}_{}{}{}'.format(self.chainID,self.name,self.resseqnum,self.insertion)
+    someresids=[101,103,102,105,101,105,106,101]
+    someics   =['A','' ,'' ,'' ,'' ,'A','' ,'B']
+    C=Chain()
+    for r,i in zip(someresids,someics):
+        C.add_residue(Mock(rsn=r,ic=i,rn='ALA'))
+    print('Unsorted:')
+    for r in C.residues:
+        print(str(r))
+    C.sort_residues()
+    print('Sorted:')
+    for r in C.residues:
+        print(str(r))
+
+    

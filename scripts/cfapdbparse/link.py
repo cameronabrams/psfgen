@@ -102,10 +102,10 @@ class Link:
                 if c2!=oc2:
                     ooc2=oc2
         #print(c1,c2,ooc1,ooc2)
-        self.residue1=get_residue(R,ooc1,self.resseqnum1)
-        self.residue2=get_residue(R,ooc2,self.resseqnum2)
-        self.atom1=get_atom(R,ooc1,self.resseqnum1,self.name1)
-        self.atom2=get_atom(R,ooc2,self.resseqnum2,self.name2)
+        self.residue1=get_residue(R,ooc1,self.resseqnum1,self.icode1)
+        self.residue2=get_residue(R,ooc2,self.resseqnum2,self.icode2)
+        self.atom1=get_atom(R,ooc1,self.resseqnum1,self.name1,self.icode1)
+        self.atom2=get_atom(R,ooc2,self.resseqnum2,self.name2,self.icode2)
         ''' convention:  in segnames that are more than one character, the first character is a chain designation '''
         sn1=self.atom1.segname
         sn2=self.atom2.segname
@@ -115,19 +115,19 @@ class Link:
     def isActive(self,aIDs,igIDs):
         return (self.chainID1 in aIDs and self.chainID1 not in igIDs and self.chainID2 in aIDs and self.chainID2 not in igIDs)
 
-    def isInLink(self,chain,resid,pos=''):
+    def isInLink(self,chain,resid,insertion=' ',pos=''):
         if pos=='':
-            if (self.chainID1==chain and self.resseqnum1==resid) or (self.chainID2==chain and self.resseqnum2==resid):
+            if (self.chainID1==chain and self.resseqnum1==resid and self.icode1==insertion) or (self.chainID2==chain and self.resseqnum2==resid and self.icode2==insertion):
                return True
             else:
                return False
         elif pos==1:
-            if self.chainID1==chain and self.resseqnum1==resid:
+            if self.chainID1==chain and self.resseqnum1==resid and self.icode1==insertion:
                return True
             else:
                return False
         elif pos==2:
-            if self.chainID2==chain and self.resseqnum2==resid:
+            if self.chainID2==chain and self.resseqnum2==resid and self.icode2==insertion:
                return True
             else:
                return False
@@ -151,7 +151,7 @@ class Link:
         return retstr.format(self.record_name,self.name1,self.altloc1,self.resname1,self.chainID1,self.resseqnum1,self.icode1,self.name2,self.altloc2,self.resname2,self.chainID2,self.resseqnum2,self.icode2,self.sym1,self.sym2,self.link_distance)
     def psfgen_patchline(self):
         if self.resname1=='ASN' and _seg_class_[self.resname2]=='GLYCAN':
-            return 'patch NGLB {}:{} {}:{}\n'.format(self.segname1,self.resseqnum1,self.segname2,self.resseqnum2)
+            return 'patch NGLB {}:{}{} {}:{}\n'.format(self.segname1,self.resseqnum1,self.icode1,self.segname2,self.resseqnum2)
         else:
             retstr=''
             # for a glycan-glycan patch, the C1 atom is always on the downstream-residue
@@ -169,7 +169,7 @@ class Link:
                     retstr+=r'if { $abi == "b" } { set abi B }'+'\n'
                     retstr+=r'if { $abj == "b" } { set abj T }'+'\n'
                 retstr+='set pres "1$cn$abi$abj"\n'
-                retstr+='patch $pres {}:{} {}:{}\n'.format(self.segname1,self.resseqnum1,self.segname2,self.resseqnum2)
+                retstr+='patch $pres {}:{}{} {}:{}{}\n'.format(self.segname1,self.resseqnum1,self.icode1,self.segname2,self.resseqnum2,self.icode2)
                 return retstr
             elif self.name1=='C1' and _seg_class_[self.resname2]=='GLYCAN':
                 cmdj='[axeq {} 0 {} {} {}]'.format(self.resseqnum2,self.chainID2,self.name2,self.resseqnum1)

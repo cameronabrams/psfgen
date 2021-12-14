@@ -38,16 +38,17 @@ class Loop:
         are missing from the base pdb file but present in the construct.  They
         must be included in a psfgen segment stanza via the 'residue' invocation.
     '''
-    def __init__(self,source_chainID,replica_chainID,resseqnum0,r):
+    def __init__(self,source_chainID,replica_chainID,resseqnum0,insertion0,r):
         self.source_chainID=source_chainID
         self.replica_chainID=replica_chainID
         self.resseqnum0=resseqnum0
+        self.insertion0=insertion0
         self.residues=[r]
         self.term='UNSET'
     def add_residue(self,r):
         self.residues.append(r)
     def __str__(self):
-        return 'LOOP: {} ({})-[{} to {}]'.format(self.replica_chainID,self.resseqnum0,self.residues[0].resseqnum,self.residues[-1].resseqnum)
+        return 'LOOP: {} ({}{})-[{}{} to {}{}]'.format(self.replica_chainID,self.resseqnum0,self.insertion0,self.residues[0].resseqnum,self.residues[0].insertion,self.residues[-1].resseqnum,self.residues[-1].insertion)
     def caco_str(self):
         return 'coord {} {} N [cacoIn_nOut {} {} 0]\n'.format(self.replica_chainID,self.residues[0].resseqnum,self.resseqnum0,self.replica_chainID)
 
@@ -135,7 +136,7 @@ class Segment:
                  b.d=Fragment(source_chainID,replica_chainID,self.residues[b.l].resseqnum,self.residues[b.r].resseqnum)
                  lst=b.r
              elif b.typ=='LOOP':
-                 L=Loop(source_chainID,replica_chainID,self.residues[lst].resseqnum,self.residues[b.l])
+                 L=Loop(source_chainID,replica_chainID,self.residues[lst].resseqnum,self.residues[lst].insertion,self.residues[b.l])
                  for i in range(b.l+1,b.r+1):
                      L.add_residue(self.residues[i])
                  Loops.append(L)
@@ -212,7 +213,7 @@ class Segment:
                         if len(l.residues)>3: # this is so that we can perform a steered MD step to bring this end close to where it should meet the rest of protein
                             # insert sacrificial glycine
                             rr=l.residues[-1]
-                            ss.sacrins='A' if rr.insertion != '' else chr(ord(rr.insertion)+1)
+                            ss.sacrins='A' if rr.insertion == '' or rr.insertion == ' ' else chr(ord(rr.insertion)+1)
                             stanzastr+='   residue {}{} {} {}\n'.format(rr.resseqnum,ss.sacrins,'GLY',tmat.get_replica_chainID(rr.chainID))
             ''' PART 2.1:  Include mutations '''
             #print('### {} mutations'.format(len(self.mutations)))
@@ -250,7 +251,7 @@ class Segment:
                             if rn=='GLY':
                                 nter='GLYP'
                             stanzastr+='patch CTER {}:{}{}\n'.format(rep_segname,l.residues[-1].resseqnum,l.residues[-1].insertion)
-                            stanzastr+='## making residue with name {} an nter with patch {}\n'.format(rn,nter)
+                            stanzastr+='## making residue {}{} an nter with patch {}\n'.format(rn,l.nextfragntermresid,nter)
                             stanzastr+='patch {} {}:{}\n'.format(nter,rep_segname,l.nextfragntermresid)
                             stanzastr+='delatom {} {}{}\n'.format(rep_segname,l.residues[-1].resseqnum,ss.sacrins)
             return stanzastr,Loops

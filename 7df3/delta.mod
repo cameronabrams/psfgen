@@ -2,7 +2,7 @@
 SARS-CoV-2 Delta S
 
 [description]
-Modifications to 6vxx PDB structure to generate the B.1.617.2 Delta variant
+Modifications to 7df3 PDB structure to generate the B.1.617.2 Delta variant
 Step 1: Pre-cleavage modifications
 
 [author]

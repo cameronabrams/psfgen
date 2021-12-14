@@ -62,7 +62,7 @@ class Molecule:
                 elif line[:6] == 'EXPDTA':
                     self.ParseExpDta(line)
 
-    def __init__(self,pdb=None,cif=None,isgraft=False,userLinks=[],requestedBiologicalAssembly=None):
+    def __init__(self,pdb=None,cif=None,isgraft=False,userLinks=[],requestedBiologicalAssembly=None,userMissing=[]):
         self.source='RCSB' # default assume this is an actual PDB or CIF file from the RCSB
         self.source_format='CIF' if cif!=None else 'PDB'
         self.molid=-1
@@ -79,6 +79,7 @@ class Molecule:
         self.Chains={} # keyed by chain id 'A', 'B', 'C', etc.
         self.SSBonds=[]
         self.MissingRes=[]
+        self.userMissingRes=userMissing
         self.Seqadv=[]
         self.Biomolecules=[]
         self.activeBiologicalAssembly=None
@@ -410,13 +411,15 @@ class Molecule:
                 self.Residues.append(Residue(a=a))
                 r=self.Residues[-1]
             else:
-                if r.resseqnum==a.resseqnum and r.name==a.resname and r.chainID==a.chainID:
+                if r.resseqnum==a.resseqnum and r.name==a.resname and r.chainID==a.chainID and r.insertion==a.insertion:
                     r.add_atom(a=a)
                 else: # begin a new residue
                     self.Residues.append(Residue(a=a))
                     r=self.Residues[-1]
         ''' insert missing residues '''
         for m in self.MissingRes:
+            self.Residues.append(Residue(m=m))
+        for m in self.userMissingRes:
             self.Residues.append(Residue(m=m))
     def MakeChains(self):
         for r in self.Residues:
@@ -462,6 +465,7 @@ class Molecule:
         for l in self.Links:
             r1=get_residue(self.Residues,l.chainID1,l.resseqnum1)
             r2=get_residue(self.Residues,l.chainID2,l.resseqnum2)
+            print(str(r1),str(r2))
             # if their chains differ, earlier letters are upstream of later letters
             if _seg_class_[r1.name]=='PROTEIN' and _seg_class_[r2.name]=='GLYCAN':
                 r1.down.append(r2)
@@ -547,7 +551,7 @@ class Molecule:
                 ss.resseqnum2+=resseqnumshift
         return 0
 
-    def WritePsfgenInput(self,fp,userMutations=[],userDeletions=[],prefix='my_',fixConflicts=False,fixEngineeredMutations=False,userGrafts=[],userAttach=[],userSSBonds=[],userxSSBonds=[],userIgnoreChains=[],includeTerminalLoops=False,removePDBs=True):
+    def WritePsfgenInput(self,fp,userMutations=[],userDeletions=[],prefix='my_',fixConflicts=False,fixEngineeredMutations=False,userGrafts=[],userAttach=[],userSSBonds=[],userMissing=[],userxSSBonds=[],userIgnoreChains=[],includeTerminalLoops=False,removePDBs=True):
 
         self.load(fp)
         for g in userGrafts:
@@ -574,6 +578,7 @@ class Molecule:
         userMutations.extend(newmutations)
         replica_mutations=[]
         replica_deletions=[]
+        replica_missings=[]
         for t in self.activeBiologicalAssembly.biomt:
             for m in userMutations:
                 newc=t.get_replica_chainID(m.chainID)
@@ -585,8 +590,14 @@ class Molecule:
                 if newc!=d.chainID:
                     dd=d.replicate(newChainID=newc)
                     replica_deletions.append(dd)
+            for m in userMissing:
+                newc=t.get_replica_chainID(m.chainID)
+                if newc!=m.chainID:
+                    mm=m.replicate(newChainID=newc)
+                    replica_missings.append(mm)
         userMutations.extend(replica_mutations)
         userDeletions.extend(replica_deletions)
+        userMissing.extend(replica_missings)
 
         fp.write('#### BEGIN SEGMENTS\n')
         Loops=[]
@@ -594,7 +605,7 @@ class Molecule:
             for cid in t.chainIDs:
                 c=self.Chains[cid]
                 if c.chainID not in userIgnoreChains:
-                    c.MakeSegments(self.Links,Mutations=userMutations,Deletions=userDeletions,Grafts=userGrafts,Attachments=userAttach)
+                    c.MakeSegments(self.Links,Mutations=userMutations,Deletions=userDeletions,Grafts=userGrafts,Attachments=userAttach,Missings=userMissing)
                     for s in c.Segments:
                         print('#### Chain {} represented in tmat {:d} as {}'.format(c.chainID,t.index,t.get_replica_chainID(c.chainID)))
                         stanza,loops=s.write_psfgen_stanza(includeTerminalLoops=includeTerminalLoops,tmat=t)

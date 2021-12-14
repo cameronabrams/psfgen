@@ -6,14 +6,16 @@ from attach import Attach
 from link import Link
 from deletion import Deletion
 from cleavage import Cleavage
+from missing import Missing
 
-ModTypes={'mutations':Mutation,'grafts':Graft,'deletions':Deletion,'crotations':Crot,'attachments':Attach,'links':Link,'ssbonds':SSBond,'cleavages':Cleavage}
+ModTypes={'mutations':Mutation,'grafts':Graft,'deletions':Deletion,'crotations':Crot,'attachments':Attach,'links':Link,'ssbonds':SSBond,'cleavages':Cleavage,'missing':Missing}
 comment_chars=['#','%']
 class ModsFile:
     def __init__(self,filename=''):
         self.filename=filename
         if len(filename)>0:
             self.allmods={}
+            self.nonmods={}
             self.delmods={}
             self.activeDict=None
             with open(filename,"r") as fp:
@@ -26,31 +28,32 @@ class ModsFile:
                     elif ll[0] in comment_chars:
                         pass
                     else:
+                        print(ll)
                         self.process_line(ll)
    
     def open_stanza(self,label=''):
         if len(label)>0:
-            if label[1]=='!':
-                token=label[2:-1]
-                print('Opening negative stanza for {}'.format(token))
-                if token in ModTypes:
-                    self.current_stanza=token
-                    self.delmods[token]=[]
-                    self.activeDict=self.delmods
-                    self.current_type=ModTypes[token]
-            elif label[0]=='[':
-                token=label[1:-1]
-                print('Opening stanza for {}'.format(token))
-                if token in ModTypes:
-                    self.current_stanza=token
-                    self.allmods[label]=[]
-                    self.activeDict=self.allmods
-                    self.current_type=ModTypes[label[1:-1]]
-#                print('Opening stanza {} with type {}'.format(label,self.current_type))
+            if label[0]!='[':
+                print('Error: bad stanza label {:s}'.format(label))
             else:
-                self.current_type=str
-                self.activeDict=None
-#                print('Opening unknown stanza {}'.format(label))
+                token=label[1:-1]
+                neg=False
+                if token[0]=='!':
+                    neg=True
+                    token=token[1:]
+                self.current_stanza=token
+                if token in ModTypes:
+                    #print('Opening mod stanza for {}'.format(token))
+                    self.current_type=ModTypes[token]
+                    if neg:
+                        self.activeDict=self.delmods
+                    else:
+                        self.activeDict=self.allmods
+                else:
+                    #print('Opening non-mod stanza {}'.format(label))
+                    self.current_type=str
+                    self.activeDict=self.nonmods
+                self.activeDict[self.current_stanza]=[]
     def close_stanza(self):
 #        print('Closing current stanza {}'.format(self.current_stanza))
         self.current_type='None'
@@ -79,6 +82,10 @@ class ModsFile:
                     return self.delmods[k]
         return []
     def report(self):
+        if len(self.nonmods)>0:
+            print('Non-mod stanzas in {:s}:'.format(self.filename))
+            for k,v in self.nonmods.items():
+                print(k,':',', '.join([str(_) for _ in v]))
         print('Mods in {:s}:'.format(self.filename))
         for k,v in self.allmods.items():
             print(k,':',', '.join([str(_) for _ in v]))
@@ -117,6 +124,6 @@ if __name__=="__main__":
     print()
     TryMods=ModsFile(args.f)
     TryMods.report()
-    print('show_type',TryMods.show_type(Mutation))
-    output=TryMods.write()
-    print(output)
+    print('show_type',','.join([str(a) for a in TryMods.show_type(Missing)]))
+    #output=TryMods.write()
+    #print(output)

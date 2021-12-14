@@ -93,6 +93,10 @@ for { set i 0 } { $i < [llength $argv] } { incr i } {
     }
 }
 
+# all subunits must be defined as atomselect macros in a separate input
+# file specified by the "-umacs" argument.  This file should contain the
+# macro definition and a list "umacs" that just contains the list of 
+# macro names.
 if { [file exists $UMACS] } {
     source $UMACS
     puts "User-supplied macros in $UMACS: $umacs"
