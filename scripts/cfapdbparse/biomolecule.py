@@ -165,9 +165,9 @@ class BiomT:
     def show(self,indent='    '):
         print('{}BIOMT {:d} operates on chains {:s}'.format(indent,self.index,', '.join(self.apply_to_chainIDs)))
         if len(self.apply_to_chainIDs_as_read)>len(self.apply_to_chainIDs):
-            print('{}{}(Note: This may not reflect the chains listed for this biomolecule in the PDB.'.format(indent))
-            print('{}{}{}Original chains are {:s}'.format(indent,indent,indent,self.index,', '.join(self.apply_to_chainIDs_as_read)))
-            print('{}{}One or more of these chains may have been deleted after processing mutations/deletions.)')
+            print('{}{}(Note: This may not reflect the chains listed for this biomolecule in the PDB.'.format(indent,indent))
+            print('{}{}{}Original chains are {:s}'.format(indent,indent,indent,', '.join(self.apply_to_chainIDs_as_read)))
+            print('{}{}One or more of these chains may have been deleted after processing mutations/deletions.)'.format(indent,indent))
         if not self.isidentity():
             print('{}    TMAT'.format(indent),self.tmat)
             if len(self.replicachainID_from_sourcechainID)>0:

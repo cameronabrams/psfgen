@@ -417,6 +417,8 @@ if __name__=='__main__':
     parser.add_argument('-pe',metavar='<int>',default=8,type=int,help='number of processors to indicated in NAMD inputs')
     parser.add_argument('-mutationsVsLinks',metavar='M/L',default='M',help='M if mutations trump links (default behavior), L otherwise')
     parser.add_argument('-mutationsVsSSBonds',metavar='M/S',default='M',help='M if mutations trump disulfides (default behavior), or S otherwise')
+    parser.add_argument('-deletionsVsLinks',metavar='D/L',default='D',help='D if deletions trump links (default behavior), L otherwise')
+    parser.add_argument('-deletionsVsSSBonds',metavar='D/S',default='D',help='D if deletions trump disulfides (default behavior), or S otherwise')
     args=parser.parse_args()
     UIC=args.ignore
     IOC=args.includeonly
@@ -464,7 +466,8 @@ if __name__=='__main__':
                'userSSBonds':Uss,'userXSSBonds':Uxss,'userLinks':Usl,'userDeletions':Del,'userMissing':Mis,
                'fixConflicts':args.fixconflicts,'fixEngineeredMutations':args.fixengineeredmutations,'ignoreChains':UIC,
                'includeOnlyChains':IOC,'includeTerminalLoops':args.includeTerminalLoops,
-               'mutationsVsLinks':args.mutationsVsLinks,'mutationsVsSSBonds':args.mutationsVsSSBonds}
+               'mutationsVsLinks':args.mutationsVsLinks,'mutationsVsSSBonds':args.mutationsVsSSBonds,
+               'deletionsVsLinks':args.deletionsVsLinks,'deletionsVsSSBonds':args.deletionsVsSSBonds}
 
     UPDBAliases=MrgCmdLineAndFileContents([' '.join(_.split(',')) for _ in args.pdbalias],args.pdbaliasfile,str)
     PDBAliases.extend(UPDBAliases)

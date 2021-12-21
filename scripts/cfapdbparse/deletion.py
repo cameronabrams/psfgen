@@ -32,6 +32,8 @@ class Deletion:
                 return ord(self.insertion)<ord(other.insertion)
             else:
                 return False
+    def printshort(self):
+        return f'Delta-{self.chainID}{self.resseqnum}{self.insertion}'
     def __str__(self):
         return f'{self.commandlinerecord} => chain {self.chainID} resseqnum {self.resseqnum} (insertion [{self.insertion}])'
     def Clone(self,chain=''):
@@ -39,8 +41,6 @@ class Deletion:
             newDeletion=Deletion(commandlinerecord=self.commandlinerecord)
             newDeletion.chainID=chain
             return newDeletion
-#    def replicate(self,newchainID=''):
-#        return Deletion(commandlinerecord=self.deletionStr(newChainID=newchainID))
     def deletionStr(self,newChainID=''):
         return '{}_{}{}'.format(self.chainID if newChainID=='' else newChainID,self.orig_1,self.resseqnum)
 

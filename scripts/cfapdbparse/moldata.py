@@ -65,6 +65,7 @@ class MolData:
         self._MakeChains()
         self._MakeLinks()
         self._checkMutationsAgainstLinks()
+        self._checkDeletionsAgainstLinks()
     def ShowSeqadv(self,brief=False,indent=''):
         if len(self.Seqadv)>0:
             if not brief:
@@ -291,7 +292,7 @@ class MolData:
         if len(LOC)>0:
             #print('#### Mutation-Link conflicts:')
             for k,v in LOC.items():
-                print(k.printshort(),v.printshort(),mvl)
+                #print(k.printshort(),v.printshort(),mvl)
                 if mvl=='M':
                     #print('deleting link',v.printshort())
                     self._deleteLink(v,deleteDownRes=True)
@@ -301,8 +302,49 @@ class MolData:
         if len(SSOC)>0:
             #print('#### Mutation-SSBond conflicts:')
             for k,v in SSOC.items():
-                print(k.printshort(),v.printshort(),mvl)
+                #print(k.printshort(),v.printshort(),mvl)
                 if mvs=='M':
+                    if v in self.SSBonds:  # may have already been removed
+                        self.SSBonds.remove(v)
+                else:
+                    self.Mutations.remove(k)
+            reDoChains=True
+        if reDoChains:
+            self._MakeChains()
+#            print('Redid chains: ',', '.join(self.Chains.keys()))
+            self.adjustedChainIDs=list(self.Chains.keys())
+            self._ApportionModsToChains()
+    def _checkDeletionsAgainstLinks(self):
+        dvl=self.userMods['deletionsVsLinks']
+        dvs=self.userMods['deletionsVsSSBonds']
+        LOC={}
+        SSOC={}
+        for d in self.Deletions:
+            for l in self.Links:
+                if d.chainID==l.chainID1 or d.chainID==l.chainID2:
+                    if (d.resseqnum==l.resseqnum1 and d.insertion==l.icode1) or (d.resseqnum==l.resseqnum2 and d.insertion==l.icode2):
+                        LOC[d]=l
+            if d.orig=='CYS':
+                for s in self.SSBonds:
+                    if d.chainID==s.chainID1 or d.chainID==s.chainID2:
+                        if (d.resseqnum==s.resseqnum1 and d.insertion==s.icode1) or (d.resseqnum==s.resseqnum2 and d.insertion==s.icode2):
+                            SSOC[d]=s
+        reDoChains=False
+        if len(LOC)>0:
+            #print('#### Deletion-Link conflicts:')
+            for k,v in LOC.items():
+                #print(k.printshort(),v.printshort(),mvl)
+                if dvl=='D':
+                    #print('deleting link',v.printshort())
+                    self._deleteLink(v,deleteDownRes=True)
+                else:
+                    self.Mutations.remove(k)
+            reDoChains=True
+        if len(SSOC)>0:
+            #print('#### Mutation-SSBond conflicts:')
+            for k,v in SSOC.items():
+                #print(k.printshort(),v.printshort(),mvl)
+                if dvs=='D':
                     if v in self.SSBonds:  # may have already been removed
                         self.SSBonds.remove(v)
                 else:
