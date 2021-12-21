@@ -1,3 +1,4 @@
+from os import kill
 from atom import Atom, _PDBAtomNameDict_
 from ssbond import SSBond
 from missing import Missing
@@ -5,8 +6,15 @@ from link import Link
 from chain import Chain
 from seqadv import Seqadv
 from mutation import Mutation
-from residue import Residue, _PDBResName123_, _pdb_glycans_, _pdb_ions_, _ResNameDict_PDB_to_CHARMM_, _ResNameDict_CHARMM_to_PDB_, get_residue
+from residue import Residue, _PDBResName123_, _pdb_glycans_, _pdb_ions_, _ResNameDict_PDB_to_CHARMM_, _ResNameDict_CHARMM_to_PDB_, get_residue, get_atom
 from segment import Segment, _seg_typedict_byresname_
+
+def _recursiveDelDown(R,L,r):
+    for rd in r.down:
+        L.remove(r.downlink[r.down.index(rd)])
+        _recursiveDelDown(R,L,rd)
+    print('Deleting residue',r.printshort())
+    R.remove(r)
 
 class MolData:
     ''' data in a pdb/cif file that is inheritable by biological assemblies, e.g.,
@@ -27,7 +35,7 @@ class MolData:
         self.Cleavages=[] if not 'userCleavages' in userMods else userMods['userCleavages']
         self.userXSSBonds=[] if not 'userXSSBonds' in userMods else userMods['userXSSBonds']
         self.parent_molecule=parent_molecule
-
+        self.adjustedChainIDs=[]
     def Parse(self,line):
         key=line[:6].strip()
         if key=='ATOM' or key=='HETATM':
@@ -45,28 +53,33 @@ class MolData:
                     self.MissingRes.append(Missing(line))
     def MakeConstructs(self):
         self._MakeResidues()
-        self._MakeChains()
-        self._MakeLinks()
         fixConflicts=False if not 'fixConflicts' in self.userMods else self.userMods['fixConflicts']
         fixEngineeredMutations=False if not 'fixEngineeredMutations' in self.userMods else self.userMods['fixEngineeredMutations']
         for sa in self.Seqadv:
             if fixConflicts==True and sa.conflict=='CONFLICT':
+#                print('adding as mutation: {}'.format(sa.printshort()))
                 self.Mutations.append(Mutation(seqadv=sa))
             elif fixEngineeredMutations==True and sa.conflict=='ENGINEERED MUTATION':
                 self.Mutations.append(Mutation(seqadv=sa)) 
-    def ShowSeqadv(self,brief=False):
+#                print('adding as mutation: {}'.format(sa.printshort()))
+        self._MakeChains()
+        self._MakeLinks()
+        self._checkMutationsAgainstLinks()
+    def ShowSeqadv(self,brief=False,indent=''):
         if len(self.Seqadv)>0:
             if not brief:
                 for sa in self.Seqadv:
                     print('### SEQADV:',sa)
             else:
-                nc=0
-                cons=[]
+                counts={}
                 for sa in self.Seqadv:
-                    if sa.conflict=='CONFLICT' or sa.conflict=='ENGINEERED MUTATION':
-                        cons.append(sa.printshort())
-                        nc = nc + 1
-                print('{:d} SEQADV records; {:d} conflicts/mutations: {:s}'.format(len(self.Seqadv),nc,", ".join(cons)))
+                    if sa.conflict not in counts:
+                        counts[sa.conflict]=1
+                    else:
+                        counts[sa.conflict]+=1
+                print(f'{indent}{sum(counts.values())} SEQADV records:')
+                for k,v in counts.items():
+                    print(f'{indent}{indent}{k} ({v}):',', '.join(sa.printshort() for sa in self.Seqadv if sa.conflict==k))
     def Clone(self,chainmap={},invchainmap={}):
         if len(chainmap)>0:
             newmd=MolData(userMods={},parent_molecule=self.parent_molecule)
@@ -82,7 +95,6 @@ class MolData:
                 newmd.Atoms.extend([a.Clone(chain=nc) for a in oldmd.Atoms if a.chainID==oc])
                 newmd.MissingRes.extend([m.Clone(chain=nc) for m in oldmd.MissingRes if m.chainID==oc])
             newmd._MakeResidues()
-            newmd._MakeChains(invchainmap=invchainmap)
             # clone SSBonds and XSSBonds
             for oss in oldmd.SSBonds:
                 if oss.chainID1 in chainmap and oss.chainID2 in chainmap:
@@ -111,6 +123,9 @@ class MolData:
                 if omut.chainID in chainmap:
                     nc=chainmap[omut.chainID]
                     newmd.Mutations.append(omut.Clone(chain=nc))
+                else:
+                    print(f'Error: chainID {omut.chainID} not in chain map?',chainmap)
+            #print(f'Clone: {len(newmd.Mutations)} mutations')
             # clone deletions
             for odel in oldmd.Deletions:
                 if odel.chainID in chainmap:
@@ -126,6 +141,7 @@ class MolData:
                 if oclv.parent_chain in chainmap:
                     nc=chainmap[oclv.parent_chain]
                     newmd.Cleavages.append(oclv.Clone(parent_chain=nc))
+            newmd._MakeChains(invchainmap=invchainmap)
             return newmd
         return None
 
@@ -182,6 +198,7 @@ class MolData:
         for m in self.MissingRes:
             self.Residues.append(Residue(m=m))
     def _MakeChains(self,invchainmap={}):
+        self.Chains={}
         for r in self.Residues:
             if r.chainID in self.Chains:
                 c=self.Chains[r.chainID]
@@ -195,45 +212,107 @@ class MolData:
                 self.Chains[newChain.chainID]=newChain
         for c in self.Chains.values():
             c.sort_residues()
-            print(f'Made chain {c.chainID} from source {c.source_chainID}')
+#            print(f'Made chain {c.chainID} from source {c.source_chainID}')
         self._ApportionModsToChains()
     def _MakeLinks(self):
         ''' Set all up and down links in residues participating in links '''
         for l in self.Links:
+            c1=l.chainID1
+            c2=l.chainID2
             #print(l.pdb_line())
-            r1=get_residue(self.Residues,l.chainID1,l.resseqnum1)
-            r2=get_residue(self.Residues,l.chainID2,l.resseqnum2)
+            r1=get_residue(self.Residues,c1,l.resseqnum1,l.icode1)
+            r2=get_residue(self.Residues,c2,l.resseqnum2,l.icode2)
+            l.atom1=get_atom(self.Residues,c1,l.resseqnum1,l.name1,l.icode1)
+            l.atom2=get_atom(self.Residues,c2,l.resseqnum2,l.name2,l.icode2)
+            l.residue1=r1
+            l.residue2=r2
+            #print(l.printshort(),str(r1),str(r2))
             # if their chains differ, earlier letters are upstream of later letters
             if _seg_typedict_byresname_[r1.name]=='PROTEIN' and _seg_typedict_byresname_[r2.name]=='GLYCAN':
-                r1.down.append(r2)
-                r2.up.append(r1)
+                r1.linkTo(r2,l)
             elif r1.chainID>r2.chainID:
-                r1.up.append(r2)
-                r2.down.append(r1)
-                #print(r2,'->',r1)
+                r2.linkTo(r1,l)
             elif r1.chainID<r2.chainID:
-                r1.down.append(r2)
-                r2.up.append(r1)
-                #print(r1,'->',r2)
+                r1.linkTo(r2,l)
             else: # they have the same chainID
-               if r1.resseqnum>r2.resseqnum:
-                   r1.up.append(r2)
-                   r2.down.append(r1)
-                   #print(r2,'->',r1)
-               elif r1.resseqnum<r2.resseqnum:
-                   r1.down.append(r2)
-                   r2.up.append(r1)
-                   #print(r1,'->',r2)
+                if r1.resseqnum>r2.resseqnum:
+                    r2.linkTo(r1,l)
+                elif r1.resseqnum<r2.resseqnum:
+                    r1.linkTo(r2,l)
         for c in self.Chains.values():
             #print('calling group_residues on chain {}'.format(c.chainID))
             c.group_residues()
+    def _deleteLink(self,l,deleteDownRes=False):
+        #print(f'before deleting link {l.printshort()}: {len(self.Links)} links')
+        if l in self.Links:
+            r1=l.residue1
+            r2=l.residue2
+            if r1 in r2.up:
+                if deleteDownRes:
+         #           print(f'Before recDelDown: {len(self.Residues)} residues, {len(self.Links)} links')
+                    _recursiveDelDown(self.Residues,self.Links,r2)
+          #          print(f'After recDelDown: {len(self.Residues)} residues, {len(self.Links)} links')
+                r1.unlink(r2,l)
+            elif r1 in r2.down:
+                if deleteDownRes:
+           #         print(f'Before recDelDown: {len(self.Residues)} residues, {len(self.Links)} links')
+                    _recursiveDelDown(self.Residues,self.Links,r1)
+            #        print(f'After recDelDown: {len(self.Residues)} residues, {len(self.Links)} links')
+                r2.unlink(r1,l)
+            #print(f'Removing link {l.printshort()}')
+            self.Links.remove(l)
+            #print(f'after deleting link {l.printshort()}: {len(self.Links)} links')
+        else:
+            print(f'Error: cannot find link {l.printshort()}')
     def _ApportionModsToChains(self):
+#        print(f'ApportionMods: {len(self.Mutations)} mutations')
         for c in self.Chains.values():
             cid=c.chainID
             c.Mutations=[m for m in self.Mutations if m.chainID==cid]
             c.Deletions=[d for d in self.Deletions if d.chainID==cid]
             c.Grafts=[g for g in self.Grafts if g.target_chain==cid]
             c.Cleavages=[c for c in self.Cleavages if c.chainID==cid]
+    def _checkMutationsAgainstLinks(self):
+        mvl=self.userMods['mutationsVsLinks']
+        mvs=self.userMods['mutationsVsSSBonds']
+        LOC={}
+        SSOC={}
+        for m in self.Mutations:
+            for l in self.Links:
+                if m.chainID==l.chainID1 or m.chainID==l.chainID2:
+                    if (m.resseqnum==l.resseqnum1 and m.insertion==l.icode1) or (m.resseqnum==l.resseqnum2 and m.insertion==l.icode2):
+                        LOC[m]=l
+            if m.orig=='CYS':
+                for s in self.SSBonds:
+                    if m.chainID==s.chainID1 or m.chainID==s.chainID2:
+                        if (m.resseqnum==s.resseqnum1 and m.insertion==s.icode1) or (m.resseqnum==s.resseqnum2 and m.insertion==s.icode2):
+                            SSOC[m]=s
+        reDoChains=False
+        if len(LOC)>0:
+            #print('#### Mutation-Link conflicts:')
+            for k,v in LOC.items():
+                print(k.printshort(),v.printshort(),mvl)
+                if mvl=='M':
+                    #print('deleting link',v.printshort())
+                    self._deleteLink(v,deleteDownRes=True)
+                else:
+                    self.Mutations.remove(k)
+            reDoChains=True
+        if len(SSOC)>0:
+            #print('#### Mutation-SSBond conflicts:')
+            for k,v in SSOC.items():
+                print(k.printshort(),v.printshort(),mvl)
+                if mvs=='M':
+                    if v in self.SSBonds:  # may have already been removed
+                        self.SSBonds.remove(v)
+                else:
+                    self.Mutations.remove(k)
+            reDoChains=True
+        if reDoChains:
+            self._MakeChains()
+#            print('Redid chains: ',', '.join(self.Chains.keys()))
+            self.adjustedChainIDs=list(self.Chains.keys())
+            self._ApportionModsToChains()
     ''' working on below !!! '''
     def _importGrafts(self):
         linksToImport=[]
@@ -311,3 +390,4 @@ class MolData:
                 #print(l.pdb_line())
                 #print(l.psfgen_patchline())
                 self.Links.remove(l)
+

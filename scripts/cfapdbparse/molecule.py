@@ -100,27 +100,27 @@ class Molecule:
             self.source='CHARMM'
         self.md.MakeConstructs()
         self.MakeBiomolecules(requestedBiologicalAssembly=requestedBiologicalAssembly)
-    def summarize(self):
+    def summarize(self,indent=' '*4):
         print('File: {}, Source: {}, Source format: {}'.format(self.pdb if self.source_format=='PDB' else self.cif,self.source,self.source_format))
-        print('   Title: {}'.format(self.Title))
-        self.ShowKeywords(indent=' '*3)
+        print('{}Title: {}'.format(indent,self.Title))
+        self.ShowKeywords(indent=indent)
         if self.source=='RCSB':
             if self.source_format=='PDB':
-                print('   {}'.format(str(self.FmtDat)))
+                print('{}{}'.format(indent,str(self.FmtDat)))
             else:
-                print('   CIF Dict. version: {}'.format(self.cif_dict_version))
-            print('   Last revision: {}'.format(self.ShowRevisions(which='latest',justdates=True)))
+                print('{}CIF Dict. version: {}'.format(indent,self.cif_dict_version))
+            print('{}Last revision: {}'.format(indent,self.ShowRevisions(which='latest',justdates=True)))
             #print('All revisions: {}'.format(self.ShowRevisions(which='all',justdates=False)))
-            print('   Method: {}; Resolution: {} Ang.'.format(self.ExpDta,self.Resolution))
-            print('   {} ATOM or HETATOM records.'.format(len(self.md.Atoms)))
-            print('   {} unique residues, {} missing.'.format(len(self.md.Residues),len(self.md.MissingRes)))
-            print('   {} disulfides; {} covalent links.'.format(len(self.md.SSBonds),len(self.md.Links)))
-            self.md.ShowSeqadv(brief=True)
+            print('{}Method: {}; Resolution: {} Ang.'.format(indent,self.ExpDta,self.Resolution))
+            print('{}{} ATOM or HETATOM records.'.format(indent,len(self.md.Atoms)))
+            print('{}{} unique residues, {} missing.'.format(indent,len(self.md.Residues),len(self.md.MissingRes)))
+            print('{}{} disulfides; {} covalent links.'.format(indent,len(self.md.SSBonds),len(self.md.Links)))
+            self.md.ShowSeqadv(brief=True,indent=indent)
             if len(self.md.Chains)>0:
-               print('   {} chains: {}'.format(len(self.md.Chains),", ".join(c.chainID for c in self.md.Chains.values())))
-            print('   {} Biological assemblies:'.format(len(self.Biomolecules)))
+               print('{}{} chains: {}'.format(indent,len(self.md.Chains),', '.join(c.chainID for c in self.md.Chains.values())))
+            print('{}{} Biological assemblies:'.format(indent,len(self.Biomolecules)))
             for b in self.Biomolecules:
-                b.show(indent=' '*6,isActive=(b is self.activeBiologicalAssembly))
+                b.show(indent=indent*2,isActive=(b is self.activeBiologicalAssembly))
             print('')
     def show(self,verbosity):
         print('#'*60)
@@ -351,7 +351,8 @@ class Molecule:
         self.Biomolecules.insert(0,Biomolecule(parent_molecule=self)) # make the 0th biomolecule the asymmetric unit
         asymmetricUnit=self.Biomolecules[0]
         asymmetricUnit.initializeAsymmetricUnit(self.md)
-        self.ChainIDDepot=sorted(list(self.chainIDs_allowed.difference(set(asymmetricUnit.chainIDs))))
+        #print('MakeBiolecules: chains:',', '.join(asymmetricUnit.apply_to_chainIDs))
+        self.ChainIDDepot=sorted(list(self.chainIDs_allowed.difference(set(asymmetricUnit.apply_to_chainIDs))))
         if requestedBiologicalAssembly==None:
             self.activeBiologicalAssembly=self.Biomolecules[0]
         else:
@@ -425,7 +426,7 @@ class Molecule:
         for t in self.activeBiologicalAssembly.biomt:
             for g in t.md.Grafts:
                 molids.append[g.load(fp)]
-        print('Molids:',molids)
+        #print('Molids:',molids)
         fp.write(f'mol top ${self.molid_varname}\n')
         fp.write('#### BEGIN SEGMENTS\n')
         Loops=[]

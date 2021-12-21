@@ -25,6 +25,8 @@ class Residue:
             self.atoms=[a]
             self.up=[]
             self.down=[]
+            self.uplink=[]
+            self.downlink=[]
         elif m!=None:
             ''' initializing as a missing residue '''
             self.resseqnum=m.resseqnum
@@ -36,6 +38,8 @@ class Residue:
             self.atoms=[]
             self.up=[]
             self.down=[]
+            self.uplink=[]
+            self.downlink=[]
         else:
             self.resseqnum=0
             self.insertion=' '
@@ -45,6 +49,8 @@ class Residue:
             self.atoms=[]
             self.up=[]
             self.down=[]
+            self.uplink=[]
+            self.downlink=[]
         self.resseqnumi=f'{self.resseqnum}{self.insertion}'
     def __lt__(self,other):
         if self.resseqnum<other.resseqnum:
@@ -70,6 +76,16 @@ class Residue:
         self.chainID=chainID
         for a in self.atoms:
             a.chainID=chainID
+    def linkTo(self,other,link):
+        self.down.append(other)
+        self.downlink.append(link)
+        other.up.append(self)
+        other.uplink.append(link)
+    def unlink(self,other,link):
+        self.down.remove(other)
+        self.downlink.remove(link)
+        other.up.remove(self)
+        other.uplink.remove(link)
     def ri(self):
         ins0='' if self.insertion==' ' else self.insertion
         return f'{self.resseqnum}{ins0}'
@@ -77,6 +93,8 @@ class Residue:
         pass
     def __str__(self):
         return '{}-{}{}'.format(self.chainID,self.name,self.resseqnum)
+    def printshort(self):
+        return str(self)
     def str_full(self):
         if len(self.atoms)==0:
             atstr='MISSING'

@@ -41,10 +41,10 @@ class Link:
             self.link_distance=float(pdbrecord[73:78])
             self.segname1=self.chainID1
             self.segname2=self.chainID2
-            self.residue1=''
-            self.residue2=''
-            self.atom1=''
-            self.atom2=''
+            self.residue1=None
+            self.residue2=None
+            self.atom1=None
+            self.atom2=None
 #            self.biomt=0
             self.empty=False
         elif cifdict!=None:
@@ -71,11 +71,10 @@ class Link:
             self.link_distance=float(d['pdbx_dist_value'])
             self.segname1=self.chainID1
             self.segname2=self.chainID2
-            self.residue1=''
-            self.residue2=''
-            self.atom1=''
-            self.atom2=''
-#            self.biomt=0
+            self.residue1=None
+            self.residue2=None
+            self.atom1=None
+            self.atom2=None
             self.empty=False
             self.pdbrecord=self.pdb_line()
         else:
@@ -125,6 +124,9 @@ class Link:
                return True
             else:
                return False
+    def printshort(self):
+        retstr=f'{self.chainID1}_{self.resname1}{self.resseqnum1}{self.icode1} -- {self.chainID2}_{self.resname2}{self.resseqnum2}{self.icode2}'
+        return retstr
     def __str__(self):
         retstr='# {}\n'+\
                 '#   name1         {:s}\n'+\

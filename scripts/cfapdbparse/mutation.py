@@ -2,6 +2,8 @@ from residue import _PDBResName123_
 
 class Mutation:
     def __init__(self,commandlinerecord='',seqadv=''):
+        self.commandlinerecord=commandlinerecord
+        self.seqadvrecord=seqadv
         if len(commandlinerecord)>0:
             self.commandlinerecord=commandlinerecord
             ''' if no chainID in the first character or the _ separator is not the second character '''
@@ -30,17 +32,29 @@ class Mutation:
                     self.insertion=' '
                     self.resseqnum=int(self.resseqnumi)
         elif seqadv!='':
-            self.commandlinerecord=seqadv.pdbrecord
             self.chainID=seqadv.chainID
             self.orig=seqadv.resName
             self.new=seqadv.dbRes
+            ol=''
+            nl=''
+            for k,v in _PDBResName123_.items():
+                if v==self.orig:
+                    ol=k
+                elif v==self.new:
+                    nl=k
+            self.orig_1=ol
+            self.new_1=nl
             self.resseqnum=seqadv.seqNum
             self.insertion=seqadv.iCode
+            self.resseqnumi=f'{seqadv.seqNum}{seqadv.iCode}'
+    def printshort(self):
+        retstr=f'{self.chainID}_{self.orig}{self.resseqnumi}{self.new}'
+        return retstr
     def __str__(self):
         return f'{self.commandlinerecord} => chain {self.chainID} resseqnum {self.resseqnum} (insertion [{self.insertion}]) orig_resname {self.orig} mutant_resname {self.new}'
     def Clone(self,chain=''):
         if len(chain)>0:
-            newMutation=Mutation(commandlinerecord=self.commandlinerecord)
+            newMutation=Mutation(commandlinerecord=self.commandlinerecord,seqadv=self.seqadvrecord)
             newMutation.chainID=chain
             newMutation.commandlinerecord=newMutation.mutationStr()
             return newMutation

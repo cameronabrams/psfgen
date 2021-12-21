@@ -139,6 +139,7 @@ class Chain:
                     Segments.append(Segment(r,subcounter=self.nextSubCounter(thissegtype),parent_chain=self))
             #print('#### MakeSegments: residue {} placed in segment {}'.format(str(r),str(s)))
         # apportion mutations in this chain to their correct segments
+        #print(f'Make chain: scanning {len(self.Mutations)} mutations')
         for m in self.Mutations:
             found=False
             for s in Segments:

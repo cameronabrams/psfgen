@@ -9,6 +9,7 @@ class Biomolecule:
         self.biomt=[]
         self.pdbx_struct={}
         self.parent_molecule=parent_molecule
+        self.apply_to_chainIDs=[]
         if pdbrecord==None and cifdict==None:
             # This constructor called with no pdbrecord and now cifdict 
             # creates the asymmetric unit, which is populated
@@ -56,9 +57,9 @@ class Biomolecule:
                 self.pdbx_struct['change_solv_fe']=float(words[-2])
                 self.pdbx_struct['fe_units']=words[-1]
             elif 'APPLY THE FOLLOWING TO CHAINS:' in phrase:
-                self.apply_to_chains=[_.replace(',','') for _ in words[7:]]
+                self.apply_to_chainIDs=[_.replace(',','') for _ in words[7:]]
             elif 'AND CHAINS:' in phrase:
-                self.apply_to_chains.extend([_.replace(',','') for _ in words[4:]])
+                self.apply_to_chainIDs.extend([_.replace(',','') for _ in words[4:]])
             elif 'BIOMT' in words[2]:
                 self.parseBIOMT(words)
             else:
@@ -81,7 +82,7 @@ class Biomolecule:
         ax=int(words[2][-1])
         if ax==1:   # "BIOMT1" detected
             new_BiomT=BiomT(index=len(self.biomt))
-            new_BiomT.chainIDs=self.apply_to_chains[:]
+            new_BiomT.apply_to_chainIDs=self.apply_to_chainIDs
             self.biomt.append(new_BiomT)
         self.biomt[-1].parseBIOMT(ax,words)
 
@@ -96,40 +97,53 @@ class Biomolecule:
         self.biomt.append(BiomT(index=len(self.biomt)))
         self.biomt[-1].CIFBiomT(cifdict)
 
+    ''' provide the moldata built for asymmetric unit during PDB readthru to the actual
+        asymmetric unit'''
     def initializeAsymmetricUnit(self,md):
-        b=self.biomt[0]
+        b=self.biomt[0] # there is only one
         b.md=md
-        self.chainIDs=set([c for c in b.md.Chains.keys()])
-        b.chainIDs=self.chainIDs.copy()
+        apparent_chainIDs=list(set(b.md.Chains.keys()))
+        for c in self.apply_to_chainIDs:
+            if c not in apparent_chainIDs:
+                print(f'PDB indicates AU has chain {c} but this chain is not represented among residues.')
+        self.apply_to_chainIDs=apparent_chainIDs
+        b.apply_to_chainIDs=self.apply_to_chainIDs
+        #print(f'initializeAsymmetricUnit: {len(md.Mutations)} mutations')
     
     def inheritConstructs(self,au,cid_depot):
         for b in self.biomt:
-            print(f'Generating biomt {b.index}')
+            aumd=au.biomt[0].md
+            ''' clone '''
+#            for bcid in self.apply_to_chainIDs:
+#               if bcid not in au.apply_to_chainIDs:
+#                    print(f'PDB indicates Biomolecule {b.index} applies its transformations to chain {bcid} which is not in the AU')
+            self.apply_to_chainIDs_as_read=self.apply_to_chainIDs[:]
+            self.apply_to_chainIDs=au.apply_to_chainIDs[:]
+            b.apply_to_chainIDs=self.apply_to_chainIDs
+            b.apply_to_chainIDs_as_read=self.apply_to_chainIDs_as_read
             if b.isidentity():
                 ''' this biomolecular assembly has one biomt that is the 
                     asymmetric unit '''
                 b.md=au.biomt[0].md
-                b.ownChainIDs=self.apply_to_chains
-#                print(b.ownChainIDs,b.md.Chains.keys())
             else:
-                aumd=au.biomt[0].md
-                ''' clone '''
-                for aucid in self.apply_to_chains:
+                for aucid in au.apply_to_chainIDs:
                     try:
                         localcid=cid_depot.pop(0)
                     except:
                         print('Error: not enough alphabetical chain IDs!')
                         exit(-1)
-                    b.ownChainIDs.append(localcid)
                     b.mapChainIDs(aucid,localcid)
+                
                 b.md=aumd.Clone(chainmap=b.replicachainID_from_sourcechainID,invchainmap=b.sourcechainID_from_replicachainID)
+                #print(f'inheritConstructs: {len(b.md.Mutations)} mutations.')
         return cid_depot                    
 
 class BiomT:
     def __init__(self,index=0):
         self.md=None
         self.apply_to_chainIDs=[]
-        self.ownChainIDs=[]
+        self.apply_to_chainIDs_as_read=[]
+#        self.ownChainIDs=[]
         self.index=index
         self.tmat=[[1, 0, 0, 0],[0, 1, 0, 0],[0, 0, 1, 0]]
         self.replicachainID_from_sourcechainID={}
@@ -149,7 +163,11 @@ class BiomT:
             self.tmat[i][3]=float(cifdict['vector[{}]'.format(i+1)])
 
     def show(self,indent='    '):
-        print('{}BIOMT {:d} operates on chains {:s}'.format(indent,self.index,', '.join(self.chainIDs)))
+        print('{}BIOMT {:d} operates on chains {:s}'.format(indent,self.index,', '.join(self.apply_to_chainIDs)))
+        if len(self.apply_to_chainIDs_as_read)>len(self.apply_to_chainIDs):
+            print('{}{}(Note: This may not reflect the chains listed for this biomolecule in the PDB.'.format(indent))
+            print('{}{}{}Original chains are {:s}'.format(indent,indent,indent,self.index,', '.join(self.apply_to_chainIDs_as_read)))
+            print('{}{}One or more of these chains may have been deleted after processing mutations/deletions.)')
         if not self.isidentity():
             print('{}    TMAT'.format(indent),self.tmat)
             if len(self.replicachainID_from_sourcechainID)>0:

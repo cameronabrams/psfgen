@@ -60,7 +60,7 @@ class SSBond:
 # 18 - 21        Integer        seqNum1          Residue sequence number.
         self.resseqnum1=int(pdbrecord[17:21])
 # 22             AChar          icode1           Insertion code.
-        self.icode1=pdbrecord[21:22].strip()
+        self.icode1=pdbrecord[21:22]
 # 26 - 28        LString(3)     "CYS"            Residue name.
         self.resname2=pdbrecord[25:28].strip()
 # 30             Character      chainID2         Chain identifier.
@@ -68,7 +68,7 @@ class SSBond:
 # 32 - 35        Integer        seqNum2          Residue sequence number.
         self.resseqnum2=int(pdbrecord[31:35])
 # 36             AChar          icode2           Insertion code.
-        self.icode2=pdbrecord[35:36].strip()
+        self.icode2=pdbrecord[35:36]
 # 60 - 65        SymOP          sym1             Symmetry operator for residue 1.
         self.sym1=pdbrecord[59:65].strip()
 # 67 - 72        SymOP          sym2             Symmetry operator for residue 2.
@@ -91,6 +91,9 @@ class SSBond:
                 '{:>7s}'.format(self.sym2)+\
                 '{:6.2f}'.format(self.length)
         return pdbline
+    def printshort(self):
+        retstr=f'{self.chainID1}_{self.resname1}{self.resseqnum1}{self.icode1}-SS-{self.chainID2}_{self.resname2}{self.resseqnum2}{self.icode2}'
+        return retstr    
     def __str__(self):
         retstr='{}\n'+\
                '  resname1    {:s}\n'+\
