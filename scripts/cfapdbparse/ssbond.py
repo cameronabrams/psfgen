@@ -1,11 +1,9 @@
 class SSBond:
-    ''' 
-    Creates SSBond instance from one of two types of input strings:
-    1. a PDB SSBOND record
-    2. a command-line argument of the form X_###-Y_### where X and Y are chain IDs and
-    the ###'s are resids
-    Can also accept a CIFDict
-    '''
+    # Creates SSBond instance from one of two types of input strings:
+    # 1. a PDB SSBOND record
+    # 2. a command-line argument of the form X_###-Y_### where X and Y are chain IDs and
+    # the ###'s are resids
+    # Can also accept a CIFDict
     def __init__(self,record=None,cifdict=None):
         if record!=None and cifdict!=None:
             print('Error: SSBond __init__ called with both a record and a cifdict.\nUsing the record.')
@@ -111,6 +109,13 @@ class SSBond:
         return 'patch DISU {}:{} {}:{}\n'.format(self.chainID1,self.resseqnum1,self.chainID2,self.resseqnum2)
     def isActive(self,aIDs,igIDs):
         return (self.chainID1 in aIDs and self.chainID2 in aIDs and not (self.chainID1 in igIDs) and not (self.chainID2 in igIDs))
+    def Clone(self,chainID1='',chainID2=''):
+        if len(chainID1)==1 and len(chainID2)==1:
+            newSSbond=SSBond(record=self.pdb_line())
+            newSSbond.chainID1=chainID1
+            newSSbond.chainID2=chainID2
+            newSSbond.pdbrecord=newSSbond.pdb_line()
+            return newSSbond
     def __eq__(self,other):
         res=True;
         res&=self.chainID1==other.chainID1
@@ -131,4 +136,5 @@ if __name__=="__main__":
     pdbline2="SSBOND   8 CYS D  378    CYS B  178                          2555   2655  2.04"
     b=SSBond(record=pdbline1)
     b2=SSBond(record=pdbline2)
-    print(b==b2)
+    b3=b.Clone(chainID1='E',chainID2='C')
+    print(str(b3))

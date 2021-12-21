@@ -8,6 +8,11 @@ class Cleavage:
         else:
             self.parent_chainID=commandlinerecord[0]
             self.parent_Cterm_resseqnum=int(commandlinerecord[1:])
+    def Clone(self,parent_chain=''):
+        if len(parent_chain)>0:
+            newCleavage=Cleavage(self.commandlinerecord)
+            newCleavage.parent_chainID=parent_chain
+            return newCleavage
     def __str__(self):
         return '{}{}-x-'.format(self.parent_chainID,self.parent_Cterm_resseqnum)
 

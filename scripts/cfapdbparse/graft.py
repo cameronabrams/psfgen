@@ -5,7 +5,7 @@ def get_ra(mystr):
     if mystr[-1].isalpha():
        return int(mystr[:-1]),mystr[-1]
     else:
-       return int(mystr),''
+       return int(mystr),' '
 
 class Graft:
     def __init__(self,graftstr=''):
@@ -22,7 +22,6 @@ class Graft:
         self.target_chain=''
         self.target_res=''
         self.target_ins=''
-        self.source_segment=''
         self.source_segment=''
         self.desired_offset=''
         self.transformed_pdb=''
@@ -47,8 +46,8 @@ class Graft:
                 self.target_chain=target_chain_res[0]
                 self.target_res,self.target_ins=get_ra(target_chain_res[1]) 
                 #print('#### reading {}'.format(self.source_pdb))
-                self.molecule=Molecule(self.source_pdb,isgraft=True,userLinks=[])
-                m=self.molecule
+                self.molecule=Molecule(self.source_pdb,userMods={})
+                m=self.molecule.md
                 #print('#### finshed reading {} into {} -- {} links'.format(self.source_pdb,self.molecule,len(m.Links)))
                 for c in m.Chains.values():
                     #print('#### {} sort_residues()'.format(c.chainID))
@@ -69,14 +68,19 @@ class Graft:
                     print('ERROR: Could not find source segment for graft {}'.format(self.graftstr))         
             else:
                 print('ERROR: Malformed graft argument: {}'.format(graftstr))
-    def graftStr(self,replace_targ_chain=''):
-        return '{},{}:{}{}-{}{},{}{},{}:{}{},{}'.format(self.source_pdb,self.source_chain,self.source_res1,self.source_ins1,self.source_res2,self.source_ins2,self.source_rootres,self.source_rootins,replace_targ_chain if replace_targ_chain != '' else self.target_chain,self.target_res,self.target_ins,self.desired_offset)
+    def Clone(self,target_chain=''):
+        if len(target_chain)>0:
+            newGraft=Graft(graftstr=self.graftstr)
+            newGraft.target_chain=target_chain
+            return newGraft
+#    def graftStr(self,replace_targ_chain=''):
+#        return '{},{}:{}{}-{}{},{}{},{}:{}{},{}'.format(self.source_pdb,self.source_chain,self.source_res1,self.source_ins1,self.source_res2,self.source_ins2,self.source_rootres,self.source_rootins,replace_targ_chain if replace_targ_chain != '' else self.target_chain,self.target_res,self.target_ins,self.desired_offset)
     def __str__(self):
 #        retstr='{:s}:{:s}:{:d}{}-{:d}{}-root{:d}{}|=>base{:s}{:d}{}+{:d}'.format(self.source_pdb,self.source_chain,self.source_res1,self.source_ins1,self.source_res2,self.source_ins2,self.source_rootres,self.source_rootins,self.target_chain,self.target_res,self.target_ins,self.desired_offset)
         return self.graftStr()
 
     def load(self,fp):
-        self.molecule.load(fp)
+        return self.molecule.load(fp)
 
     def transform(self,base):
         a=''

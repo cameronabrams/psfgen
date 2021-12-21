@@ -2,10 +2,12 @@ colvar {
   name %NAME%
   distance {
     group1 { 
-      atomNumbers { %I% }
+      psfSegID %C%
+      atomNameResidueRange C %I%-%I%
     }
     group2 {
-      atomNumbers { %J% }
+      psfSegID %C%
+      atomNameResidueRange N %J%-%J%
     }
   }
 }

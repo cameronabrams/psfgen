@@ -14,32 +14,50 @@ def ResnameCharmify(nm):
     return _ResNameDict_PDB_to_CHARMM_[nm] if nm in _ResNameDict_PDB_to_CHARMM_ else nm
 
 class Residue:
-    def __init__(self,a=-1,m=0,molid='*'):
+    def __init__(self,a=None,m=None,molid='*'):
         ''' initializing with an atom '''
-        if a!=-1:
+        if a!=None:
             self.resseqnum=a.resseqnum
             self.insertion=a.insertion
             self.name=a.resname
             self.chainID=a.chainID
-            self.source_chainID=a.chainID
+#            self.source_chainID=a.chainID
             self.atoms=[a]
             self.up=[]
             self.down=[]
+        elif m!=None:
+            ''' initializing as a missing residue '''
+            self.resseqnum=m.resseqnum
+            self.name=m.resname
+            self.insertion=m.insertion
+            self.chainID=m.chainID
+#            self.source_chainID=m.chainID
+            self.biomt='*'
+            self.atoms=[]
+            self.up=[]
+            self.down=[]
         else:
-            ''' initializing with a missing residue '''
-            if m!=0:
-                self.resseqnum=m.resseqnum
-                self.name=m.resname
-                self.insertion=m.insertion
-                self.chainID=m.chainID
-                self.source_chainID=m.chainID
-                self.biomt='*'
-                self.atoms=[]
-                self.up=[]
-                self.down=[]
+            self.resseqnum=0
+            self.insertion=' '
+            self.name='UNK'
+            self.chainID='UNK'
+#            self.source_chainID
+            self.atoms=[]
+            self.up=[]
+            self.down=[]
+        self.resseqnumi=f'{self.resseqnum}{self.insertion}'
+    def __lt__(self,other):
+        if self.resseqnum<other.resseqnum:
+            return True
+        elif self.resseqnum==other.resseqnum:
+            if self.insertion==None and other.insertion==None:
+                return False
+            elif (self.insertion=='' or self.insertion==' ' or self.insertion==None) and other.insertion.isalpha():
+                return True
+            elif self.insertion.isalpha() and other.insertion.isalpha():
+                return ord(self.insertion)<ord(other.insertion)
             else:
-                print('ERROR: bad residue construction')
-
+                return False
     def add_atom(self,a):
         if self.resseqnum==a.resseqnum and self.name==a.resname and self.chainID==a.chainID:
             self.atoms.append(a)
@@ -52,6 +70,9 @@ class Residue:
         self.chainID=chainID
         for a in self.atoms:
             a.chainID=chainID
+    def ri(self):
+        ins0='' if self.insertion==' ' else self.insertion
+        return f'{self.resseqnum}{ins0}'
     def set_connections(self):
         pass
     def __str__(self):
@@ -74,10 +95,18 @@ class Residue:
         return res
 
 def get_residue(R,chainID,resseqnum,insertion=' '):
+    candidates=[]
+    #print(f'Searching list of {len(R)} residues for c {chainID} r {resseqnum}')
     for r in R:
-        if r.chainID==chainID and r.resseqnum==resseqnum and r.insertion==insertion:
-            return r
-    return '' 
+        if r.chainID==chainID and r.resseqnum==resseqnum:
+            candidates.append(r)
+    if len(candidates)==1:
+        return candidates[0]
+    else:
+        for r in candidates:
+            if r.insertion==insertion:
+                return r
+    return None
 
 def get_atom(R,chainID,resseqnum,atname,insertion=' '):
 #    print('get_atom() searching for {} in resid {} chain {}'.format(atname,resseqnum,chainID))
@@ -91,3 +120,11 @@ def get_atom(R,chainID,resseqnum,atname,insertion=' '):
 #    print('Error: resid {} not found in chain {}'.format(resseqnum,chainID))
     return ''
 
+if __name__=='__main__':
+    r1=Residue()
+    r1.resseqnum=381
+    r1.insertion=' '
+    r2=Residue()
+    r2.resseqnum=381
+    r2.insertion='A'
+    print(r2<r1)

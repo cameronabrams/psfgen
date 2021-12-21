@@ -1,33 +1,40 @@
+from moldata import MolData
+
 """ biomolecule.py -- handling all biological assemblies in a PDB/mmCIF file """
 class Biomolecule:
     ''' Container for handling info for "REMARK 350 BIOMOLECULE: #" stanzas in RCSB PDB files
         or _pdbx_struct blocks in mmCIF files '''
-    def __init__(self,pdbrecord=None,cifdict=None):
+    def __init__(self,pdbrecord=None,cifdict=None,parent_molecule=''):
         self.chains_depot=[]
         self.biomt=[]
         self.pdbx_struct={}
+        self.parent_molecule=parent_molecule
         if pdbrecord==None and cifdict==None:
-            # this is interpreted as the "asymmetric unit"; i.e., an assembly composed of only those
-            # atoms explicitly in the PDB/mmCIF file
+            # This constructor called with no pdbrecord and now cifdict 
+            # creates the asymmetric unit, which is populated
+            # by all explicit data in the input file
             self.index=0 # signifies asymmetric unit
             self.biomt.append(BiomT()) # give it the identity biomt
         elif pdbrecord!=None:
             if 'BIOMOLECULE:' in pdbrecord:
-                self.index=int(pdbrecord[23:25].strip())  # take the index explicitly assigned in the PDB file
+                # take the BIOMOLECULE index explicitly assigned in the PDB file
+                try:
+                    self.index=int(pdbrecord[23:25].strip())
+                except:
+                    print(f'Error parsing BIOMOLECULE statement: expected an integer and got {pdbrecord[23:25]}')
             else:
-                print('Error:  Cannot parse PDBRecord [{}]'.format(pdbrecord))
+                print(f'Error parsing pdbrecord [{pdbrecord}]')
         elif cifdict!=None:
             self.index=int(cifdict['id'])
             for k in ['method_details','oligomeric_details','oligomeric_count']:
                 self.pdbx_struct[k]=cifdict[k]
         else:
            print('Warning: Biomolecule.__init__() called with both a pdbrecord and cifdict; using pdbrecord')
-
             
     def parsePDBrecordwords(self,words):
         if len(words)>2:
             phrase=' '.join(words[2:])
-          #  print(phrase)
+            #print('biomolecule parse phrase',phrase)
             if 'AUTHOR DETERMINED BIOLOGICAL UNIT:' in phrase:
            #     print(words[-1])
                 self.pdbx_struct['author_biol_unit']=words[-1]
@@ -49,9 +56,9 @@ class Biomolecule:
                 self.pdbx_struct['change_solv_fe']=float(words[-2])
                 self.pdbx_struct['fe_units']=words[-1]
             elif 'APPLY THE FOLLOWING TO CHAINS:' in phrase:
-                self.chain_depot=[_.replace(',','') for _ in words[7:]]
+                self.apply_to_chains=[_.replace(',','') for _ in words[7:]]
             elif 'AND CHAINS:' in phrase:
-                self.chain_depot.extend([_.replace(',','') for _ in words[4:]])
+                self.apply_to_chains.extend([_.replace(',','') for _ in words[4:]])
             elif 'BIOMT' in words[2]:
                 self.parseBIOMT(words)
             else:
@@ -74,12 +81,7 @@ class Biomolecule:
         ax=int(words[2][-1])
         if ax==1:   # "BIOMT1" detected
             new_BiomT=BiomT(index=len(self.biomt))
-            # empty the chain_depot
-            if len(self.chain_depot)==0:
-                print('Warning: New BIOMT detected but no chains are designated for it.')
-            else:
-                new_BiomT.chainIDs=self.chain_depot[:]
-                self.chain_depot=[]
+            new_BiomT.chainIDs=self.apply_to_chains[:]
             self.biomt.append(new_BiomT)
         self.biomt[-1].parseBIOMT(ax,words)
 
@@ -94,9 +96,40 @@ class Biomolecule:
         self.biomt.append(BiomT(index=len(self.biomt)))
         self.biomt[-1].CIFBiomT(cifdict)
 
+    def initializeAsymmetricUnit(self,md):
+        b=self.biomt[0]
+        b.md=md
+        self.chainIDs=set([c for c in b.md.Chains.keys()])
+        b.chainIDs=self.chainIDs.copy()
+    
+    def inheritConstructs(self,au,cid_depot):
+        for b in self.biomt:
+            print(f'Generating biomt {b.index}')
+            if b.isidentity():
+                ''' this biomolecular assembly has one biomt that is the 
+                    asymmetric unit '''
+                b.md=au.biomt[0].md
+                b.ownChainIDs=self.apply_to_chains
+#                print(b.ownChainIDs,b.md.Chains.keys())
+            else:
+                aumd=au.biomt[0].md
+                ''' clone '''
+                for aucid in self.apply_to_chains:
+                    try:
+                        localcid=cid_depot.pop(0)
+                    except:
+                        print('Error: not enough alphabetical chain IDs!')
+                        exit(-1)
+                    b.ownChainIDs.append(localcid)
+                    b.mapChainIDs(aucid,localcid)
+                b.md=aumd.Clone(chainmap=b.replicachainID_from_sourcechainID,invchainmap=b.sourcechainID_from_replicachainID)
+        return cid_depot                    
+
 class BiomT:
     def __init__(self,index=0):
-        self.chainIDs=[]
+        self.md=None
+        self.apply_to_chainIDs=[]
+        self.ownChainIDs=[]
         self.index=index
         self.tmat=[[1, 0, 0, 0],[0, 1, 0, 0],[0, 0, 1, 0]]
         self.replicachainID_from_sourcechainID={}

@@ -1,17 +1,30 @@
 import operator
-from segment import Segment,_seg_class_,_segname_second_character_
+from segment import Segment, _seg_typedict_byresname_, _segname_second_character_
 class Chain:
-    def __init__(self,r=None,parent_molecule=''):
+    def __init__(self,r=None,parent_molecule=None,source_chainID='',cleavage_chainID=''):
+        ''' source_chainID is this chain's chain ID in an input PDB file 
+            cleavage_chainID is this chain's local chainID prior to 
+            any cleavage. '''
         self.residues=[]
         self.Segments=[]
         self.subCounter={}
         self.subCounter['GLYCAN']=0
         self.subCounter['LIGAND']=0
+        self.subCounter['PROTEIN']=0
+        self.subCounter['ION']=0
+        self.subCounter['WATER']=0
         if r!=None:
             self.chainID=r.chainID
             self.residues=[r]
-            self.source_chainID=r.chainID # has a value if C-term-product of cleavage
+            if source_chainID!=None:
+                self.source_chainID=source_chainID
+            else:
+                self.source_chainID=r.chainID
         self.parent_molecule=parent_molecule
+        if cleavage_chainID!=None:
+            self.cleavage_chainID=cleavage_chainID
+        else:
+            self.cleavage_chainID=self.chainID
 
     def get_molid(self):
         return self.parent_molecule.molid
@@ -33,7 +46,7 @@ class Chain:
         self.Nterm=''
         self.Cterm=''
         for r in self.residues:
-            if _seg_class_[r.name]=='PROTEIN':
+            if _seg_typedict_byresname_[r.name]=='PROTEIN':
                 if r.resseqnum<mn:
                     mn=r.resseqnum
                     mnr=r
@@ -48,7 +61,7 @@ class Chain:
         ''' group residues by connectivity '''
         owners=[]
         for i,r in enumerate(self.residues):
-            if _seg_class_[r.name]=='PROTEIN' and len(r.down)>0:
+            if _seg_typedict_byresname_[r.name]=='PROTEIN' and len(r.down)>0:
                 owners.append([r,i])
         for oi in owners:
             o,i=oi
@@ -64,7 +77,7 @@ class Chain:
         protein_resid=[]
         other_resid=[]
         for r in self.residues:
-            if _seg_class_[r.name]=='PROTEIN':
+            if _seg_typedict_byresname_[r.name]=='PROTEIN':
                 protein_resid.append(r.resseqnum)
             else:
                 other_resid.append(r.resseqnum)
@@ -91,30 +104,24 @@ class Chain:
         Daughter.source_chainID=self.chainID
         Daughter.parent_molecule=self.parent_molecule
         return Daughter
-    def MakeSegments(self,Links,Mutations=[],Grafts=[],Attachments=[],Deletions=[],Missings=[]):
-        ''' scans residues in a chain to divvy them up into segments '''
-        self.Segments=[]
+    def MakeSegments(self,Links):
+        ''' scans residues in a chain to divvy them up into segments.
+            A chain can comprise one or more distinct segments.  It is assumed
+            however that there is only one PROTEIN segment in a chain, and its
+            segment name is its chain name.  Other segments belonging to the chain 
+            could be IONs, WATERs, LIGANDs, or GLYCANs, and their segment names
+            are derived from the parent chain names. '''
+        Segments=[]
         for r in self.residues:
-            if self.Segments==[]:
-                ''' create the first segment '''
-                if _seg_class_[r.name]=='GLYCAN':
-                   ''' if this is a glycan residue, use the segnaming convention '''
-                   s=Segment(r,subcounter=self.nextSubCounter('GLYCAN'),parent_chain=self)
-                elif _seg_class_[r.name]=='LIGAND':
-                   ''' if this is a ligand residue, use the segnaming convention '''
-                   s=Segment(r,subcounter=self.nextSubCounter('LIGAND'),parent_chain=self)
-                else:
-                   s=Segment(r,parent_chain=self)
-                self.Segments.append(s)
+            thissegtype=_seg_typedict_byresname_[r.name]
+            if Segments==[]:
+                Segments.append(Segment(r,subcounter=self.nextSubCounter(thissegtype),parent_chain=self))
             else:
-                for s in self.Segments:
-                    #fp.write('looking {} {}'.format(s.segtype,_seg_class_[r.name]))
+                ''' find the segment to add this residue to '''
+                for s in Segments:
                     found=False
-                    # if this is not an ion and not a water, then we will add this residue to the 
-                    # segment that contains a residue that is covalently linked to it via a LINK
-                    # ions and waters are each added to a single segment per chain
-                    # glycans are added to separate segments
-                    if s.segtype==_seg_class_[r.name]:
+                    ''' '''
+                    if s.segtype==thissegtype:
                         if s.segtype=='GLYCAN':
                             # only add this residue to this segment if it is linked to an
                             # existing residue in that segment 
@@ -128,55 +135,48 @@ class Chain:
                             found=True
                             break
                 if not found:
-                    # if this is an ion, segname is AI, where A is chainID, 'I' means ion
-                    # if this is a water, segname is AW
-                    # if this is a glycan, segname is AGnn, where nn is the next avail. glycan number
-                    if _seg_class_[r.name]=='GLYCAN':
-                       s=Segment(r,subcounter=self.nextSubCounter('GLYCAN'),parent_chain=self)
-                    elif _seg_class_[r.name]=='LIGAND':
-                       s=Segment(r,subcounter=self.nextSubCounter('LIGAND'),parent_chain=self)
-                    else:
-                       s=Segment(r,parent_chain=self)
-                    self.Segments.append(s)
+                    # initiate a new segment
+                    Segments.append(Segment(r,subcounter=self.nextSubCounter(thissegtype),parent_chain=self))
             #print('#### MakeSegments: residue {} placed in segment {}'.format(str(r),str(s)))
-        # apportion mutations to their correct segments
-        for m in [_ for _ in Mutations if _.chainID==self.chainID]:
+        # apportion mutations in this chain to their correct segments
+        for m in self.Mutations:
             found=False
-            for s in self.Segments:
+            for s in Segments:
                 if s.segtype=='PROTEIN':
                     for r in s.residues:
-                        if r.resseqnum==m.resseqnum:
+                        if r.resseqnum==m.resseqnum and r.insertion==m.insertion:
                             s.mutations.append(m)
                             found=True
             if not found:
                 print('#### Warning: no protein segment in chain {} found for mutation {}'.format(self.chainID,str(m)))
-                # apportion mutations to their correct segments
-        for d in [_ for _ in Deletions if _.chainID==self.chainID]:
+        # apportion deletions to their correct segments
+        for d in self.Deletions:
             found=False
-            for s in self.Segments:
+            for s in Segments:
                 if s.segtype=='PROTEIN':
                     for r in s.residues:
-                        if r.resseqnum==d.resseqnum:
+                        if r.resseqnum==d.resseqnum and r.insertion==m.insertion:
                             s.deletions.append(d)
                             found=True
             if not found:
                 print('#### Warning: no protein segment in chain {} found for deletion {}'.format(self.chainID,str(d)))
         # apportion grafts to their correct segments
-        for g in [_ for _ in Grafts if _.target_chain==self.chainID]:
+        for g in self.Grafts:
             found=False
-            g.target_segment=''
+            g.target_segment=None
             for s in self.Segments:
                 for r in s.residues:
-                    if r.resseqnum==g.target_res:
+                    if r.resseqnum==g.target_res and r.insertion==g.target_ins:
                         g.target_segment=s
                         s.apply_graft(g)
                         found=True
             if not found:
                 print('#### Warning: no target residue {} found in segments of chain {} for graft {}'.format(g.target_res,g.target_chain,str(g)))
         # create a new segment for each attachment
-        for a in Attachments:
-            self.ImportAttachmentSegment(a)
-
+#        for a in Attachments:
+ #           self.ImportAttachmentSegment(a)
+        return Segments
+        
     def ImportAttachmentSegment(self,a):
         ''' an attachment segment in a chain in an auxiliary molecule is imported
             into chain self '''
@@ -197,8 +197,10 @@ class Chain:
         self.Segments.append(newseg)
 
     def nextSubCounter(self,segtype):
-        retstr='{:02d}'.format(self.subCounter[segtype])
-        self.subCounter[segtype]+=1
+        retstr=''
+        if segtype!='PROTEIN':
+            retstr='{:02d}'.format(self.subCounter[segtype])
+            self.subCounter[segtype]+=1
         return retstr
     def isConnected(self,r,s,l):
         con=False

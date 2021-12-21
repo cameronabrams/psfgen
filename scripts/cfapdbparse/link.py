@@ -1,4 +1,4 @@
-from segment import _seg_class_
+from segment import _seg_typedict_byresname_
 from residue import get_residue,get_atom
 
 class Link:
@@ -83,37 +83,31 @@ class Link:
     def pdb_line(self):
         pdbline='{:6s}'.format(self.record_name)+6*' '+'{:>4s}'.format(self.name1+' ' if len(self.name1)<3 else self.name1)+'{:1s}'.format(self.altloc1)+'{:3s}'.format(self.resname1)+' '+'{:1s}'.format(self.chainID1)+'{:4d}'.format(self.resseqnum1)+'{:1s}'.format(self.icode1)+16*' '+'{:4>s}'.format(self.name2+' ' if len(self.name2)<3 else self.name2)+'{:1s}'.format(self.altloc2)+'{:3s}'.format(self.resname2)+' '+'{:1s}'.format(self.chainID2)+'{:4d}'.format(self.resseqnum2)+'{:1s}'.format(self.icode2)+2*' '+'{:>6s}'.format(self.sym1)+' '+'{:>6s}'.format(self.sym2)+'{:6.2f}'.format(self.link_distance)
         return pdbline
-    def updateSegnames(self,R,ab):
-        '''this is a problem for biomt'''
+    
+    def updateSegnames(self,R):
+        ''' When segments are created, links must be updated to refer to
+            segment names so that the patch commands work.  '''
         c1=self.chainID1[0]
         c2=self.chainID2[0]
-        oc1=c1
-        oc2=c2
-        ooc1=oc1
-        ooc2=oc2
-        ''' these may be aliases for replica chains; need source chains to get res/atom to get segname,
-            then update segname stringwise '''
-        for t in ab.biomt:
-            if not t.isidentity():
-                oc1=t.get_base_chainID(c1)
-                oc2=t.get_base_chainID(c2)        
-                if c1!=oc1:
-                    ooc1=oc1
-                if c2!=oc2:
-                    ooc2=oc2
-        #print(c1,c2,ooc1,ooc2)
-        self.residue1=get_residue(R,ooc1,self.resseqnum1,self.icode1)
-        self.residue2=get_residue(R,ooc2,self.resseqnum2,self.icode2)
-        self.atom1=get_atom(R,ooc1,self.resseqnum1,self.name1,self.icode1)
-        self.atom2=get_atom(R,ooc2,self.resseqnum2,self.name2,self.icode2)
-        ''' convention:  in segnames that are more than one character, the first character is a chain designation '''
-        sn1=self.atom1.segname
-        sn2=self.atom2.segname
-        self.segname1=c1+(sn1[1:] if len(sn1)>1 else '')
-        self.segname2=c2+(sn2[1:] if len(sn2)>1 else '')
+        self.residue1=get_residue(R,c1,self.resseqnum1,self.icode1)
+        self.residue2=get_residue(R,c2,self.resseqnum2,self.icode2)
+        self.atom1=get_atom(R,c1,self.resseqnum1,self.name1,self.icode1)
+        self.atom2=get_atom(R,c2,self.resseqnum2,self.name2,self.icode2)
+        ''' convention:  in segnames that are more than one character, 
+            the first character is a chain designation '''
+        self.segname1=self.atom1.segname
+        self.segname2=self.atom2.segname
 
     def isActive(self,aIDs,igIDs):
         return (self.chainID1 in aIDs and self.chainID1 not in igIDs and self.chainID2 in aIDs and self.chainID2 not in igIDs)
+
+    def Clone(self,chainID1='',chainID2=''):
+        if len(chainID1)==1 and len(chainID2)==1:
+            newLink=Link(pdbrecord=self.pdbrecord)
+            newLink.chainID1=chainID1
+            newLink.chainID2=chainID2
+            newLink.pdbrecord=newLink.pdb_line()
+            return newLink
 
     def isInLink(self,chain,resid,insertion=' ',pos=''):
         if pos=='':
@@ -150,7 +144,7 @@ class Link:
                 '#   link_distance {:.3f}'
         return retstr.format(self.record_name,self.name1,self.altloc1,self.resname1,self.chainID1,self.resseqnum1,self.icode1,self.name2,self.altloc2,self.resname2,self.chainID2,self.resseqnum2,self.icode2,self.sym1,self.sym2,self.link_distance)
     def psfgen_patchline(self):
-        if self.resname1=='ASN' and _seg_class_[self.resname2]=='GLYCAN':
+        if self.resname1=='ASN' and _seg_typedict_byresname_[self.resname2]=='GLYCAN':
             return 'patch NGLB {}:{}{} {}:{}\n'.format(self.segname1,self.resseqnum1,self.icode1,self.segname2,self.resseqnum2)
         else:
             retstr=''
@@ -159,7 +153,7 @@ class Link:
             # when building the PRES name found in CHARMM file top_all36_carb.rtf
             # for some reason, the characters 'a' and 'b' are not used for 1->6 linkages;
             # in that case, 'A' and 'T' are used
-            if self.name2=='C1' and _seg_class_[self.resname1]=='GLYCAN':
+            if self.name2=='C1' and _seg_typedict_byresname_[self.resname1]=='GLYCAN':
                 retstr+='set cn {}\n'.format(self.name1[1])
                 retstr+='set abi [axeq {} 0 {} {} {}]\n'.format(self.resseqnum2,self.chainID2,self.name2,self.resseqnum1)
                 retstr+='set abj [axeq {} 0 {} {} {}]\n'.format(self.resseqnum1,self.chainID1,self.name1,-1)
@@ -171,7 +165,7 @@ class Link:
                 retstr+='set pres "1$cn$abi$abj"\n'
                 retstr+='patch $pres {}:{}{} {}:{}{}\n'.format(self.segname1,self.resseqnum1,self.icode1,self.segname2,self.resseqnum2,self.icode2)
                 return retstr
-            elif self.name1=='C1' and _seg_class_[self.resname2]=='GLYCAN':
+            elif self.name1=='C1' and _seg_typedict_byresname_[self.resname2]=='GLYCAN':
                 cmdj='[axeq {} 0 {} {} {}]'.format(self.resseqnum2,self.chainID2,self.name2,self.resseqnum1)
                 cmdi='[axeq {} 0 {} {} {}]'.format(self.resseqnum1,self.chainID1,self.name1,-1)           
                 return 'patch 1{:1s}{}{} {}:{} {}:{}\n'.format(self.name2[1], cmdi,cmdj,self.segname2,self.resseqnum2,self.segname1,self.resseqnum1)

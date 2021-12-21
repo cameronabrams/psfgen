@@ -6,8 +6,10 @@ class Missing:
             self.pdbrecord=pdbrecord
             self.record_name=pdbrecord[0:6]
             self.code=int(pdbrecord[7:10])
-            self.model=pdbrecord[13:14].strip()
-            self.resname=pdbrecord[15:18].strip()
+            self.rawmodel=pdbrecord[13:14]
+            self.model=self.rawmodel.strip()
+            self.rawresname=pdbrecord[15:18]
+            self.resname=self.rawresname.strip()
             self.chainID=pdbrecord[19:20]
             self.resseqnum=int(pdbrecord[21:26])
             self.insertion=pdbrecord[26:27]
@@ -19,7 +21,15 @@ class Missing:
             self.resseqnum=int(cifdict['auth_seq_id'])
             ic=cifdict['pdb_ins_code']
             self.insertion=' ' if ic=='?' else ic
-
+    def pdb_line(self):
+        return '{:6s}{:>4d}   {:1s} {:3s} {:1s} {:>5d}{:1s}'.format(self.record_name,
+        self.code,self.rawmodel,self.rawresname,self.chainID,self.resseqnum,self.insertion)
+    def Clone(self,chain=''):
+        if len(chain)==1:
+            newMissing=Missing(pdbrecord=self.pdb_line())
+            newMissing.chainID=chain
+            newMissing.pdbrecord=newMissing.pdb_line()
+            return newMissing
     def __str__(self,verbose=False):
         if verbose:
             retstr='MISSING\n'+\
@@ -34,3 +44,11 @@ class Missing:
     def psfgen_residueline(self):
         return '     residue {} {}{} {}'.format(self.resname,self.resseqnum,self.insertion,self.chainID)
 
+if __name__=='__main__':
+    pr='REMARK 465     GLU G   185A  '
+    m1=Missing(pdbrecord=pr)
+    print(str(m1))
+    print(pr)
+    print(m1.pdb_line())
+    m2=m1.Clone(chain='Z')
+    print(str(m2))

@@ -33,17 +33,42 @@ foreach l $lines {
        lappend RES2 [lindex $l 2]
     }
 }
+puts "CH $CH"
+puts "RES1 $RES1"
+puts "RES2 $RES2"
 
 set bl {}
+set CC {}
+set NN {}
 foreach c $CH i $RES1 j $RES2 {
-    set ii [[atomselect top "chain $c and resid $i and name C"] get index]
-    set jj [[atomselect top "chain $c and resid $j and name N"] get index]
-    [atomselect top "chain $c and resid $j and name N"] set occupancy 1
+    set ci [string index $i end]
+    if {[string is alpha $ci]} {
+        set resid [string range $i 0 end-1]
+        set theC [atomselect top "chain $c and resid $resid and insertion $ci and name C"]
+    } else {
+        set theC [atomselect top "chain $c and resid $i and name C"]
+    }
+    set ni [string index $j end]
+    if {[string is alpha $ni]} {
+        set resid [string range $j 0 end-1]
+        set theN [atomselect top "chain $c and resid $resid and insertion $ni and name N"]
+    } else {
+        set theN [atomselect top "chain $c and resid $j and name N"]
+    }
+    puts "resid $i on chain $c has [$theC num] Cs with serial [$theC get serial]"
+    puts "resid $j on chain $c has [$theN num] Ns with serial [$theN get serial]"
+    set ii [$theC get index]
+    set jj [$theN get index]
+    $theN set occupancy 1
     lappend bl [measure bond [list $ii $jj]]
+    lappend CC [$theC get serial]
+    lappend NN [$theN get serial]
 }
+puts "CC $CC"
+puts "NN $NN"
 
 set fp [open $infile "w"]
-foreach c $CH i $RES1 j $RES2 b $bl {
+foreach c $CH i $CC j $NN b $bl {
     puts $fp "$c $i $j [format %.4f $b]"
 }
 close $fp

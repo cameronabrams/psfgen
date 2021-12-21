@@ -88,7 +88,7 @@ class Atom:
                '  resname   {:s}\n'+\
                '  chainID   {:s}\n'+\
                '  resseqnum {:d}\n'+\
-               '  insertion {:s}\n'+\
+               '  insertion {:1s}\n'+\
                '  x         {:.3f}\n'+\
                '  y         {:.3f}\n'+\
                '  z         {:.3f}\n'+\
@@ -97,5 +97,19 @@ class Atom:
                '  elem      {:s}\n'+\
                '  charge    {:s}\n'
         return retstr.format(self.record_name,self.serial,self.name,self.altloc,self.resname,self.chainID,self.resseqnum,self.insertion,self.x,self.y,self.z,self.occ,self.beta,self.elem,self.charge)
+    def Clone(self,chain=''):
+        if len(chain)==1:
+            newAtom=Atom(self.pdb_line())
+            newAtom.chainID=chain
+            newAtom.pdbrecord=newAtom.pdb_line()
+            return newAtom
 
-
+if __name__=='__main__':
+    pr1='ATOM    981  N   GLU G 164A     10.462 130.792 -22.224  1.00 70.92           N  '
+    pr2='ATOM   4172  N   ASP B 624      14.445  98.422  51.216  1.00150.85           N  '
+    a1=Atom(pdbrecord=pr1)
+    a2=Atom(pdbrecord=pr2)
+    print(str(a1))
+    print(str(a2))
+    a3=a1.Clone(chain='F')
+    print(str(a3))

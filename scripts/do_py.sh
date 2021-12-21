@@ -169,6 +169,9 @@ for pi in `seq 0 $((nparse-1))`; do
   echo "# Task $TASK: Using $pyparser to generate Tcl script and VMD to execute it"
   echo "# Bash command:  $PYTHON3 $PYPARSER ${pyparser_args[$pi]} -pe ${NPE} -postscript ps${TASK}.sh -psfgen ${CURRPSFGEN} -inpdb ${CURRPDB}"
   $PYTHON3 $PYPARSER ${pyparser_args[$pi]} -pe ${NPE} -postscript $PS -psfgen ${CURRPSFGEN} -inpdb ${CURRPDB}
+  #echo "Testing"
+  #exit
+  
   echo "# Bash command: ./$PS $TASK -task $TASK -nesting-level 2"
   ./$PS -task $TASK -nesting-level 2
   if [ $? -ne 0 ]; then

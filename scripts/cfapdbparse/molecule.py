@@ -3,7 +3,7 @@ from ssbond import SSBond
 from missing import Missing
 from link import Link
 from biomolecule import Biomolecule
-from segment import Segment, _seg_class_
+from segment import Segment, _seg_typedict_byresname_
 from chain import Chain
 from seqadv import Seqadv
 from mutation import Mutation
@@ -11,6 +11,7 @@ from residue import Residue, _PDBResName123_, _pdb_glycans_, _pdb_ions_, _ResNam
 from revdat import RevDat, FmtDat
 from CifFile import ReadCif
 from cifutil import *
+from moldata import MolData
 _molidcounter_=0
 class Molecule:
     def load(self,fp):
@@ -26,61 +27,54 @@ class Molecule:
             self.psfgen_loadstr+='$ciftmp set resid [list {}]\n'.format(" ".join([str(_.resseqnum) for _ in self.Atoms]))
         _molidcounter_+=1
         fp.write(self.psfgen_loadstr+'\n')
+        return self.molid
     def ReadPDB(self,pdb):
         with open(pdb) as pdbfile:
             for line in pdbfile:
                 self.RawPDB.append(line)
-                if line[:4] == 'ATOM' or line[:6] == "HETATM":
-                    self.Atoms.append(Atom(line))
-                elif line[:4] == 'LINK':
-                    self.Links.append(Link(line))
-                elif line[:6] == 'CONECT':
-                    #self.Connect.append(Connect(line))
-                    pass
-                elif line[:6] == 'SSBOND':
-                    self.SSBonds.append(SSBond(line))
-                elif line[:6] == 'SEQADV':
-                    self.Seqadv.append(Seqadv(line))
-                elif line[:6] == 'REMARK':
-                    self.ParseRemark(line)
-                elif line[:5] == 'TITLE':
+                key=line[:6].strip()
+                if key in self.md.PDBClonables:
+                    self.md.Parse(line)
+                elif key == 'REMARK':
+                    if line[7:10]=='465':
+                        self.md.Parse(line)
+                    else:
+                        self.ParseRemark(line)
+                elif key == 'TITLE':
                     self.ParseTitle(line)
-                elif line[:6] == 'KEYWDS':
+                elif key == 'KEYWDS':
                     self.ParseKeywords(line)
-                elif line[:6] == 'MASTER':
+                elif key == 'MASTER':
                     self.ParseMasterRecord(line)
-                elif line[:6] == 'HEADER':
+                elif key == 'HEADER':
                     self.ParseHeader(line)
-                elif line[:6] == 'MDLTYP':
+                elif key == 'MDLTYP':
                     self.ParseModelType(line)
-                elif line[:5] == 'DBREF':
+                elif key == 'DBREF':
                     self.ParseDBRef(line)
-                elif line[:6] == 'SEQRES':
+                elif key == 'SEQRES':
                     self.ParseSeqRes(line)
-                elif line[:6] == 'REVDAT':
+                elif key == 'REVDAT':
                     self.ParseRevisionDate(line)
-                elif line[:6] == 'EXPDTA':
+                elif key == 'EXPDTA':
                     self.ParseExpDta(line)
+                else:
+                    self.unusedKeys.add(key)
 
-    def __init__(self,pdb=None,cif=None,isgraft=False,userLinks=[],requestedBiologicalAssembly=None,userMissing=[]):
+    def __init__(self,pdb=None,cif=None,userMods={},requestedBiologicalAssembly=None):
         self.source='RCSB' # default assume this is an actual PDB or CIF file from the RCSB
         self.source_format='CIF' if cif!=None else 'PDB'
         self.molid=-1
         self.molid_varname='UNREGISTERED'
+        self.md=MolData(userMods=userMods,parent_molecule=self)
         self.RawPDB=[]
         self.keywords=[]
         self.modtyp=[]
         self.titlelines=[]
         self.Title=''
         self.pdb=pdb if pdb!=None else cif
+        self.unusedKeys=set()
         self.cif=cif
-        self.Atoms=[]
-        self.Links=userLinks
-        self.Chains={} # keyed by chain id 'A', 'B', 'C', etc.
-        self.SSBonds=[]
-        self.MissingRes=[]
-        self.userMissingRes=userMissing
-        self.Seqadv=[]
         self.Biomolecules=[]
         self.activeBiologicalAssembly=None
         self.MRec={}
@@ -88,13 +82,15 @@ class Molecule:
         self.DBRef={} # outer dictionary referenced by chainID
         self.SeqRes={} # outer: chainID, inner: resnumber, value: resname(PDB)
         self.RevDat={}
-
+        ltrs=set()
+        for x in range(26):
+            ltrs.add(chr(ord('A')+x))
+            ltrs.add(chr(ord('a')+x))
+        self.chainIDs_allowed=ltrs
         if pdb!=None:
             self.ReadPDB(pdb)
         elif cif!=None:
-            print('#### reading {}'.format(cif))
             cf=ReadCif(cif)
-            print('#### done')
             db=cf.first_block()
             self.ParseCifDataBlock(db)
         else:
@@ -102,12 +98,8 @@ class Molecule:
             return
         if 'CHARMM' in self.keywords:
             self.source='CHARMM'
-        #print('### Read {:d} pdbrecords from {:s}'.format(len(self.RawPDB),pdb))
+        self.md.MakeConstructs()
         self.MakeBiomolecules(requestedBiologicalAssembly=requestedBiologicalAssembly)
-        self.MakeResidues()
-        self.MakeChains()
-        self.MakeLinks()
-        self.MakeSSBonds()
     def summarize(self):
         print('File: {}, Source: {}, Source format: {}'.format(self.pdb if self.source_format=='PDB' else self.cif,self.source,self.source_format))
         print('   Title: {}'.format(self.Title))
@@ -120,12 +112,12 @@ class Molecule:
             print('   Last revision: {}'.format(self.ShowRevisions(which='latest',justdates=True)))
             #print('All revisions: {}'.format(self.ShowRevisions(which='all',justdates=False)))
             print('   Method: {}; Resolution: {} Ang.'.format(self.ExpDta,self.Resolution))
-            print('   {} ATOM or HETATOM records.'.format(len(self.Atoms)))
-            print('   {} unique residues, {} missing.'.format(len(self.Residues),len(self.MissingRes)))
-            print('   {} disulfides; {} covalent links.'.format(len(self.SSBonds),len(self.Links)))
-            self.ShowSeqadv(brief=True)
-            if len(self.Chains)>0:
-               print('   {} chains: {}'.format(len(self.Chains),", ".join(c.chainID for c in self.Chains.values())))
+            print('   {} ATOM or HETATOM records.'.format(len(self.md.Atoms)))
+            print('   {} unique residues, {} missing.'.format(len(self.md.Residues),len(self.md.MissingRes)))
+            print('   {} disulfides; {} covalent links.'.format(len(self.md.SSBonds),len(self.md.Links)))
+            self.md.ShowSeqadv(brief=True)
+            if len(self.md.Chains)>0:
+               print('   {} chains: {}'.format(len(self.md.Chains),", ".join(c.chainID for c in self.md.Chains.values())))
             print('   {} Biological assemblies:'.format(len(self.Biomolecules)))
             for b in self.Biomolecules:
                 b.show(indent=' '*6,isActive=(b is self.activeBiologicalAssembly))
@@ -139,16 +131,17 @@ class Molecule:
             self.ShowMasterRecord()
             self.ShowModelType()
             self.ShowDBRef()
-            self.ShowSeqadv(brief=True)
+            self.md.ShowSeqadv(brief=True)
         print('#'*60)
     def ParseRemark(self,pdbrecord):
         token=pdbrecord[7:10].strip()
         if token.isdigit():
             code=int(token)
             if code==465:
+                ''' we are reading a missing residue stanza '''
                 test_int=pdbrecord[20:26].strip()
                 if test_int.isdigit() or (len(test_int)>0 and test_int[0]=='-'):
-                    self.MissingRes.append(Missing(pdbrecord))
+                    self.md.MissingRes.append(Missing(pdbrecord))
             elif code==350:
                 ''' we are reading a BIOMOLECULE stanza '''
                 words=pdbrecord.strip().split(' ')
@@ -158,12 +151,13 @@ class Molecule:
                     words.remove('')
                 #print(words)
                 if len(words)>2 and words[2].strip()=='BIOMOLECULE:':
-                    newBiomolecule=Biomolecule(pdbrecord)
+                    newBiomolecule=Biomolecule(pdbrecord,parent_molecule=self)
                     self.Biomolecules.append(newBiomolecule)
                 elif len(words)>2:
                     ''' do we have a biomolecule instance we are populating? '''
                     if len(self.Biomolecules)>0:
                        bm=self.Biomolecules[-1] # populate newest one
+                       #print('parsing biomolecule using ',words)
                        bm.parsePDBrecordwords(words)
                 #else:
                 #    print('ERROR: Non-empty REMARK 350 found outside BIOMOLECULE stanza')
@@ -352,36 +346,12 @@ class Molecule:
     def ParseExpDta(self,pdbrecord):
         if len(pdbrecord)>0:
             self.ExpDta=pdbrecord[10:].strip().title()
-    def ShowSeqadv(self,brief=False):
-        if len(self.Seqadv)>0:
-            if not brief:
-                for sa in self.Seqadv:
-                    print('### SEQADV:',sa)
-            else:
-                
-                nc=0
-                cons=[]
-                for sa in self.Seqadv:
-                    if sa.conflict=='CONFLICT' or sa.conflict=='ENGINEERED MUTATION':
-                        cons.append(sa.printshort())
-                        nc = nc + 1
-                print('{:d} SEQADV records; {:d} conflicts/mutations: {:s}'.format(len(self.Seqadv),nc,", ".join(cons)))
 
     def MakeBiomolecules(self,requestedBiologicalAssembly=None):
-        #print("MakeBiomolecules: {}".format(biologicalAssembly))
-        ltrs=set()
-        for x in range(26):
-            ltrs.add(chr(ord('A')+x))
-            ltrs.add(chr(ord('a')+x))
-        self.chainIDs_allowed=ltrs
-        chainIDs_detected=set()
-        for a in self.Atoms:
-            chainIDs_detected.add(a.chainID)
-        self.chainIDs_available=sorted(list(self.chainIDs_allowed.difference(set(chainIDs_detected))))
-
-        self.Biomolecules.insert(0,Biomolecule()) # make the 0th biomolecule the asymmetric unit
-        self.Biomolecules[0].biomt[0].chainIDs=list(chainIDs_detected)[:]  # all explicitly detected chains are here
-        self.Biomolecules[0].activeChainIDs=list(chainIDs_detected)[:]
+        self.Biomolecules.insert(0,Biomolecule(parent_molecule=self)) # make the 0th biomolecule the asymmetric unit
+        asymmetricUnit=self.Biomolecules[0]
+        asymmetricUnit.initializeAsymmetricUnit(self.md)
+        self.ChainIDDepot=sorted(list(self.chainIDs_allowed.difference(set(asymmetricUnit.chainIDs))))
         if requestedBiologicalAssembly==None:
             self.activeBiologicalAssembly=self.Biomolecules[0]
         else:
@@ -392,117 +362,15 @@ class Molecule:
                 self.activeBiologicalAssembly=self.Biomolecules[0]
             else:
                 self.activeBiologicalAssembly=self.Biomolecules[requestedBiologicalAssembly]
-                b = self.activeBiologicalAssembly
-                for t in b.biomt:
-                    if not t.isidentity():
-                        for cid in t.chainIDs:
-                            t.mapChainIDs(cid,self.chainIDs_available.pop(0))
-                b.activeChainIDs=[]
-                for t in b.biomt:
-                    for cid in t.chainIDs:
-                        b.activeChainIDs.append(t.get_replica_chainID(cid))
+                b=self.activeBiologicalAssembly
+                if not b is asymmetricUnit:
+                    self.ChainIDDepot=b.inheritConstructs(asymmetricUnit,self.ChainIDDepot)
+    def getGlycanSegnames(self):
+        glysegnames=[]
+        for t in self.activeBiologicalAssembly.biomt:
+            glysegnames.extend(t.md.getGlycanSegnames())
+        return glysegnames
 
-    def MakeResidues(self):
-        ''' make residues from atoms '''
-        self.Residues=[]
-        r=0
-        for a in self.Atoms:
-            if r==0:
-                self.Residues.append(Residue(a=a))
-                r=self.Residues[-1]
-            else:
-                if r.resseqnum==a.resseqnum and r.name==a.resname and r.chainID==a.chainID and r.insertion==a.insertion:
-                    r.add_atom(a=a)
-                else: # begin a new residue
-                    self.Residues.append(Residue(a=a))
-                    r=self.Residues[-1]
-        ''' insert missing residues '''
-        for m in self.MissingRes:
-            self.Residues.append(Residue(m=m))
-        for m in self.userMissingRes:
-            self.Residues.append(Residue(m=m))
-    def MakeChains(self):
-        for r in self.Residues:
-            if r.chainID in self.Chains:
-                c=self.Chains[r.chainID]
-                c.add_residue(r)
-            else:
-                newChain=Chain(r,parent_molecule=self)
-                self.Chains[newChain.chainID]=newChain
-        for c in self.Chains.values():
-            c.sort_residues()
-            #print('#### chain {} parent_molecule {}'.format(c.chainID,c.parent_molecule.molid_varname))
-        #print('### Created {} chains.'.format(len(self.Chains)))
-    def MakeSegments(self,userMutations=[],userGrafts=[],userAttachments=[]):
-        nseg=0
-        for c in self.Chains.values():
-             tmut=[_ for _ in userMutations if _.chainID==c.chainID]
-             tgra=[_ for _ in userGrafts if _.target_chain==c.chainID]
-             tatt=[_ for _ in userAttachments if _.target_chain==c.chainID]
-             c.MakeSegments(self.Links,tmut,tgra,tatt)
-             nseg+=len(c.Segments)
-        print('### Created {} segments.'.format(nseg))
-    def MakeSSBonds(self):
-        #print('#### MakeSSBonds is working with {} bonds'.format(len(self.SSBonds)))
-        ''' we need to replicate all SSBOND across any new chains created by symmetry operations on the active biological assembly '''
-        newssbonds=[]
-        for t in self.activeBiologicalAssembly.biomt:
-            if not t.isidentity():
-                #print('#### we are replicating SSBONDS!')
-                for ss in self.SSBonds:
-                    newc1=t.get_replica_chainID(ss.chainID1)
-                    newc2=t.get_replica_chainID(ss.chainID2)
-                    if newc1!=ss.chainID1 or newc2!=ss.chainID2:
-                        bb=SSBond(ss.pdbrecord)
-                        bb.chainID1=newc1
-                        bb.chainID2=newc2
-                        newssbonds.append(bb)
-        self.SSBonds.extend(newssbonds)
-       # print('#### MakeSSBonds finishes with {} bonds.'.format(len(self.SSBonds)))
- 
-    def MakeLinks(self):
-        ''' Set all up and down links in residues participating in links '''
-        for l in self.Links:
-            r1=get_residue(self.Residues,l.chainID1,l.resseqnum1)
-            r2=get_residue(self.Residues,l.chainID2,l.resseqnum2)
-            print(str(r1),str(r2))
-            # if their chains differ, earlier letters are upstream of later letters
-            if _seg_class_[r1.name]=='PROTEIN' and _seg_class_[r2.name]=='GLYCAN':
-                r1.down.append(r2)
-                r2.up.append(r1)
-            elif r1.chainID>r2.chainID:
-                r1.up.append(r2)
-                r2.down.append(r1)
-                #print(r2,'->',r1)
-            elif r1.chainID<r2.chainID:
-                r1.down.append(r2)
-                r2.up.append(r1)
-                #print(r1,'->',r2)
-            else: # they have the same chainID
-               if r1.resseqnum>r2.resseqnum:
-                   r1.up.append(r2)
-                   r2.down.append(r1)
-                   #print(r2,'->',r1)
-               elif r1.resseqnum<r2.resseqnum:
-                   r1.down.append(r2)
-                   r2.up.append(r1)
-                   #print(r1,'->',r2)
-        for c in self.Chains.values():
-            #print('calling group_residues on chain {}'.format(c.chainID))
-            c.group_residues()
-        ''' make additional link copies if there are biomt transformations in the active biological assembly '''
-        newlinks=[]
-        for t in self.activeBiologicalAssembly.biomt:
-            if not t.isidentity():
-                for l in self.Links:
-                    newc1=t.get_replica_chainID(l.chainID1)
-                    newc2=t.get_replica_chainID(l.chainID2)
-                    if newc1!=l.chainID1 or newc2!=l.chainID2:
-                        ll=Link(l.pdbrecord)
-                        ll.chainID1=newc1
-                        ll.chainID2=newc2
-                        newlinks.append(ll)
-        self.Links.extend(newlinks)
     def CleaveChains(self,Cleavages):
         if len(self.chainIDs_available)<len(Cleavages):
             print("### WARNING: insufficient chainID's are available for {} cleavages".format(len(Cleavages)))
@@ -531,7 +399,7 @@ class Molecule:
             else:
                 print('### unable to cleave chain {} at position {}'.format(clv_c.chainID,clv.parent_Cterm_resseqnum))
     def __str__(self):
-        return 'Molecule {}: {} chains, {} residues, {} atoms, {} links, {} ssbonds'.format(self.pdb,len(self.Chains),len(self.Residues),len(self.Atoms),len(self.Links),len(self.SSBonds)) 
+        return 'Molecule {}: {} chains, {} residues, {} atoms, {} links, {} ssbonds, {} biological assemblies'.format(self.pdb,len(self.md.Chains),len(self.md.Residues),len(self.md.Atoms),len(self.md.Links),len(self.md.SSBonds),len(self.Biomolecules)) 
     def residue_shift(self,chainID,resseqnumshift):
         if chainID not in self.Chains:
             print('#### Warning: cannot shift in chain {}: no such chain'.format(chainID))
@@ -551,90 +419,26 @@ class Molecule:
                 ss.resseqnum2+=resseqnumshift
         return 0
 
-    def WritePsfgenInput(self,fp,userMutations=[],userDeletions=[],prefix='my_',fixConflicts=False,fixEngineeredMutations=False,userGrafts=[],userAttach=[],userSSBonds=[],userMissing=[],userxSSBonds=[],userIgnoreChains=[],includeTerminalLoops=False,removePDBs=True):
-
-        self.load(fp)
-        for g in userGrafts:
-            g.load(fp)
-        if len(userAttach)>0:
-            print('Warning: Attachments are not implemented.')
-#        for a in userAttach:
- #           pass # a.load(fp)
-
-        fp.write('mol top ${}\n'.format(self.molid_varname))
-
-        ''' update the user-specified lists of mutations:
-            1. include any conflict-fixes specified in the RCSB-format PDB file
-            2. include any possible replicas created when new chains are eventually 
-               created via BIOMT operations
-            same for deletions, but only option 2
-        '''
-        newmutations=[]
-        for sa in self.Seqadv:
-            if fixConflicts==True and sa.conflict=='CONFLICT':
-                newmutations.append(Mutation(seqadv=sa))
-            elif fixEngineeredMutations==True and sa.conflict=='ENGINEERED MUTATION':
-                newmutations.append(Mutation(seqadv=sa))
-        userMutations.extend(newmutations)
-        replica_mutations=[]
-        replica_deletions=[]
-        replica_missings=[]
+    def WritePsfgenInput(self,fp,prefix='DEFAULTPREFIX'):
+        ''' issue the mol load commands '''
+        molids=[self.load(fp)]
         for t in self.activeBiologicalAssembly.biomt:
-            for m in userMutations:
-                newc=t.get_replica_chainID(m.chainID)
-                if newc!=m.chainID:
-                    mm=m.replicate(newchainID=newc)
-                    replica_mutations.append(mm)
-            for d in userDeletions:
-                newc=t.get_replica_chainID(d.chainID)
-                if newc!=d.chainID:
-                    dd=d.replicate(newChainID=newc)
-                    replica_deletions.append(dd)
-            for m in userMissing:
-                newc=t.get_replica_chainID(m.chainID)
-                if newc!=m.chainID:
-                    mm=m.replicate(newChainID=newc)
-                    replica_missings.append(mm)
-        userMutations.extend(replica_mutations)
-        userDeletions.extend(replica_deletions)
-        userMissing.extend(replica_missings)
-
+            for g in t.md.Grafts:
+                molids.append[g.load(fp)]
+        print('Molids:',molids)
+        fp.write(f'mol top ${self.molid_varname}\n')
         fp.write('#### BEGIN SEGMENTS\n')
         Loops=[]
         for t in self.activeBiologicalAssembly.biomt:
-            for cid in t.chainIDs:
-                c=self.Chains[cid]
-                if c.chainID not in userIgnoreChains:
-                    c.MakeSegments(self.Links,Mutations=userMutations,Deletions=userDeletions,Grafts=userGrafts,Attachments=userAttach,Missings=userMissing)
-                    for s in c.Segments:
-                        print('#### Chain {} represented in tmat {:d} as {}'.format(c.chainID,t.index,t.get_replica_chainID(c.chainID)))
-                        stanza,loops=s.write_psfgen_stanza(includeTerminalLoops=includeTerminalLoops,tmat=t)
-                        Loops.extend(loops) # psfgen postprocessing needs loop info
-                        fp.write(stanza)
-                    for p in s.pdbfiles:
-                        if removePDBs:
-                            fp.write('file delete {}\n'.format(p))
+            Segments=t.md.MakeSegments()
+            for s in Segments:
+                stanza,loops=s.psfgen_stanza(includeTerminalLoops=self.md.userMods['includeTerminalLoops'],tmat=t)
+                Loops.extend(loops) # psfgen postprocessing needs loop info
+                fp.write(stanza)
         fp.write('#### END SEGMENTS\n')
         fp.write('#### BEGIN PATCHES\n')
-
-        for ss in self.SSBonds:
-            if ss.isActive(self.activeBiologicalAssembly.activeChainIDs,userIgnoreChains) and not ss.inlist(userxSSBonds):
-                fp.write(ss.psfgen_patchline())
-        for ss in userSSBonds: # no error checking -- user ought to know not to request SS bonds in chains that aren't there
-            fp.write(ss.psfgen_patchline())
-
-        if len(userGrafts)>0:
-            print('#### Importing {} grafts'.format(len(userGrafts)))
-            self.importGrafts(userGrafts)
-        fp.write('#### {} LINKS:\n'.format(len(self.Links)))
-        for l in self.Links:
-            ''' The generation of new segments for glycans and/or cleavage necessitates
-                updating segment names in the LINK records read from the original PDB.
-                updateSegnames() reassigns residue1/2, atom1/2, and segname1/2 
-                attributes of each link instance. '''
-            l.updateSegnames(self.Residues,self.activeBiologicalAssembly)
-            if l.isActive(self.activeBiologicalAssembly.activeChainIDs,userIgnoreChains):
-                fp.write(l.psfgen_patchline())
+        for t in self.activeBiologicalAssembly.biomt:
+            fp.write(t.md.GetPatches())
         fp.write('#### END PATCHES\n')
 
         fp.write('guesscoord\n')
@@ -651,82 +455,6 @@ class Molecule:
         # return the list of loops for the post-mod routine to handle
         return Loops
 
-    def importGrafts(self,userGrafts):
-        linksToImport=[]
-        linksToEdit=[]
-        linksToRemove=[]
-        for g in userGrafts:
-            #print('#### importing the following graft into Base as chain {} seg {}'.format(g.ingraft_chainID,g.ingraft_segname,str(g)))
-            m=g.molecule
-            for l in m.Links:
-                l.updateSegnames(m.Residues,m.activeBiologicalAssembly)
-            sseg=g.source_segment
-            for r in sseg.residues:
-                r.segname=g.ingraft_segname
-                for a in r.atoms:
-                    a.chainID=g.ingraft_chainID
-                    a.segname=g.ingraft_segname
-                for l in m.Links:
-                    if l.isInLink(r.chainID,r.resseqnum):
-                        if l.resseqnum1 in g.resid_dict and l.resseqnum2 in g.resid_dict:
-                            l.chainID1=g.ingraft_chainID
-                            l.chainID2=g.ingraft_chainID
-                            l.resseqnum1=g.resid_dict[l.resseqnum1]
-                            l.resseqnum2=g.resid_dict[l.resseqnum2]
-                            l.segname1=g.ingraft_segname
-                            l.segname2=g.ingraft_segname
-                            #print('LINK point of import {} {} {} {}'.format(l.segname1,l.resseqnum1,l.segname2,l.resseqnum2))
-                            if l not in linksToImport:
-                                linksToImport.append(l)
-                        #else:
-                         #   print('#### this graft link is not imported:')
-                          #  print(l.pdb_line())
-                         
-                r.chainID=g.ingraft_chainID
-                r.resseqnum=g.resid_dict[r.resseqnum]
-               # print('#### importing graft residue {} into chain {} segment {}'.format(str(r),r.chainID,r.segname))
-                self.Residues.append(r)
-            # identify Base residues that are grafted over
-            graft_overs=[]
-            r=get_residue(self.Residues,g.target_chain,g.target_res)
-            graft_overs.append(r)
-            for rr in r.get_down_group():
-                graft_overs.append(rr)
-            #print('#### grafting over {:d} base residues rooted at {} in seg {}'.format(len(graft_overs),str(graft_overs[0]),r.segname))
-            # find the Base link that joins the target residue to the molecule; target residue is assumed to be the second residue in the link
-            for l in self.Links:
-                if l.isInLink(graft_overs[0].chainID,graft_overs[0].resseqnum,pos=2):
-                    l.chainID2=g.ingraft_chainID
-                    l.segname2=g.ingraft_segname
-                    l.resseqnum2=g.resid_dict[g.source_res1]
-                    linksToEdit.append(l)
-            for i,r in enumerate(graft_overs):
-               # print('#### graft will remove links involving defunct residue {} in seg {}'.format(str(r),r.segname))
-                for l in self.Links:
-                    pos=1 if i==0 else ''
-                    if l.isInLink(r.chainID,r.resseqnum,pos=pos):
-                        if l not in linksToRemove:
-                            linksToRemove.append(l)
-        if len(linksToImport)>0:
-            #print('#### Before import, base has {} links.'.format(len(self.Links)))
-            #print('#### The following {} graft links were imported:'.format(len(linksToImport)))
-            for l in linksToImport:
-                #print(l.pdb_line())
-                #print(l.psfgen_patchline())
-                self.Links.append(l)
-                #print('point of report {} {} {} {}'.format(l.segname1,l.resseqnum1,l.segname2,l.resseqnum2))
-            #print('#### Base now has {} links.'.format(len(self.Links)))
-            #print('#### The following Base links were edited in-situ')
-            for l in linksToEdit:
-                #print(l.pdb_line())
-                #print(l.psfgen_patchline())
-                if l not in self.Links:
-                    print('ERROR: In-situ link is not in-situ!')
-            #print('#### The following Base links were removed:')
-            for l in linksToRemove:
-                #print(l.pdb_line())
-                #print(l.psfgen_patchline())
-                self.Links.remove(l)
     def Tcl_PrependHeaderToPDB(self,newpdb,psfgen_script,hdr='charmm_header.pdb'):
         _tmpfile_='_tmpfile_'
         fp=open(hdr,'w')
@@ -734,10 +462,11 @@ class Molecule:
         self.keywords.append('CHARMM')
         fp.write(self.KeywordsRecord())
         #write ssbonds and links
-        for ss in self.SSBonds:
-            fp.write(ss.pdb_line()+'\n')
-        for l in self.Links:
-            fp.write(l.pdb_line()+'\n')
+        for t in self.activeBiologicalAssembly.biomt:
+            for ss in t.md.SSBonds:
+                fp.write(ss.pdb_line()+'\n')
+            for l in t.md.Links:
+                fp.write(l.pdb_line()+'\n')
         fp.close()
         # write tcl commands to combine the two files, preserving the header for other uses
         psfgen_script.write('exec cat {} {} > {}\n'.format(hdr,newpdb,_tmpfile_))

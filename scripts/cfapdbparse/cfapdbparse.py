@@ -138,8 +138,8 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
             lay_cycles=lay_cycles if 'lay_cycles' not in p else p['lay_cycles']
         for l in sorted(Loops, key=lambda x: len(x.residues)):
             if (l.term and len(l.residues)>2):
-                fp.write('lay_loop $molid {} [range {} {} 1] {}\n'.format(l.replica_chainID,
-                          l.residues[0].resseqnum,l.residues[-1].resseqnum,lay_cycles))
+                the_list='[list '+' '.join([f'{r.resseqnum}{r.insertion}' for r in l.residues])+']'
+                fp.write(f'lay_loop $molid {l.replica_chainID} {the_list} {lay_cycles}\n')
 
         
     if 'do_multiflex_mc' in PostMod and PostMod['do_multiflex_mc']:
@@ -370,7 +370,8 @@ if __name__=='__main__':
     parser.add_argument('-locparam',metavar='<name> ...',nargs='+',default=[],help='Additional (local) CHARMM parameter files in the $PSFGEN_BASEDIR/charmm directory')
     parser.add_argument('-prefix',metavar='<str>',default='x01_',help='Output PDB/PSF prefix; each file name will have the format <prefix><pdbcode>.pdb/psf, where <pdbcode> is the 4-letter PDB code of the base molecule.')
     parser.add_argument('-psfgen',metavar='<name>',default='mkpsf.tcl',help='name of TcL script generated as input to VMD/psfgen')
-    parser.add_argument('-ignore',metavar='X ...',nargs='+',default=[],type=str,help='Specify chain(s) to ignore.')
+    parser.add_argument('-ignore',metavar='X ...',nargs='+',default=[],type=str,help='Specify chain(s) to ignore from asymmetric unit.')
+    parser.add_argument('-includeonly',metavar='X ...',nargs='+',default=[],type=str,help='Specify only chain(s) to include from asymmetric unit')
     parser.add_argument('-modsfile',metavar='<name> ...',nargs='+',default=[],type=ModsFile,help='One (or more) modifications file(s) to rule them all.')
     parser.add_argument('-mut',metavar='C_OrrrN [C_OrrrN] ...',nargs='+',default=[],type=Mutation,help='One or more point-mutation specifications.  Format: C is chainID, O is one-letter residue code to mutate FROM, rrr is sequence number (can be any number of digits), and N is one-letter residue code to mutate TO.  Multiple mutation instances can be specified with one -mut.  Mutations are automatically replicated if there are BIOMT transformations.')
     parser.add_argument('-mutfile',metavar='<name>',default='',help='Input file listing mutation specifications')
@@ -405,6 +406,7 @@ if __name__=='__main__':
 #    parser.add_argument('-glymcparams',metavar='<param1=val1,param2=val2,...>',default='',help='Glycan Monte Carlo parameters')
     parser.add_argument('-smdclose',action='store_true',help='Asks psfgen to prep for steered MD simulation to close loops')
     parser.add_argument('-smdcloseparams',metavar='<param1=val1,param2=val2,...>',default='',help='Parameters for steered MD for closing loops')
+    parser.add_argument('-includeTerminalLoops',action='store_true',default=False)
     parser.add_argument('-namdparams',metavar='<param1=val1,param2=val2,...>',default='',help='Parameters for NAMD runs')
     parser.add_argument('-kc',action='store_true',help='Ignores SEQADV records indicating conflicts between construct and sequence; if unset, residues in CONFLICT are mutated to their proper identities')
     parser.add_argument('-rem',action='store_true',default=False,help='Revert engineered mutations listed in SEQADV records')
@@ -415,7 +417,11 @@ if __name__=='__main__':
     parser.add_argument('-pe',metavar='<int>',default=8,type=int,help='number of processors to indicated in NAMD inputs')
 
     args=parser.parse_args()
-    
+    fixConflicts=not args.kc
+    UIC=args.ignore
+    IOC=args.includeonly
+
+    fixEngineeredMutations=args.rem    
     if len(sys.argv)>1:
         print('Command-line arguments: '+' '.join(sys.argv[1:]))
 
@@ -456,10 +462,13 @@ if __name__=='__main__':
             Del.extend(mf.show_type(Deletion))
             Mis.extend(mf.show_type(Missing))
             Uxss.extend(mf.show_excl(SSBond))
+    userMods={'userMutations':Mut,'userCleavages':Clv,'userGrafts':Gra,'userAttachments':Att,
+               'userSSBonds':Uss,'userXSSBonds':Uxss,'userLinks':Usl,'userDeletions':Del,'userMissing':Mis,
+               'fixConflicts':fixConflicts,'fixEngineeredMutations':fixEngineeredMutations,'ignoreChains':UIC,
+               'includeOnlyChains':IOC,'includeTerminalLoops':args.includeTerminalLoops}
 
     UPDBAliases=MrgCmdLineAndFileContents([' '.join(_.split(',')) for _ in args.pdbalias],args.pdbaliasfile,str)
     PDBAliases.extend(UPDBAliases)
-    UIC=args.ignore
     CTopo.extend(args.charmmtopo)
     LocTopo.extend(args.loctopo)
     StdParamFiles.extend(args.charmmparam)
@@ -482,16 +491,15 @@ if __name__=='__main__':
     PostMod['log_dcd_file']=args.logdcd
     PostMod['log_every']=args.logevery
     PostMod['log_save_every']=args.logsaveevery
-    fixConflicts=not args.kc
-    fixEngineeredMutations=args.rem
+
     psfgen=args.psfgen
     PostMod['center_protein']=~(args.noc)
     if args.ror!='None,None':
         PostMod['reorient_protein']=True
         PostMod['center_protein']=True
         PostMod['reorselstr']=args.ror.split(',')
-    for k,v in PostMod.items():
-        print('{}:'.format(k),v)
+    #for k,v in PostMod.items():
+    #    print('{}:'.format(k),v)
 
     postscriptname=args.postscript
     npe=args.pe
@@ -500,9 +508,10 @@ if __name__=='__main__':
     PDBfiles=args.inpdb+args.incif
     Molecules=[]
     if '.cif' in PDBfiles[0]:
-        Molecules.append(Molecule(cif=PDBfiles[0],userLinks=Usl,userMissing=Mis,requestedBiologicalAssembly=args.biological_assembly))
+        Molecules.append(Molecule(cif=PDBfiles[0],userMods=userMods,requestedBiologicalAssembly=args.biological_assembly))
     elif '.pdb' in PDBfiles[0]:
-        Molecules.append(Molecule(pdb=PDBfiles[0],userLinks=Usl,requestedBiologicalAssembly=args.biological_assembly))
+        Molecules.append(Molecule(pdb=PDBfiles[0],userMods=userMods,requestedBiologicalAssembly=args.biological_assembly))
+    # auxiliary PDB/mmCIF molecules
     for p in PDBfiles[1:]:
         if '.cif' in p:
             Molecules.append(Molecule(cif=p))
@@ -521,36 +530,20 @@ if __name__=='__main__':
     for a in sys.argv:
         psfgen_fp.write('{} '.format(a))
     psfgen_fp.write('\n')
-    
     WriteHeaders(psfgen_fp,CTopo,LocTopo,PDBAliases)
  
     if len(Clv)>0:
         Base.CleaveChains(Clv)
 
     ''' this will issue the final 'writepsf' and 'writepdb commands '''
-    Loops=Base.WritePsfgenInput(psfgen_fp,userMutations=Mut,userDeletions=Del,fixConflicts=fixConflicts,
-                               fixEngineeredMutations=fixEngineeredMutations,prefix=prefix,
-                               userGrafts=Gra,userAttach=Att,userSSBonds=Uss,userxSSBonds=Uxss,
-                               userIgnoreChains=UIC,removePDBs=True)
+    Loops=Base.WritePsfgenInput(psfgen_fp,prefix=prefix)
 
     ''' PostMods alter coordinates to ease minimization; psf is not modified further
         Regardless of whether any modifications are done or not, this will always write 
         a *_mod.pdb coordinate file '''
 
     ''' identify glycan segments '''
-    glycan_segs=[]
-    for c in Base.Chains.values():
-        for s in c.Segments:
-            if s.segtype=="GLYCAN":
-                glycan_segs.append(s.segname)
-    ''' generate crot replicas '''
-    newcrots=[]
-    for b in Base.Biomolecules:
-        for t in b.biomt:
-            if not t.isidentity():
-                for c in PostMod['Crot']:
-                    newcrots.append(c.replicate(t.get_replica_chainID(c.chainID)))
-    PostMod['Crot'].extend(newcrots)
+    glycan_segs=Base.getGlycanSegnames()
     post_pdb=WritePostMods(psfgen_fp,Base.psf_outfile,Base.pdb_outfile,PostMod,Loops,glycan_segs)
     # save useful header records to the output pdb
     Base.Tcl_PrependHeaderToPDB(post_pdb,psfgen_fp)
@@ -630,9 +623,10 @@ ind=`indent $nesting_level "#"`
             target_numsteps=DefOrDict(p,'target_numsteps',target_numsteps)
         fp.write('cat > close_these.inp << EOF\n')
         for l in sorted(Loops, key=lambda x: len(x.residues)):
-            if (l.term and len(l.residues)>2):
-                fp.write('{} {} {}\n'.format(l.replica_chainID,l.residues[-1].resseqnum,l.nextfragntermresid))
+            if (l.term=='None' and len(l.residues)>2):
+                fp.write(l.input_str())
         fp.write('EOF\n')
+        fp.write('cp close_these.inp close_these.inp.bak\n')
         # measures to find the initial distances; generated fixed.pdb to fix the N atoms 
         logname=r'close${TASK}.log'
         args='{} {} close_these.inp fixed.pdb'.format(currpsf,currpdb)
@@ -657,12 +651,12 @@ ind=`indent $nesting_level "#"`
         vmd_instructions(fp,r'$PSFGEN_BASEDIR/scripts/namdbin2pdb.tcl',logname=r'namdbin2pdb${TASK}-1.log',
                         args='{} {} {}'.format(currpsf,namdbin,'tmp.pdb'),msg='converting namdbin to pdb')
         fp.write('cat charmm_header.pdb tmp.pdb > {}\n'.format(currpdb))
-        fp.write('cat > closure_patches.inp << EOF\n')
+#        fp.write('cat > closure_patches.inp << EOF\n')
+        fp.write('cat > the_closing_patches.inp << EOF\n')
         for l in sorted(Loops, key=lambda x: len(x.residues)):
-            if (l.term and len(l.residues)>2):
+            if (l.term=='None' and len(l.residues)>2):
                 #fp.write('# will try to close bond between {} and {} on chain {}...\n'.format(l.residues[-1].resseqnum,l.nextfragntermresid,l.replica_chainID))
-                fp.write('patch HEAL {c}:{ll} {c}:{l} {c}:{r} {c}:{rr}\n'.format(c=l.replica_chainID,
-                            ll=l.residues[-2].resseqnum,l=l.residues[-1].resseqnum,r=l.nextfragntermresid,rr=(l.nextfragntermresid+1)))
+                fp.write(l.heal_str())
         fp.write('EOF\n')
         tfp=open('topologies.inp','w')
         CommonPSFGENheader(tfp,CTopo,LocTopo)
