@@ -36,7 +36,7 @@
 # Cameron Abrams cfa22@drexel.edu
 
 # generates an atomselect string from the command-line shortcode
-# shortcode format is ABC_xxx-yyy;zzz-ggg;....
+# shortcode format is ABC_xxx-yyy/zzz-ggg/....
 # where the characters in the substring to the left of the "_" delimiter
 # are chain IDs, and the substring after the "_" delimiter 
 # is a slash-delimited list (no spaces!) of one or more residue ranges.

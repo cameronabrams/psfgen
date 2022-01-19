@@ -6,7 +6,7 @@
 """
 
 import sys
-import operator
+# import operator
 import argparse
 import os
 import random
@@ -25,47 +25,7 @@ from missing import Missing
 from modsfile import ModsFile
 from atom import _PDBAtomNameDict_
 from residue import Residue, _PDBResName123_, _pdb_glycans_, _pdb_ions_, _ResNameDict_PDB_to_CHARMM_, _ResNameDict_CHARMM_to_PDB_, get_residue
-
-def vmd_instructions(fp,script,logname='tmp.log',args='',msg=''):
-    fp.write('echo "VMD) script={} log={} msg: {}"\n'.format(script,logname,msg))
-    if args!='':
-        fp.write(r'$VMD -dispdev text -e '+script+r' -args '+args+r' > '+logname+' 2>&1\n')
-    else:
-        fp.write(r'$VMD -dispdev text -e '+script+r' > '+logname+' 2>&1\n')
-    fp.write('if [ $? -ne 0 ]; then\n')
-    fp.write('   echo "VMD failed.  Check the log file {}. Exiting."\n'.format(logname))
-    fp.write('   exit 1\n')
-    fp.write('fi\n')
-
-def namd_instructions(fp,cfgname,psf,coor,outname,logname,
-                      npe=8,numminsteps=0,numsteps=0,seed=0,template='vac.namd',
-                      temperature=310,extras=[],msg='',stdparamfiles=[],localparamfiles=[],
-                      stdcharmmdir=r'\$env(HOME)/charmm/toppar',
-                      localcharmmdir=r'\$env(PSFGEN_BASEDIR)/charmm'):
-    fp.write('cat $PSFGEN_BASEDIR/templates/{}'.format(template))
-    fp.write('  | sed s/%OUT%/{}/g'.format(outname))
-    fp.write('  | sed s/%NUMMIN%/{}/'.format(numminsteps))
-    fp.write('  | sed s/%NUMSTEPS%/{}/'.format(numsteps))
-    fp.write('  | sed s/%SEED%/{}/g'.format(seed))
-    fp.write('  | sed s/%TEMPERATURE%/{}/g'.format(temperature))
-    fp.write('  | sed "/#### SYSTEM CONFIGURATION FILES END/i structure {}"'.format(psf))
-    fp.write('  | sed "/#### SYSTEM CONFIGURATION FILES END/i coordinates {}"'.format(coor))
-    sentinelline='#### PARAMETER FILES END'
-    for st in stdparamfiles:
-        fp.write(' | sed "/{}/i parameters {}/{}" '.format(sentinelline,stdcharmmdir,st))
-    for st in localparamfiles:
-        fp.write(' | sed "/{}/i parameters {}/{}" '.format(sentinelline,localcharmmdir,st))
-    sentinelline='#### EXTRAS END'
-    for ex in extras:
-        fp.write('  | sed "/'+sentinelline+'/i '+ex+'" ')
-    fp.write(' > {}\n'.format(cfgname))
-    namdp='+p{:d}'.format(npe)
-    fp.write('echo "NAMD2) config={} log={} outputname={} msg={}"\n'.format(cfgname,logname,outname,msg))
-    fp.write(r'$CHARMRUN '+namdp+r' $NAMD2 '+cfgname+r' > '+logname+'\n')
-    fp.write('if [ $? -ne 0 ]; then\n')
-    fp.write('   echo "NAMD failed.  Check log file {}. Exiting."\n'.format(logname))
-    fp.write('   exit 1\n')
-    fp.write('fi\n')
+from util import *
 
 def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
     """ Writes TcL/VMD commands that encode modifications once the
@@ -142,7 +102,7 @@ def WritePostMods(fp,psf,pdb,PostMod,Loops,GlycanSegs):
                 fp.write(f'lay_loop $molid {l.replica_chainID} {the_list} {lay_cycles}\n')
 
         
-    if 'do_multiflex_mc' in PostMod and PostMod['do_multiflex_mc']:
+    if DefOrDict(PostMod,'do_multiflex_mc',False):
         nc=1000
         rcut=4.0
         sigma=1.8
@@ -296,35 +256,13 @@ def WriteHeaders(fp,charmm_topologies,local_topologies,pdbaliases):
         fp.write('set ANAMEDICT({}) {}\n'.format(k,v))
     fp.write('#### END HEADER\n')
 
-def MrgCmdLineAndFileContents(cl_list,filename,typ):
-    if filename!='':
-        with open(filename,'r') as f:
-           for l in f:
-               if l[0]!='#':
-                   cl_list.append(typ(l))
-    return cl_list
 
-def DictFromString(string):
-    #print('parsing {}'.format(string))
-    my_dict = {}
-    if len(string)>0:
-        items=string.split(',')
-        for i in items:
-            kv=i.split('=')
-            k=kv[0]
-            v=kv[1]
-            my_dict[k]=v
-    return my_dict
-
-def DefOrDict(d,varname,default):
-    return default if varname not in d else d[varname]
-
-def GetStreamFileNames(giventopos):
-    streamfilesnames=[]
-    for t in giventopos:
-        if t[-3:] == 'str':
-            streamfilesnames.append(t)
-    return streamfilesnames
+# def GetStreamFileNames(giventopos):
+#     streamfilesnames=[]
+#     for t in giventopos:
+#         if t[-3:] == 'str':
+#             streamfilesnames.append(t)
+#     return streamfilesnames
 
 if __name__=='__main__':
     seed=random.randint(0,100000)
@@ -361,7 +299,7 @@ if __name__=='__main__':
     PostMod['Crot']=[]
 
     parser.add_argument('-inpdb',default=[],nargs='+',metavar='<?.pdb>',type=str,help='Name(s) of pdb file to parse; First is treated as the base molecule')
-    parser.add_argument('-incif',default=[],nargs='+',metavar='<?.pdb>',type=str,help='Name(s) of mmCIF file to parse; First is treated as the base molecule')
+    parser.add_argument('-incif',default=[],nargs='+',metavar='<?.cif>',type=str,help='Name(s) of mmCIF file to parse; First is treated as the base molecule')
 
     parser.add_argument('-ba','--biological-assembly',metavar='#',default=0,type=int,help='Biological assembly to construct; one may be selected from those defined in PDB/mmCIF metadata.  If not specified, the explicit model is built.')
     parser.add_argument('-charmmtopo',metavar='<name> ...',nargs='+',default=[],help='Additional (standard) CHARMM topology files in your CHARMM directory')
@@ -521,7 +459,10 @@ if __name__=='__main__':
             Molecules.append(Molecule(pdb=p))
     Base=Molecules[0]
     Base.summarize()
+    if len(Clv)>0:
+        Base.CleaveChains(Clv)
 
+    ''' Generate the psfgen TcL script '''
     psfgen_fp=open(psfgen,'w')
     psfgen_fp.write('### This is an automatically generated psfgen input file\n')
     psfgen_fp.write('### created using cfapdbparse.py on {} at {}\n'.format(date.today(),datetime.now().strftime('%H:%M:%S')))
@@ -530,27 +471,19 @@ if __name__=='__main__':
     psfgen_fp.write('### questions to cfa22@drexel.edu\n')
     psfgen_fp.write('### command: python3 '+' '.join(sys.argv)+'\n')
     WriteHeaders(psfgen_fp,CTopo,LocTopo,PDBAliases)
- 
-    if len(Clv)>0:
-        Base.CleaveChains(Clv)
-
-    ''' this will issue the final 'writepsf' and 'writepdb commands '''
     Loops=Base.WritePsfgenInput(psfgen_fp,prefix=prefix)
-
-    ''' PostMods alter coordinates to ease minimization; psf is not modified further
+    ''' PostMods are commands that operation on the PSF/PDB pair generated above, and are included in the
+        TcL script for psfgen.  These are typically commands that alter coordinates, like centering, rotating, and
+        adjusting dihedrals to ease future minimization.  The PSF itself is not modified.
         Regardless of whether any modifications are done or not, this will always write 
         a *_mod.pdb coordinate file '''
-
-    ''' identify glycan segments '''
-    glycan_segs=Base.getGlycanSegnames()
-    post_pdb=WritePostMods(psfgen_fp,Base.psf_outfile,Base.pdb_outfile,PostMod,Loops,glycan_segs)
-    # save useful header records to the output pdb
+    post_pdb=WritePostMods(psfgen_fp,Base.psf_outfile,Base.pdb_outfile,PostMod,Loops,Base.getGlycanSegnames())
     Base.Tcl_PrependHeaderToPDB(post_pdb,psfgen_fp)
-
     psfgen_fp.write('exit\n')
-    psfgen_fp.write('### thank you for using cfapdbparse.py!\n')
+    psfgen_fp.close()
 
-    ''' Generate the postscript '''
+    ''' Generate the shell script that manages all invocations of vmd and namd2 to 
+        complete the system build '''
     nummin=1000
     numsteps=2000
     temperature=310
