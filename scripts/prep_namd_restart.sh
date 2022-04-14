@@ -183,8 +183,8 @@ cat $CONF | sed '/^#/d' | sed '/^$/d' | sed '/^firsttimestep/d' | \
             sed '/^extendedsystem/d' | \
             sed '1 i # restart file generated from '$CONF' and '$LOG | \
             sed '/set outputname/ c set outputname '$REOUTNAME | \
-            sed '/outputName/ c outputName '$REOUTNME | \
-            sed '/outputname/ c outputname '$REOUTNME | \
+            sed '/outputName/ c outputName '$REOUTNAME | \
+            sed '/outputname/ c outputname '$REOUTNAME | \
             sed '4 i bincoordinates '${lastout}${RESINFILENAME}'.coor' | \
             sed '5 i binvelocities '${lastout}${RESINFILENAME}'.vel' | \
             sed '6 i extendedsystem '${lastout}${RESINFILENAME}'.xsc' | \
