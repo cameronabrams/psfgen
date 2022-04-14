@@ -69,8 +69,6 @@ done
 cfgext=`echo $RECONF| awk -F. '{print $NF}'`
 REOUTNAME=`echo $RECONF | sed s/".${cfgext}//"`
 
-echo $cfgext $REOUTNAME
-exit
 if [[ "$quiet" != "0" ]]; then
     banner
 fi
@@ -80,7 +78,6 @@ if [[ "$ENSEMBLE" != "nochange" ]] && [[ "$ENSEMBLE" != "nvt" ]] && [[ "$ENSEMBL
     exit 1
 fi
 
-REOUTNAME=$(basename "$RECONF" | cut -d. -f1)
 if [ ! -f $CONF ] ; then
     echo "Error: $CONF not found."
     exit 1
