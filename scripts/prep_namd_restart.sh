@@ -66,6 +66,11 @@ while [ $i -le $ARGC ] ; do
   i=$((i+1))
 done
 
+cfgext=`echo $RECONF| awk -F. '{print $NF}'`
+REOUTNAME=`echo $RECONF | sed s/".${cfgext}//"`
+
+echo $cfgext $REOUTNAME
+exit
 if [[ "$quiet" != "0" ]]; then
     banner
 fi
@@ -131,9 +136,9 @@ else
     stepsleft=$(($stepsleft+$USERADDSTEPS))
     echo "stepsleft $stepsleft"
 fi
-lastout=`grep "set outputname" $CONF | awk '{print $3}' | sed 's/;$//'`
+lastout=`grep "set outputname" $CONF | grep -v \# | awk '{print $3}' | sed 's/;$//'`
 if [ -z "${lastout}" ]; then
-    lastout=`grep ^outputname $CONF | awk '{print $2}' | sed 's/;$//'`
+    lastout=`grep -i ^outputname $CONF | awk '{print $2}' | sed 's/;$//'`
     if [ -z "${lastout}" ]; then
         echo "Error: $CONF does not contain an outputname specification."
         exit 1
