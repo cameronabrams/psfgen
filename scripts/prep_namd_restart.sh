@@ -129,9 +129,7 @@ else
         stepsrequested=$(($stepsrequested+$firsttimestep))
     fi
     stepsleft=$(($stepsrequested-$stepsrun))
-    echo "stepsleft $stepsleft"
     stepsleft=$(($stepsleft+$USERADDSTEPS))
-    echo "stepsleft $stepsleft"
 fi
 lastout=`grep "set outputname" $CONF | grep -v \# | awk '{print $3}' | sed 's/;$//'`
 if [ -z "${lastout}" ]; then
