@@ -13,6 +13,24 @@
 # Cameron Abrams cfa22@drexel.edu
 # 2020-2021
 
+banner () {
+    echo "# prep_namd_restart.sh: NAMD continuation utility -- Cameron F Abrams -- cfa22@drexel.edu"
+    echo "# Command:"
+    echo "#    prep_namd_restart.sh ${@}"
+}
+
+help () {
+    echo "# NAMD continuation utility -- Cameron F Abrams -- cfa22@drexel.edu"
+    echo "Usage:"
+    echo " $ prep_namd_restart.sh -i <existing_namd_config> -l <existing_namd_log> -o <new_namd_config_to_generate> [options]"
+    echo "Options:"
+    echo "    --new-numsteps <#>             change the number of timesteps to this value"
+    echo "    --addsteps <#>                 change the number of timesteps by adding this value to the current number"
+    echo "    --ensemble <nochange|nvt|npt>  set the ensemble; default is nochange"
+    echo "    -q                             supress messages"
+    echo "    --help                         generate this message"
+}
+
 ENSEMBLE="nochange"
 USERADDSTEPS=0
 i=1
@@ -37,8 +55,11 @@ while [ $i -le $ARGC ] ; do
     i=$((i+1))
     USERADDSTEPS=${!i}
   elif [ "${!i}" = "--ensemble" ]; then
-     i=$((i+1))
-     ENSEMBLE=${!i}
+    i=$((i+1))
+    ENSEMBLE=${!i}
+  elif [ "${!i}" = "--help" ]; then
+    help
+    exit
   else
     echo "${!i}: not recognized"
   fi
@@ -46,9 +67,7 @@ while [ $i -le $ARGC ] ; do
 done
 
 if [[ "$quiet" != "0" ]]; then
-    echo "# prep_namd_restart.sh: NAMD continuation utility -- Cameron F Abrams -- cfa22@drexel.edu"
-    echo "# Command:"
-    echo "#    prep_namd_restart.sh ${@}"
+    banner
 fi
 
 if [[ "$ENSEMBLE" != "nochange" ]] && [[ "$ENSEMBLE" != "nvt" ]] && [[ "$ENSEMBLE" != "npt" ]]; then
