@@ -101,7 +101,6 @@ fi
 #echo "CURRENT_ENSEMBLE: $CURRENT_ENSEMBLE"
 #exit
 stepsrun=`grep "EXTENDED SYSTEM TO RESTART" $LOG | tail -1 | awk '{print $NF}'`
-echo "stepsrun $stepsrun"
 if [ -z "${stepsrun}" ]; then
     echo "Error: Cannot determine checkpoint timestep from $LOG"
     exit 1
