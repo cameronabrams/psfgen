@@ -131,15 +131,12 @@ else
     stepsleft=$(($stepsleft+$USERADDSTEPS))
 fi
 lastout=`grep "set outputname" $CONF | grep -v \# | awk '{print $3}' | sed 's/;$//'`
-nsubs=0
 if [ -z "${lastout}" ]; then
     lastout=`grep -i ^outputname $CONF | awk '{print $2}' | sed 's/;$//'`
     if [ -z "${lastout}" ]; then
         echo "Error: $CONF does not contain an outputname specification."
         exit 1
     fi
-else
-    nsubs=`grep -c \$outputname $CONF`
 fi
 if [[ $stepsleft -eq 0 ]]; then
     echo "${LOG} indicates run has finished ($stepsleft out of $stepsrequested steps left); no restart is necessary."
