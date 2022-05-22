@@ -131,12 +131,15 @@ else
     stepsleft=$(($stepsleft+$USERADDSTEPS))
 fi
 lastout=`grep "set outputname" $CONF | grep -v \# | awk '{print $3}' | sed 's/;$//'`
+nsubs=0
 if [ -z "${lastout}" ]; then
     lastout=`grep -i ^outputname $CONF | awk '{print $2}' | sed 's/;$//'`
     if [ -z "${lastout}" ]; then
         echo "Error: $CONF does not contain an outputname specification."
         exit 1
     fi
+else
+    nsubs=`grep -c \$outputname $CONF`
 fi
 if [[ $stepsleft -eq 0 ]]; then
     echo "${LOG} indicates run has finished ($stepsleft out of $stepsrequested steps left); no restart is necessary."
@@ -182,8 +185,8 @@ cat $CONF | sed '/^#/d' | sed '/^$/d' | sed '/^firsttimestep/d' | \
             sed '/^extendedsystem/d' | \
             sed '1 i # restart file generated from '$CONF' and '$LOG | \
             sed '/set outputname/ c set outputname '$REOUTNAME | \
-            sed '/outputName/ c outputName '$REOUTNAME | \
-            sed '/outputname/ c outputname '$REOUTNAME | \
+            sed '/outputName/ c outputName \$outputname' | \
+            sed '/outputname/ c outputname \$outputname' | \
             sed '4 i bincoordinates '${lastout}${RESINFILENAME}'.coor' | \
             sed '5 i binvelocities '${lastout}${RESINFILENAME}'.vel' | \
             sed '6 i extendedsystem '${lastout}${RESINFILENAME}'.xsc' | \
