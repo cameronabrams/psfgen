@@ -68,6 +68,16 @@ done
 
 cfgext=`echo $RECONF| awk -F. '{print $NF}'`
 REOUTNAME=`echo $RECONF | sed s/".${cfgext}//"`
+FILES=($RECONF)
+
+for pfile in `grep -i ^parameters $CONF | awk '{print $NF}'`; do
+   FILES+=($pfile)
+done
+FILES+=(`grep -i ^structure $CONF|awk '{print $NF}'`)
+FILES+=(`grep -i ^coordinates $CONF|awk '{print $NF}'`)
+FILES+=(`grep -i ^colvarsconfig $CONF|awk '{print $NF}'`)
+FILES+=(`grep -iw ^tmdfile $CONF|awk '{print $NF}'`)
+FILES+=(`grep -iw ^tmdfile2 $CONF|awk '{print $NF}'`)
 
 if [[ "$quiet" != "0" ]]; then
     banner
@@ -214,5 +224,10 @@ if [ ! -z "${tmdon}" ]; then
         cat $RECONF | sed '/tmd on/ a tmdinitialrmsd '${tmdinitialrmsd} > tmp
         mv tmp $RECONF
     fi
-fi	
+fi
+FILES+=(`grep -i ^bincoordinates $RECONF|awk '{print $NF}'`)
+FILES+=(`grep -i ^binvelocities $RECONF|awk '{print $NF}'`)
+FILES+=(`grep -i ^extendedsystem $RECONF|awk '{print $NF}'`)
+
+echo ${FILES[@]} > ${RECONF}.files
 echo "Created restart config $RECONF"
