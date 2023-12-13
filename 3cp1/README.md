@@ -49,6 +49,7 @@ $ $PSFGEN_BASEDIR/5jyn/do_test.sh [-restart] [-psfgen_args -seed <#> -mper-exten
 ```
 
 Switch | Args | Notes
+-------|------|------
 `-restart` | none | skip everything up to and including packmol and just begin solvated MD
 `-seed` | any +int | random number generator seed
 `-mper-extend` | none | grow MPER residues as an alpha-helix at C-terminus of CHR's
