@@ -199,8 +199,7 @@ cat $CONF | sed '/^#/d' | sed '/^$/d' | sed '/^firsttimestep/d' | \
             sed '/^binvelocities/d' | \
             sed '/^extendedsystem/d' | \
             sed '/^extendedSystem/d' | \
-            sed '1 i # restart file generated from                    associates={}
- '$CONF' and '$LOG | \
+            sed '1 i # restart file generated from '$CONF' and '$LOG | \
             sed '/set outputname/ c set outputname '$REOUTNAME | \
             sed '/^outputName/ c outputName \$outputname' | \
             sed '/^outputname/ c outputname \$outputname' | \
