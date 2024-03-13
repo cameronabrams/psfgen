@@ -1,3 +1,6 @@
+# THIS REPOSITORY IS NO LONGER MAINTAINED
+# psfgen is now replaced by pestifer
+
 # psfgen -- Advanced scripts for generating configurations and CHARMM36 topologies for use with NAMD
 
 This repository contains psfgen scripts, TcL scripts for use in VMD, and some associated CHARMM36 topology and parameter files and NAMD config files used to generate _initial conditions_ for production MD simulations of various systems.  It should be helpful to anyone already familiar with using [psfgen](https://www.ks.uiuc.edu/Research/vmd/plugins/psfgen) to build systems using CHARMM topologies who also needs access to some more advanced system-building capabilities than are available in the [psfgen tutorial](https://www.ks.uiuc.edu/Research/namd/tutorial/NCSA2002/hands-on).  It is strongly recommended that users have familiarity with the psfgen plugin via the excellent [user guide](https://www.ks.uiuc.edu/Research/vmd/plugins/psfgen/ug.pdf). Some of the features this repository provides beyond what psfgen can easily do are the following:
